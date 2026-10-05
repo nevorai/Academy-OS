@@ -14,7 +14,7 @@ Academy OS is its own product; it has nothing to do with Metrol.
 - Hooks with NO cron job in the old project: automation-tick, dispatch-campaigns, nevorai-brief. 153 automation_events sit `pending`, never processed. They are NOT scheduled in Nevorai OS either (switching them on could suddenly send messages): Adarsh decides.
 - One stray edge function, approve-job-application, sits in the old project. It is not Academy OS code (Academy never calls it: no reference in src/) and is not moved.
 - Realtime publication: attendance_sessions, attendance_marks, mc_matches, mc_innings, mc_ball_events, notifications, automation_events, automation_executions, automation_deliveries.
-- Production = Vercel project `academyos` (academyos.nevorai.com + saisportsacademy.nevorai.com), repo github.com/adarsh21ch/Academy-OS (main auto-deploys).
+- Production = Vercel project `academyos` (academyos.nevorai.com + saisportsacademy.nevorai.com), repo github.com/nevorai/Academy-OS (main auto-deploys).
 - Server env: SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, SUPABASE_SERVICE_ROLE_KEY (+VITE_ copies), CRON_SECRET, VAPID_*, META_WA_*, GOOGLE_API_KEY, PAYMENT_CONFIG_KEY, EXPO_ACCESS_TOKEN, LOVABLE_API_KEY. Only the Supabase ones and CRON_SECRET change.
 - Nevorai OS: session pooler host aws-0-ap-south-1.pooler.supabase.com (user postgres.wxgfaaaboftzsazknbvl). Exposed schemas today: public, graphql_public, creator_os, connect (keep them all when adding academy). No `academy` schema yet.
 

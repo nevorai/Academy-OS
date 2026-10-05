@@ -53,5 +53,5 @@ Rebuild `src/components/auth/AcademyAuthLayout.tsx` (274 lines) and the shell of
   `useAcademyBrand()`.
 
 ## Done means
-`npm run build` exits 0, commit, push to `adarsh21ch/Academy-OS` main,
+`npm run build` exits 0, commit, push to `nevorai/Academy-OS` main,
 Vercel auto-deploys, then verify the live CSS/bundle actually changed.

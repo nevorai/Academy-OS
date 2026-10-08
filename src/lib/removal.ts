@@ -1,4 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
+import { mediaR2On } from "@/lib/media-paths";
+import { removeTenantMedia } from "@/lib/media.functions";
 
 /** Platform-admin only. Permanently removes a tenant and cascades all its data. */
 export async function removeTenant(tenantId: string, confirmName: string) {
@@ -7,6 +9,8 @@ export async function removeTenant(tenantId: string, confirmName: string) {
     _confirm_name: confirmName,
   });
   if (error) throw error;
+  // The academy's files (private documents included) must not outlive it on R2.
+  if (mediaR2On()) await removeTenantMedia({ data: { tenantId } }).catch(() => undefined);
 }
 
 /** Owner (or platform admin). Permanently removes a player and all their academy data. */

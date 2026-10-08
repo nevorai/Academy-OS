@@ -1,6 +1,7 @@
 import { DB_SCHEMA, STORAGE_BUCKET } from "@/lib/db-schema";
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
+import { mediaR2On, publicMediaUrl } from "@/lib/media-paths";
 
 type TenantIconRow = {
   id: string;
@@ -103,6 +104,10 @@ export const Route = createFileRoute("/api/public/tenant-icon")({
           // Only expose the active tenant's own logo file. The endpoint exists
           // because PWA installers cannot use private Supabase storage paths.
           if (!logoUrl.startsWith(`${tenant.id}/`)) return fallback();
+
+          // With R2 on, a logo is a public file on the CDN: send the installer there.
+          const onCdn = mediaR2On() ? publicMediaUrl(logoUrl) : null;
+          if (onCdn) return Response.redirect(onCdn, 302);
 
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const { data, error } = await supabaseAdmin.storage.from(BUCKET).download(logoUrl);

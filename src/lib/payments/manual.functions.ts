@@ -366,6 +366,9 @@ export const signManualPaymentScreenshot = createServerFn({ method: "POST" })
       .eq("id", data.submissionId)
       .maybeSingle();
     if (error || !row?.screenshot_path) return { url: null as string | null };
+    const { privateLinkFor } = await import("@/lib/media.functions");
+    const onR2 = await privateLinkFor(row.screenshot_path);
+    if (onR2) return { url: onR2 };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: signed } = await supabaseAdmin.storage
       .from(STORAGE_BUCKET)

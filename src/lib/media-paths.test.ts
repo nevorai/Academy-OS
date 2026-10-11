@@ -103,8 +103,8 @@ describe("r2.server signing", () => {
     process.env.R2_SECRET_ACCESS_KEY = "pub-secret";
     process.env.R2_PRIVATE_ACCESS_KEY_ID = "priv-id";
     process.env.R2_PRIVATE_SECRET_ACCESS_KEY = "priv-secret";
-    const pub = (await r2SignedPut("public", `academy/${T}/gallery--a1.webp`, "image/webp"))!;
-    const priv = (await r2SignedPut("private", `academy/${T}/registration/a1.jpg`, "image/jpeg"))!;
+    const pub = (await r2SignedPut("public", `academy/${T}/gallery--a1.webp`, "image/webp", 1234))!;
+    const priv = (await r2SignedPut("private", `academy/${T}/registration/a1.jpg`, "image/jpeg", 1234))!;
     expect(pub).toContain("/nevorai-media/academy/");
     expect(priv).toContain("/nevorai-private/academy/");
     for (const u of [pub, priv]) {

@@ -37,16 +37,26 @@ const base = (which: Which) => `https://${process.env.R2_ACCOUNT_ID}.r2.cloudfla
 const objectUrl = (which: Which, key: string) =>
   `${base(which)}/${key.split("/").map(encodeURIComponent).join("/")}`;
 
-/** A link the browser PUTs one new file to (10 minutes). The Content-Type must match. */
-export async function r2SignedPut(which: Which, key: string, contentType: string): Promise<string | null> {
+/**
+ * A link the browser PUTs one new file to (10 minutes). The Content-Type and the exact
+ * byte length are part of the signature, so the link cannot be used for a bigger file than
+ * the one the server approved (the public registration form is open to anyone).
+ */
+export async function r2SignedPut(
+  which: Which,
+  key: string,
+  contentType: string,
+  size: number,
+): Promise<string | null> {
   const c = aws(which);
-  if (!c) return null;
+  if (!c || !Number.isInteger(size) || size <= 0) return null;
   const url = new URL(objectUrl(which, key));
   url.searchParams.set("X-Amz-Expires", "600");
   const signed = await c.sign(url.toString(), {
     method: "PUT",
-    headers: { "content-type": contentType },
-    aws: { signQuery: true },
+    headers: { "content-type": contentType, "content-length": String(size) },
+    // aws4fetch leaves content-type and content-length out of the signature unless asked.
+    aws: { signQuery: true, allHeaders: true },
   });
   return signed.url;
 }

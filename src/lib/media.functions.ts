@@ -138,7 +138,7 @@ export const createMediaUpload = createServerFn({ method: "POST" })
     const which = parsed.isPublic ? "public" : "private";
     if (!r2Configured(which)) return { ok: false, error: "File uploads aren't set up yet. Please tell support." };
     const key = parsed.isPublic ? publicKey(parsed) : privateKey(parsed);
-    const putUrl = key ? await r2SignedPut(which, key, rule.type) : null;
+    const putUrl = key ? await r2SignedPut(which, key, rule.type, size) : null;
     if (!putUrl) return { ok: false, error: "That upload isn't allowed." };
     return { ok: true, mode: "r2", path, putUrl, type: rule.type };
   });

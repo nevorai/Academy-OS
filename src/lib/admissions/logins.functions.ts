@@ -259,6 +259,13 @@ export const resetStudentLogin = createServerFn({ method: "POST" })
       .eq("tenant_id", data.tenantId)
       .maybeSingle();
     if (!s?.user_id) throw new Error("This player has no login yet. Use Create logins first.");
+    // Only logins this academy made itself can be reset here. A person who signed up on their
+    // own (or who has Nevorai accounts elsewhere under the same email) resets their own password.
+    const { data: target } = await admin.auth.admin.getUserById(s.user_id);
+    const meta = (target?.user?.user_metadata ?? {}) as { must_change_password?: unknown; tenant_id?: unknown };
+    if (typeof meta.must_change_password !== "boolean" || meta.tenant_id !== data.tenantId) {
+      throw new Error("This player set up their own login. Ask them to use Forgot password on the sign-in page.");
+    }
     const { data: uname } = await admin
       .from("user_usernames")
       .select("username")

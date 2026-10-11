@@ -31,6 +31,19 @@ export const RESERVED_HOSTS = new Set([
   "api",
   "admin",
   "flow",
+  "billing",
+  "dash",
+  "connect",
+  "courses",
+  "media",
+  "task",
+  "tasks",
+  "crm",
+  "creator",
+  "kaizen",
+  "store",
+  "mail",
+  "status",
 ]);
 
 /** Base domains we own. Anything ending in one of these is "our" host. */

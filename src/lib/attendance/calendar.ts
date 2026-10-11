@@ -115,6 +115,61 @@ export function groupByStudent(visits: Visit[]): Map<string, Map<string, Visit[]
   return out;
 }
 
+/** Blank squares before the 1st when the week starts on Sunday (the Metrol CRM layout). */
+export function sundayLead(year: number, m0: number): number {
+  return new Date(year, m0, 1).getDay();
+}
+
+export interface DayRow {
+  date: string;
+  state: DayState;
+  /** The first check-in of the day, if any. */
+  inAt: string | null;
+  /** The last check-out of the day. Null while the player is still in. */
+  outAt: string | null;
+  /** True when the player checked in and has not checked out yet. */
+  open: boolean;
+  /** Minutes practised that day, from the recorded durations. */
+  minutes: number | null;
+}
+
+/**
+ * The table under the calendar: every day up to today that was a present, late or
+ * absent day, newest first. Days with no session are left out.
+ */
+export function dayRows(
+  days: MonthDay[],
+  states: Record<string, DayState>,
+  visitsByDate: Map<string, Visit[]>,
+  today: string,
+): DayRow[] {
+  const rows: DayRow[] = [];
+  for (const d of days) {
+    if (d.date > today) continue;
+    const state = states[d.date] ?? "none";
+    if (state === "none") continue;
+    const visits = (visitsByDate.get(d.date) ?? []).filter((v) => v.check_in_at);
+    const ins = visits.map((v) => v.check_in_at as string).sort();
+    const outs = visits.map((v) => v.check_out_at).filter((x): x is string => !!x).sort();
+    const open = visits.some((v) => !v.check_out_at);
+    const mins = visits.reduce((n, v) => n + (v.duration_minutes ?? 0), 0);
+    rows.push({
+      date: d.date,
+      state,
+      inAt: ins[0] ?? null,
+      outAt: open ? null : (outs[outs.length - 1] ?? null),
+      open,
+      minutes: visits.length && mins > 0 ? mins : null,
+    });
+  }
+  return rows.reverse();
+}
+
+/** Total practice minutes in a set of visits. */
+export function practiceMinutes(visits: Visit[]): number {
+  return visits.reduce((n, v) => n + (v.check_in_at ? (v.duration_minutes ?? 0) : 0), 0);
+}
+
 // ---------------------------------------------------------------------------
 // Fetchers
 // ---------------------------------------------------------------------------

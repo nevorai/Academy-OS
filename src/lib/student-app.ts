@@ -11,6 +11,7 @@
  * additionally guarded by "student self read" RLS policies.
  */
 import { supabase } from "@/integrations/supabase/client";
+import { isoDate, todayISO } from "@/lib/attendance/calendar";
 import {
   fetchStudentVisits,
   groupVisitsByDay,
@@ -159,14 +160,13 @@ function computeStreak(visits: AttendanceVisit[]): number {
 }
 
 export async function fetchStudentHome(ctx: StudentContext): Promise<StudentHome> {
-  const since = new Date();
-  since.setDate(1);
-  const sinceIso = since.toISOString().slice(0, 10);
+  const now = new Date();
+  const sinceIso = isoDate(now.getFullYear(), now.getMonth(), 1);
 
   const visits = await fetchStudentVisits(ctx.tenant_id, ctx.student_id, { limit: 200 });
   const monthVisits = visits.filter((v) => v.session_date >= sinceIso);
   const hoursThisMonth = monthVisits.reduce((s, v) => s + (v.duration_minutes ?? 0), 0) / 60;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
   const todayVisits = visits.filter((v) => v.session_date === today && v.status === "present");
   // Prefer the currently-open visit; otherwise show the latest completed
   // visit. A student can legitimately check in more than once per day.

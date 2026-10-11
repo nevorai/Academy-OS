@@ -30,6 +30,8 @@
  */
 
 @theme inline {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Archivo", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -89,7 +91,7 @@
   --app-safe-right: var(--app-safe-right);
 
   --radius: 0.625rem;
-  --background: oklch(0.985 0 0);
+  --background: oklch(0.97 0 0);
   --foreground: oklch(0.16 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.16 0 0);
@@ -105,15 +107,15 @@
   --accent-foreground: oklch(0.16 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.92 0 0);
-  --input: oklch(0.92 0 0);
+  --border: oklch(0.91 0 0);
+  --input: oklch(0.91 0 0);
   --ring: oklch(0.7 0 0);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
+  --sidebar: oklch(1 0 0);
   --sidebar-foreground: oklch(0.16 0 0);
   --sidebar-primary: oklch(0.16 0 0);
   --sidebar-primary-foreground: oklch(0.985 0 0);
@@ -300,10 +302,16 @@
     min-height: 100dvh;
   }
 
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.012em;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -830,3 +838,59 @@ body {
   z-index: 5;
   background: color-mix(in oklch, var(--card) 95%, var(--background));
 }
+
+/* ---------- Attendance month calendar (same look as the Metrol CRM Attendance tab) ---------- */
+.att-cal {
+  --cal-present: #0e9f6e; --cal-present-2: #057a55;
+  --cal-late: #d97706;    --cal-late-2: #b45309;
+  --cal-absent: #e11d48;  --cal-absent-2: #be123c;
+}
+.att-cal-cell {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  height: 2.5rem; border-radius: 0.625rem; font-size: 13px; font-weight: 700; line-height: 1;
+  font-variant-numeric: tabular-nums; background: color-mix(in srgb, var(--muted) 70%, var(--card));
+  color: var(--muted-foreground); transition: transform 0.12s ease;
+}
+.att-cal-cell:active { transform: scale(0.95); }
+.att-cal-cell--present { background: linear-gradient(155deg, var(--cal-present), var(--cal-present-2)); color: #fff; }
+.att-cal-cell--absent { background: linear-gradient(155deg, var(--cal-absent), var(--cal-absent-2)); color: #fff; }
+.att-cal-cell--late { background: linear-gradient(155deg, var(--cal-late), var(--cal-late-2)); color: #2b1c02; }
+.att-cal-cell--none { color: color-mix(in srgb, var(--muted-foreground) 70%, transparent); }
+.att-cal-cell--future { opacity: 0.35; }
+.att-cal-cell--today { box-shadow: 0 0 0 2px var(--card), 0 0 0 3.5px var(--brand, var(--primary)); z-index: 1; }
+.att-cal-cell--picked { outline: 2px solid color-mix(in srgb, var(--foreground) 60%, transparent); outline-offset: 1px; }
+.att-cal-cell .att-cal-code { font-size: 8.5px; font-weight: 800; letter-spacing: 0.02em; }
+.att-cal-key { display: flex; flex-wrap: wrap; gap: 11px; font-size: 11px; color: var(--muted-foreground); }
+.att-cal-key span { display: inline-flex; align-items: center; gap: 5px; }
+.att-cal-key i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; }
+.att-cal-key .k-present { background: var(--cal-present); }
+.att-cal-key .k-late { background: var(--cal-late); }
+.att-cal-key .k-absent { background: var(--cal-absent); }
+.att-cal-key .k-none { background: color-mix(in srgb, var(--muted-foreground) 35%, var(--card)); }
+.att-cal-sum { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.att-cal-sum > div { grid-column: span 2; }
+.att-cal-sum > div:nth-child(n + 4) { grid-column: span 3; }
+.att-cal-sum > div {
+  display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;
+  border: 1px solid var(--border); border-radius: 0.75rem; padding: 8px 12px; background: var(--card);
+}
+.att-cal-sum .n { font-weight: 800; font-size: 19px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.att-cal-sum .l { font-size: 11px; color: var(--muted-foreground); }
+.att-cal-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.att-cal-table th {
+  padding: 8px 10px; text-align: left; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--muted-foreground); font-weight: 600; border-bottom: 1px solid var(--border);
+}
+.att-cal-table td { padding: 9px 10px; border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent); white-space: nowrap; }
+.att-cal-table tr:last-child td { border-bottom: 0; }
+.att-cal-table .num { font-variant-numeric: tabular-nums; }
+.att-cal-table .muted { color: var(--muted-foreground); }
+@media (max-width: 560px) {
+  .att-cal-table { font-size: 12px; }
+  .att-cal-table th { padding: 8px 6px; font-size: 9.5px; letter-spacing: 0.02em; }
+  .att-cal-table td { padding: 8px 6px; }
+}
+.att-chip { display: inline-block; border-radius: 999px; padding: 2px 9px; font-size: 11px; font-weight: 600; border: 1px solid transparent; }
+.att-chip--present { background: color-mix(in srgb, var(--cal-present) 14%, transparent); color: var(--cal-present-2); border-color: color-mix(in srgb, var(--cal-present) 35%, transparent); }
+.att-chip--late { background: color-mix(in srgb, var(--cal-late) 14%, transparent); color: var(--cal-late-2); border-color: color-mix(in srgb, var(--cal-late) 35%, transparent); }
+.att-chip--absent { background: color-mix(in srgb, var(--cal-absent) 12%, transparent); color: var(--cal-absent-2); border-color: color-mix(in srgb, var(--cal-absent) 35%, transparent); }

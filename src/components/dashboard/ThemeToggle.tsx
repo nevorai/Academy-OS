@@ -1,16 +1,16 @@
 // Theme engine — unchanged storage key, now supports "system".
-// Storage: "light" | "dark" | "system". Default = "system".
+// Storage: "light" | "dark" | "system". Default = "light" (nothing stored yet).
 
 export type ThemeMode = "light" | "dark" | "system";
 
 export const THEME_KEY = "acadaos.theme";
 
 function systemPrefersDark(): boolean {
-  if (typeof window === "undefined") return true;
+  if (typeof window === "undefined") return false;
   try {
-    return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? true;
+    return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
   } catch {
-    return true;
+    return false;
   }
 }
 
@@ -34,7 +34,7 @@ export function readStoredThemeMode(): ThemeMode {
   } catch {
     /* ignore */
   }
-  return "system";
+  return "light";
 }
 
 export function setStoredThemeMode(mode: ThemeMode) {

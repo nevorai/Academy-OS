@@ -46,7 +46,7 @@ export function PreferencesCard() {
   const hydrated = useHydrated();
   const isDesktop = useIsDesktop();
 
-  const [themeMode, setThemeModeState] = useState<ThemeMode>("system");
+  const [themeMode, setThemeModeState] = useState<ThemeMode>("light");
   const [langOpen, setLangOpen] = useState(false);
 
   useEffect(() => {

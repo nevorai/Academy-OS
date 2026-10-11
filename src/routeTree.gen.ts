@@ -9,312 +9,158 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TestimonialsRouteImport } from './routes/testimonials'
-import { Route as TermsRouteImport } from './routes/terms'
-import { Route as StudentRouteImport } from './routes/student'
-import { Route as StarPlayersRouteImport } from './routes/star-players'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
-import { Route as RegisterRouteImport } from './routes/register'
-import { Route as RefundRouteImport } from './routes/refund'
-import { Route as ProgramsRouteImport } from './routes/programs'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as PricingRouteImport } from './routes/pricing'
-import { Route as PlatformAdminRouteImport } from './routes/platform-admin'
-import { Route as ParentPortalRouteImport } from './routes/parent-portal'
-import { Route as ParentRouteImport } from './routes/parent'
-import { Route as NotificationsRouteImport } from './routes/notifications'
-import { Route as MatchesRouteImport } from './routes/matches'
-import { Route as MatchCenterRouteImport } from './routes/match-center'
-import { Route as LocationRouteImport } from './routes/location'
-import { Route as GalleryRouteImport } from './routes/gallery'
-import { Route as FeesRouteImport } from './routes/fees'
-import { Route as FeaturesRouteImport } from './routes/features'
-import { Route as FaqRouteImport } from './routes/faq'
-import { Route as FacilitiesRouteImport } from './routes/facilities'
-import { Route as DemoRouteImport } from './routes/demo'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as ContactRouteImport } from './routes/contact'
-import { Route as CoachesRouteImport } from './routes/coaches'
-import { Route as CheckinRouteImport } from './routes/checkin'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AppLaunchRouteImport } from './routes/app-launch'
-import { Route as AdmissionsRouteImport } from './routes/admissions'
-import { Route as AchievementsRouteImport } from './routes/achievements'
-import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as StudentIndexRouteImport } from './routes/student.index'
-import { Route as PlatformAdminIndexRouteImport } from './routes/platform-admin.index'
-import { Route as ParentIndexRouteImport } from './routes/parent.index'
-import { Route as MatchesIndexRouteImport } from './routes/matches.index'
-import { Route as MatchCenterIndexRouteImport } from './routes/match-center.index'
-import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
-import { Route as StudentTimelineRouteImport } from './routes/student.timeline'
-import { Route as StudentProgressRouteImport } from './routes/student.progress'
-import { Route as StudentProfileRouteImport } from './routes/student.profile'
-import { Route as StudentPendingRouteImport } from './routes/student.pending'
-import { Route as StudentMatchesRouteImport } from './routes/student.matches'
-import { Route as StudentManageRouteImport } from './routes/student.manage'
-import { Route as StudentFeesRouteImport } from './routes/student.fees'
-import { Route as ScorerMatchIdRouteImport } from './routes/scorer.$matchId'
-import { Route as PoliciesKindRouteImport } from './routes/policies.$kind'
-import { Route as PlatformAdminUsageRouteImport } from './routes/platform-admin.usage'
-import { Route as PlatformAdminSupportRouteImport } from './routes/platform-admin.support'
-import { Route as PlatformAdminSubscriptionsRouteImport } from './routes/platform-admin.subscriptions'
-import { Route as PlatformAdminSportsRouteImport } from './routes/platform-admin.sports'
-import { Route as PlatformAdminSettingsRouteImport } from './routes/platform-admin.settings'
-import { Route as PlatformAdminSearchRouteImport } from './routes/platform-admin.search'
-import { Route as PlatformAdminPushRouteImport } from './routes/platform-admin.push'
-import { Route as PlatformAdminPaymentSettingsRouteImport } from './routes/platform-admin.payment-settings'
-import { Route as PlatformAdminNewRouteImport } from './routes/platform-admin.new'
-import { Route as PlatformAdminNevoraiRouteImport } from './routes/platform-admin.nevorai'
-import { Route as PlatformAdminHealthRouteImport } from './routes/platform-admin.health'
-import { Route as PlatformAdminFounderRouteImport } from './routes/platform-admin.founder'
-import { Route as PlatformAdminFlagsRouteImport } from './routes/platform-admin.flags'
-import { Route as PlatformAdminCommunicationRouteImport } from './routes/platform-admin.communication'
-import { Route as PlatformAdminAuditRouteImport } from './routes/platform-admin.audit'
-import { Route as ParentSplatRouteImport } from './routes/parent.$'
-import { Route as MatchesMatchIdRouteImport } from './routes/matches.$matchId'
-import { Route as MatchSlugRouteImport } from './routes/match.$slug'
-import { Route as MatchCenterWebsiteRouteImport } from './routes/match-center.website'
-import { Route as MatchCenterTournamentsRouteImport } from './routes/match-center.tournaments'
-import { Route as MatchCenterSettingsRouteImport } from './routes/match-center.settings'
-import { Route as MatchCenterScorersRouteImport } from './routes/match-center.scorers'
-import { Route as MatchCenterRecordsRouteImport } from './routes/match-center.records'
-import { Route as MatchCenterRecognitionRouteImport } from './routes/match-center.recognition'
-import { Route as MatchCenterProfileRouteImport } from './routes/match-center.profile'
-import { Route as MatchCenterPerformanceRouteImport } from './routes/match-center.performance'
-import { Route as MatchCenterMatchesRouteImport } from './routes/match-center.matches'
-import { Route as MatchCenterLiveRouteImport } from './routes/match-center.live'
-import { Route as MatchCenterLeaderboardsRouteImport } from './routes/match-center.leaderboards'
-import { Route as MatchCenterInsightsRouteImport } from './routes/match-center.insights'
-import { Route as MatchCenterDashboardRouteImport } from './routes/match-center.dashboard'
-import { Route as MatchCenterCreateRouteImport } from './routes/match-center.create'
-import { Route as MatchCenterAwardsRouteImport } from './routes/match-center.awards'
-import { Route as MatchCenterAiInsightsRouteImport } from './routes/match-center.ai-insights'
-import { Route as MSlugRouteImport } from './routes/m.$slug'
-import { Route as InviteTokenRouteImport } from './routes/invite.$token'
-import { Route as DashboardSubscriptionRouteImport } from './routes/dashboard.subscription'
-import { Route as DashboardStudentsRouteImport } from './routes/dashboard.students'
-import { Route as DashboardStaffRouteImport } from './routes/dashboard.staff'
-import { Route as DashboardSiteRouteImport } from './routes/dashboard.site'
-import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
-import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports'
-import { Route as DashboardRemindersRouteImport } from './routes/dashboard.reminders'
-import { Route as DashboardRegistrationsRouteImport } from './routes/dashboard.registrations'
-import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
-import { Route as DashboardPaymentVerificationRouteImport } from './routes/dashboard.payment-verification'
-import { Route as DashboardPaymentSettingsRouteImport } from './routes/dashboard.payment-settings'
-import { Route as DashboardNotificationsRouteImport } from './routes/dashboard.notifications'
-import { Route as DashboardNevoraiHealthRouteImport } from './routes/dashboard.nevorai-health'
-import { Route as DashboardNevoraiRouteImport } from './routes/dashboard.nevorai'
-import { Route as DashboardLeadsRouteImport } from './routes/dashboard.leads'
-import { Route as DashboardInsightsRouteImport } from './routes/dashboard.insights'
-import { Route as DashboardFeesRouteImport } from './routes/dashboard.fees'
-import { Route as DashboardFeePlansRouteImport } from './routes/dashboard.fee-plans'
-import { Route as DashboardCommunicationsRouteImport } from './routes/dashboard.communications'
-import { Route as DashboardCoachRouteImport } from './routes/dashboard.coach'
-import { Route as DashboardBrandingRouteImport } from './routes/dashboard.branding'
-import { Route as DashboardBillingRouteImport } from './routes/dashboard.billing'
-import { Route as DashboardBatchesRouteImport } from './routes/dashboard.batches'
-import { Route as DashboardAutomationTestRouteImport } from './routes/dashboard.automation-test'
-import { Route as DashboardAutomationSettingsRouteImport } from './routes/dashboard.automation-settings'
-import { Route as DashboardAutomationRouteImport } from './routes/dashboard.automation'
-import { Route as DashboardAttendanceQrRouteImport } from './routes/dashboard.attendance-qr'
-import { Route as DashboardAttendanceCalendarRouteImport } from './routes/dashboard.attendance-calendar'
-import { Route as DashboardAttendanceRouteImport } from './routes/dashboard.attendance'
-import { Route as DashboardAdmissionsReviewRouteImport } from './routes/dashboard.admissions-review'
-import { Route as DashboardAdminsRouteImport } from './routes/dashboard.admins'
-import { Route as DashboardActivationRouteImport } from './routes/dashboard.activation'
-import { Route as DashboardAcademyRouteImport } from './routes/dashboard.academy'
-import { Route as ApplySlugRouteImport } from './routes/apply.$slug'
-import { Route as ApiChatRouteImport } from './routes/api/chat'
-import { Route as ActivateTokenRouteImport } from './routes/activate.$token'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as AchievementsRouteImport } from './routes/achievements'
+import { Route as AdmissionsRouteImport } from './routes/admissions'
+import { Route as AppLaunchRouteImport } from './routes/app-launch'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CheckinRouteImport } from './routes/checkin'
+import { Route as CoachesRouteImport } from './routes/coaches'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as DemoRouteImport } from './routes/demo'
+import { Route as FacilitiesRouteImport } from './routes/facilities'
+import { Route as FaqRouteImport } from './routes/faq'
+import { Route as FeaturesRouteImport } from './routes/features'
+import { Route as FeesRouteImport } from './routes/fees'
+import { Route as GalleryRouteImport } from './routes/gallery'
+import { Route as LocationRouteImport } from './routes/location'
+import { Route as MatchCenterRouteImport } from './routes/match-center'
+import { Route as MatchesRouteImport } from './routes/matches'
+import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as ParentRouteImport } from './routes/parent'
+import { Route as ParentPortalRouteImport } from './routes/parent-portal'
+import { Route as PlatformAdminRouteImport } from './routes/platform-admin'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as ProgramsRouteImport } from './routes/programs'
+import { Route as RefundRouteImport } from './routes/refund'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as StarPlayersRouteImport } from './routes/star-players'
+import { Route as StudentRouteImport } from './routes/student'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as TestimonialsRouteImport } from './routes/testimonials'
 import { Route as AcademySlugRouteImport } from './routes/academy.$slug'
-import { Route as PlatformAdminTenantsIndexRouteImport } from './routes/platform-admin.tenants.index'
-import { Route as MatchCenterTeamsIndexRouteImport } from './routes/match-center.teams.index'
-import { Route as MatchCenterPlayersIndexRouteImport } from './routes/match-center.players.index'
-import { Route as PlatformAdminTenantsIdRouteImport } from './routes/platform-admin.tenants.$id'
-import { Route as MatchCenterTournamentsTournamentIdRouteImport } from './routes/match-center.tournaments.$tournamentId'
-import { Route as MatchCenterTeamsNewRouteImport } from './routes/match-center.teams.new'
-import { Route as MatchCenterTeamsTeamIdRouteImport } from './routes/match-center.teams.$teamId'
-import { Route as MatchCenterScorebookMatchIdRouteImport } from './routes/match-center.scorebook.$matchId'
-import { Route as MatchCenterPlayersAthleteIdRouteImport } from './routes/match-center.players.$athleteId'
-import { Route as MatchCenterPerformanceCompareRouteImport } from './routes/match-center.performance.compare'
-import { Route as MatchCenterPerformanceAthleteIdRouteImport } from './routes/match-center.performance.$athleteId'
-import { Route as DashboardStudentsIdRouteImport } from './routes/dashboard.students.$id'
-import { Route as DashboardCoachOnboardingRouteImport } from './routes/dashboard.coach.onboarding'
-import { Route as DashboardCoachApprovalsRouteImport } from './routes/dashboard.coach.approvals'
-import { Route as DashboardCoachAnalyticsRouteImport } from './routes/dashboard.coach.analytics'
+import { Route as ActivateTokenRouteImport } from './routes/activate.$token'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as ApplySlugRouteImport } from './routes/apply.$slug'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as DashboardAcademyRouteImport } from './routes/dashboard.academy'
+import { Route as DashboardActivationRouteImport } from './routes/dashboard.activation'
+import { Route as DashboardAdminsRouteImport } from './routes/dashboard.admins'
+import { Route as DashboardAdmissionsReviewRouteImport } from './routes/dashboard.admissions-review'
+import { Route as DashboardAttendanceRouteImport } from './routes/dashboard.attendance'
+import { Route as DashboardAttendanceCalendarRouteImport } from './routes/dashboard.attendance-calendar'
+import { Route as DashboardAttendanceQrRouteImport } from './routes/dashboard.attendance-qr'
+import { Route as DashboardAutomationRouteImport } from './routes/dashboard.automation'
+import { Route as DashboardAutomationSettingsRouteImport } from './routes/dashboard.automation-settings'
+import { Route as DashboardAutomationTestRouteImport } from './routes/dashboard.automation-test'
+import { Route as DashboardBatchesRouteImport } from './routes/dashboard.batches'
+import { Route as DashboardBillingRouteImport } from './routes/dashboard.billing'
+import { Route as DashboardBrandingRouteImport } from './routes/dashboard.branding'
+import { Route as DashboardCoachRouteImport } from './routes/dashboard.coach'
+import { Route as DashboardCommunicationsRouteImport } from './routes/dashboard.communications'
+import { Route as DashboardFeePlansRouteImport } from './routes/dashboard.fee-plans'
+import { Route as DashboardFeesRouteImport } from './routes/dashboard.fees'
+import { Route as DashboardInsightsRouteImport } from './routes/dashboard.insights'
+import { Route as DashboardLeadsRouteImport } from './routes/dashboard.leads'
+import { Route as DashboardNevoraiRouteImport } from './routes/dashboard.nevorai'
+import { Route as DashboardNevoraiHealthRouteImport } from './routes/dashboard.nevorai-health'
+import { Route as DashboardNotificationsRouteImport } from './routes/dashboard.notifications'
+import { Route as DashboardPaymentSettingsRouteImport } from './routes/dashboard.payment-settings'
+import { Route as DashboardPaymentVerificationRouteImport } from './routes/dashboard.payment-verification'
+import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
+import { Route as DashboardRegistrationsRouteImport } from './routes/dashboard.registrations'
+import { Route as DashboardRemindersRouteImport } from './routes/dashboard.reminders'
+import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports'
+import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
+import { Route as DashboardSiteRouteImport } from './routes/dashboard.site'
+import { Route as DashboardStaffRouteImport } from './routes/dashboard.staff'
+import { Route as DashboardStudentsRouteImport } from './routes/dashboard.students'
+import { Route as DashboardSubscriptionRouteImport } from './routes/dashboard.subscription'
+import { Route as InviteTokenRouteImport } from './routes/invite.$token'
+import { Route as MSlugRouteImport } from './routes/m.$slug'
+import { Route as MatchCenterIndexRouteImport } from './routes/match-center.index'
+import { Route as MatchCenterAiInsightsRouteImport } from './routes/match-center.ai-insights'
+import { Route as MatchCenterAwardsRouteImport } from './routes/match-center.awards'
+import { Route as MatchCenterCreateRouteImport } from './routes/match-center.create'
+import { Route as MatchCenterDashboardRouteImport } from './routes/match-center.dashboard'
+import { Route as MatchCenterInsightsRouteImport } from './routes/match-center.insights'
+import { Route as MatchCenterLeaderboardsRouteImport } from './routes/match-center.leaderboards'
+import { Route as MatchCenterLiveRouteImport } from './routes/match-center.live'
+import { Route as MatchCenterMatchesRouteImport } from './routes/match-center.matches'
+import { Route as MatchCenterPerformanceRouteImport } from './routes/match-center.performance'
+import { Route as MatchCenterProfileRouteImport } from './routes/match-center.profile'
+import { Route as MatchCenterRecognitionRouteImport } from './routes/match-center.recognition'
+import { Route as MatchCenterRecordsRouteImport } from './routes/match-center.records'
+import { Route as MatchCenterScorersRouteImport } from './routes/match-center.scorers'
+import { Route as MatchCenterSettingsRouteImport } from './routes/match-center.settings'
+import { Route as MatchCenterTournamentsRouteImport } from './routes/match-center.tournaments'
+import { Route as MatchCenterWebsiteRouteImport } from './routes/match-center.website'
+import { Route as MatchSlugRouteImport } from './routes/match.$slug'
+import { Route as MatchesIndexRouteImport } from './routes/matches.index'
+import { Route as MatchesMatchIdRouteImport } from './routes/matches.$matchId'
+import { Route as ParentIndexRouteImport } from './routes/parent.index'
+import { Route as ParentSplatRouteImport } from './routes/parent.$'
+import { Route as PlatformAdminIndexRouteImport } from './routes/platform-admin.index'
+import { Route as PlatformAdminAuditRouteImport } from './routes/platform-admin.audit'
+import { Route as PlatformAdminCommunicationRouteImport } from './routes/platform-admin.communication'
+import { Route as PlatformAdminFlagsRouteImport } from './routes/platform-admin.flags'
+import { Route as PlatformAdminFounderRouteImport } from './routes/platform-admin.founder'
+import { Route as PlatformAdminHealthRouteImport } from './routes/platform-admin.health'
+import { Route as PlatformAdminNevoraiRouteImport } from './routes/platform-admin.nevorai'
+import { Route as PlatformAdminNewRouteImport } from './routes/platform-admin.new'
+import { Route as PlatformAdminPaymentSettingsRouteImport } from './routes/platform-admin.payment-settings'
+import { Route as PlatformAdminPushRouteImport } from './routes/platform-admin.push'
+import { Route as PlatformAdminSearchRouteImport } from './routes/platform-admin.search'
+import { Route as PlatformAdminSettingsRouteImport } from './routes/platform-admin.settings'
+import { Route as PlatformAdminSportsRouteImport } from './routes/platform-admin.sports'
+import { Route as PlatformAdminSubscriptionsRouteImport } from './routes/platform-admin.subscriptions'
+import { Route as PlatformAdminSupportRouteImport } from './routes/platform-admin.support'
+import { Route as PlatformAdminUsageRouteImport } from './routes/platform-admin.usage'
+import { Route as PoliciesKindRouteImport } from './routes/policies.$kind'
+import { Route as ScorerMatchIdRouteImport } from './routes/scorer.$matchId'
+import { Route as StudentIndexRouteImport } from './routes/student.index'
+import { Route as StudentAttendanceRouteImport } from './routes/student.attendance'
+import { Route as StudentFeesRouteImport } from './routes/student.fees'
+import { Route as StudentManageRouteImport } from './routes/student.manage'
+import { Route as StudentMatchesRouteImport } from './routes/student.matches'
+import { Route as StudentPendingRouteImport } from './routes/student.pending'
+import { Route as StudentProfileRouteImport } from './routes/student.profile'
+import { Route as StudentProgressRouteImport } from './routes/student.progress'
+import { Route as StudentTimelineRouteImport } from './routes/student.timeline'
 import { Route as ApiPublicTenantIconRouteImport } from './routes/api/public/tenant-icon'
-import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
-import { Route as ApiPublicHooksSubscriptionCheckRouteImport } from './routes/api/public/hooks/subscription-check'
-import { Route as ApiPublicHooksOwnerSummariesRouteImport } from './routes/api/public/hooks/owner-summaries'
-import { Route as ApiPublicHooksNevoraiBriefRouteImport } from './routes/api/public/hooks/nevorai-brief'
-import { Route as ApiPublicHooksFeeRemindersRouteImport } from './routes/api/public/hooks/fee-reminders'
-import { Route as ApiPublicHooksDispatchCampaignsRouteImport } from './routes/api/public/hooks/dispatch-campaigns'
-import { Route as ApiPublicHooksAutomationTickRouteImport } from './routes/api/public/hooks/automation-tick'
+import { Route as DashboardCoachAnalyticsRouteImport } from './routes/dashboard.coach.analytics'
+import { Route as DashboardCoachApprovalsRouteImport } from './routes/dashboard.coach.approvals'
+import { Route as DashboardCoachOnboardingRouteImport } from './routes/dashboard.coach.onboarding'
+import { Route as DashboardStudentsIdRouteImport } from './routes/dashboard.students.$id'
+import { Route as MatchCenterPerformanceAthleteIdRouteImport } from './routes/match-center.performance.$athleteId'
+import { Route as MatchCenterPerformanceCompareRouteImport } from './routes/match-center.performance.compare'
+import { Route as MatchCenterPlayersIndexRouteImport } from './routes/match-center.players.index'
+import { Route as MatchCenterPlayersAthleteIdRouteImport } from './routes/match-center.players.$athleteId'
+import { Route as MatchCenterScorebookMatchIdRouteImport } from './routes/match-center.scorebook.$matchId'
+import { Route as MatchCenterTeamsIndexRouteImport } from './routes/match-center.teams.index'
+import { Route as MatchCenterTeamsTeamIdRouteImport } from './routes/match-center.teams.$teamId'
+import { Route as MatchCenterTeamsNewRouteImport } from './routes/match-center.teams.new'
+import { Route as MatchCenterTournamentsTournamentIdRouteImport } from './routes/match-center.tournaments.$tournamentId'
+import { Route as PlatformAdminTenantsIndexRouteImport } from './routes/platform-admin.tenants.index'
+import { Route as PlatformAdminTenantsIdRouteImport } from './routes/platform-admin.tenants.$id'
 import { Route as AcademyAcademySlugTournamentsTournamentSlugRouteImport } from './routes/academy.$academySlug.tournaments.$tournamentSlug'
+import { Route as ApiPublicHooksAutomationTickRouteImport } from './routes/api/public/hooks/automation-tick'
+import { Route as ApiPublicHooksDispatchCampaignsRouteImport } from './routes/api/public/hooks/dispatch-campaigns'
+import { Route as ApiPublicHooksFeeRemindersRouteImport } from './routes/api/public/hooks/fee-reminders'
+import { Route as ApiPublicHooksNevoraiBriefRouteImport } from './routes/api/public/hooks/nevorai-brief'
+import { Route as ApiPublicHooksOwnerSummariesRouteImport } from './routes/api/public/hooks/owner-summaries'
+import { Route as ApiPublicHooksSubscriptionCheckRouteImport } from './routes/api/public/hooks/subscription-check'
+import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
 import { Route as ApiPublicPaymentsProviderWebhookRouteImport } from './routes/api/public/payments/$provider/webhook'
 
-const TestimonialsRoute = TestimonialsRouteImport.update({
-  id: '/testimonials',
-  path: '/testimonials',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StudentRoute = StudentRouteImport.update({
-  id: '/student',
-  path: '/student',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StarPlayersRoute = StarPlayersRouteImport.update({
-  id: '/star-players',
-  path: '/star-players',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
-  id: '/robots.txt',
-  path: '/robots.txt',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RegisterRoute = RegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RefundRoute = RefundRouteImport.update({
-  id: '/refund',
-  path: '/refund',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProgramsRoute = ProgramsRouteImport.update({
-  id: '/programs',
-  path: '/programs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PricingRoute = PricingRouteImport.update({
-  id: '/pricing',
-  path: '/pricing',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PlatformAdminRoute = PlatformAdminRouteImport.update({
-  id: '/platform-admin',
-  path: '/platform-admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ParentPortalRoute = ParentPortalRouteImport.update({
-  id: '/parent-portal',
-  path: '/parent-portal',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ParentRoute = ParentRouteImport.update({
-  id: '/parent',
-  path: '/parent',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NotificationsRoute = NotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MatchesRoute = MatchesRouteImport.update({
-  id: '/matches',
-  path: '/matches',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MatchCenterRoute = MatchCenterRouteImport.update({
-  id: '/match-center',
-  path: '/match-center',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LocationRoute = LocationRouteImport.update({
-  id: '/location',
-  path: '/location',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GalleryRoute = GalleryRouteImport.update({
-  id: '/gallery',
-  path: '/gallery',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FeesRoute = FeesRouteImport.update({
-  id: '/fees',
-  path: '/fees',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FeaturesRoute = FeaturesRouteImport.update({
-  id: '/features',
-  path: '/features',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FaqRoute = FaqRouteImport.update({
-  id: '/faq',
-  path: '/faq',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FacilitiesRoute = FacilitiesRouteImport.update({
-  id: '/facilities',
-  path: '/facilities',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemoRoute = DemoRouteImport.update({
-  id: '/demo',
-  path: '/demo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContactRoute = ContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CoachesRoute = CoachesRouteImport.update({
-  id: '/coaches',
-  path: '/coaches',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CheckinRoute = CheckinRouteImport.update({
-  id: '/checkin',
-  path: '/checkin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppLaunchRoute = AppLaunchRouteImport.update({
-  id: '/app-launch',
-  path: '/app-launch',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdmissionsRoute = AdmissionsRouteImport.update({
-  id: '/admissions',
-  path: '/admissions',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AchievementsRoute = AchievementsRouteImport.update({
-  id: '/achievements',
-  path: '/achievements',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -322,416 +168,204 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AchievementsRoute = AchievementsRouteImport.update({
+  id: '/achievements',
+  path: '/achievements',
   getParentRoute: () => rootRouteImport,
 } as any)
-const StudentIndexRoute = StudentIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => StudentRoute,
+const AdmissionsRoute = AdmissionsRouteImport.update({
+  id: '/admissions',
+  path: '/admissions',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const PlatformAdminIndexRoute = PlatformAdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => PlatformAdminRoute,
+const AppLaunchRoute = AppLaunchRouteImport.update({
+  id: '/app-launch',
+  path: '/app-launch',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const ParentIndexRoute = ParentIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ParentRoute,
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const MatchesIndexRoute = MatchesIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => MatchesRoute,
+const CheckinRoute = CheckinRouteImport.update({
+  id: '/checkin',
+  path: '/checkin',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const MatchCenterIndexRoute = MatchCenterIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => MatchCenterRoute,
+const CoachesRoute = CoachesRouteImport.update({
+  id: '/coaches',
+  path: '/coaches',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FacilitiesRoute = FacilitiesRouteImport.update({
+  id: '/facilities',
+  path: '/facilities',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeaturesRoute = FeaturesRouteImport.update({
+  id: '/features',
+  path: '/features',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeesRoute = FeesRouteImport.update({
+  id: '/fees',
+  path: '/fees',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GalleryRoute = GalleryRouteImport.update({
+  id: '/gallery',
+  path: '/gallery',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocationRoute = LocationRouteImport.update({
+  id: '/location',
+  path: '/location',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MatchCenterRoute = MatchCenterRouteImport.update({
+  id: '/match-center',
+  path: '/match-center',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MatchesRoute = MatchesRouteImport.update({
+  id: '/matches',
+  path: '/matches',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ParentRoute = ParentRouteImport.update({
+  id: '/parent',
+  path: '/parent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ParentPortalRoute = ParentPortalRouteImport.update({
+  id: '/parent-portal',
+  path: '/parent-portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlatformAdminRoute = PlatformAdminRouteImport.update({
+  id: '/platform-admin',
+  path: '/platform-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProgramsRoute = ProgramsRouteImport.update({
+  id: '/programs',
+  path: '/programs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RefundRoute = RefundRouteImport.update({
+  id: '/refund',
+  path: '/refund',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StarPlayersRoute = StarPlayersRouteImport.update({
+  id: '/star-players',
+  path: '/star-players',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudentRoute = StudentRouteImport.update({
+  id: '/student',
+  path: '/student',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestimonialsRoute = TestimonialsRouteImport.update({
+  id: '/testimonials',
+  path: '/testimonials',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AcademySlugRoute = AcademySlugRouteImport.update({
+  id: '/academy/$slug',
+  path: '/academy/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActivateTokenRoute = ActivateTokenRouteImport.update({
+  id: '/activate/$token',
+  path: '/activate/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApplySlugRoute = ApplySlugRouteImport.update({
+  id: '/apply/$slug',
+  path: '/apply/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
-const StudentTimelineRoute = StudentTimelineRouteImport.update({
-  id: '/timeline',
-  path: '/timeline',
-  getParentRoute: () => StudentRoute,
-} as any)
-const StudentProgressRoute = StudentProgressRouteImport.update({
-  id: '/progress',
-  path: '/progress',
-  getParentRoute: () => StudentRoute,
-} as any)
-const StudentProfileRoute = StudentProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => StudentRoute,
-} as any)
-const StudentPendingRoute = StudentPendingRouteImport.update({
-  id: '/pending',
-  path: '/pending',
-  getParentRoute: () => StudentRoute,
-} as any)
-const StudentMatchesRoute = StudentMatchesRouteImport.update({
-  id: '/matches',
-  path: '/matches',
-  getParentRoute: () => StudentRoute,
-} as any)
-const StudentManageRoute = StudentManageRouteImport.update({
-  id: '/manage',
-  path: '/manage',
-  getParentRoute: () => StudentRoute,
-} as any)
-const StudentFeesRoute = StudentFeesRouteImport.update({
-  id: '/fees',
-  path: '/fees',
-  getParentRoute: () => StudentRoute,
-} as any)
-const ScorerMatchIdRoute = ScorerMatchIdRouteImport.update({
-  id: '/scorer/$matchId',
-  path: '/scorer/$matchId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PoliciesKindRoute = PoliciesKindRouteImport.update({
-  id: '/policies/$kind',
-  path: '/policies/$kind',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PlatformAdminUsageRoute = PlatformAdminUsageRouteImport.update({
-  id: '/usage',
-  path: '/usage',
-  getParentRoute: () => PlatformAdminRoute,
-} as any)
-const PlatformAdminSupportRoute = PlatformAdminSupportRouteImport.update({
-  id: '/support',
-  path: '/support',
-  getParentRoute: () => PlatformAdminRoute,
-} as any)
-const PlatformAdminSubscriptionsRoute =
-  PlatformAdminSubscriptionsRouteImport.update({
-    id: '/subscriptions',
-    path: '/subscriptions',
-    getParentRoute: () => PlatformAdminRoute,
-  } as any)
-const PlatformAdminSportsRoute = PlatformAdminSportsRouteImport.update({
-  id: '/sports',
-  path: '/sports',
-  getParentRoute: () => PlatformAdminRoute,
-} as any)
-const PlatformAdminSettingsRoute = PlatformAdminSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => PlatformAdminRoute,
-} as any)
-const PlatformAdminSearchRoute = PlatformAdminSearchRouteImport.update({
-  id: '/search',
-  path: '/search',
-  getParentRoute: () => PlatformAdminRoute,
-} as any)
-const PlatformAdminPushRoute = PlatformAdminPushRouteImport.update({
-  id: '/push',
-  path: '/push',
-  getParentRoute: () => PlatformAdminRoute,
-} as any)
-const PlatformAdminPaymentSettingsRoute =
-  PlatformAdminPaymentSettingsRouteImport.update({
-    id: '/payment-settings',
-    path: '/payment-settings',
-    getParentRoute: () => PlatformAdminRoute,
-  } as any)
-const PlatformAdminNewRoute = PlatformAdminNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => PlatformAdminRoute,
-} as any)
-const PlatformAdminNevoraiRoute = PlatformAdminNevoraiRouteImport.update({
-  id: '/nevorai',
-  path: '/nevorai',
-  getParentRoute: () => PlatformAdminRoute,
-} as any)
-const PlatformAdminHealthRoute = PlatformAdminHealthRouteImport.update({
-  id: '/health',
-  path: '/health',
-  getParentRoute: () => PlatformAdminRoute,
-} as any)
-const PlatformAdminFounderRoute = PlatformAdminFounderRouteImport.update({
-  id: '/founder',
-  path: '/founder',
-  getParentRoute: () => PlatformAdminRoute,
-} as any)
-const PlatformAdminFlagsRoute = PlatformAdminFlagsRouteImport.update({
-  id: '/flags',
-  path: '/flags',
-  getParentRoute: () => PlatformAdminRoute,
-} as any)
-const PlatformAdminCommunicationRoute =
-  PlatformAdminCommunicationRouteImport.update({
-    id: '/communication',
-    path: '/communication',
-    getParentRoute: () => PlatformAdminRoute,
-  } as any)
-const PlatformAdminAuditRoute = PlatformAdminAuditRouteImport.update({
-  id: '/audit',
-  path: '/audit',
-  getParentRoute: () => PlatformAdminRoute,
-} as any)
-const ParentSplatRoute = ParentSplatRouteImport.update({
-  id: '/$',
-  path: '/$',
-  getParentRoute: () => ParentRoute,
-} as any)
-const MatchesMatchIdRoute = MatchesMatchIdRouteImport.update({
-  id: '/$matchId',
-  path: '/$matchId',
-  getParentRoute: () => MatchesRoute,
-} as any)
-const MatchSlugRoute = MatchSlugRouteImport.update({
-  id: '/match/$slug',
-  path: '/match/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MatchCenterWebsiteRoute = MatchCenterWebsiteRouteImport.update({
-  id: '/website',
-  path: '/website',
-  getParentRoute: () => MatchCenterRoute,
-} as any)
-const MatchCenterTournamentsRoute = MatchCenterTournamentsRouteImport.update({
-  id: '/tournaments',
-  path: '/tournaments',
-  getParentRoute: () => MatchCenterRoute,
-} as any)
-const MatchCenterSettingsRoute = MatchCenterSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => MatchCenterRoute,
-} as any)
-const MatchCenterScorersRoute = MatchCenterScorersRouteImport.update({
-  id: '/scorers',
-  path: '/scorers',
-  getParentRoute: () => MatchCenterRoute,
-} as any)
-const MatchCenterRecordsRoute = MatchCenterRecordsRouteImport.update({
-  id: '/records',
-  path: '/records',
-  getParentRoute: () => MatchCenterRoute,
-} as any)
-const MatchCenterRecognitionRoute = MatchCenterRecognitionRouteImport.update({
-  id: '/recognition',
-  path: '/recognition',
-  getParentRoute: () => MatchCenterRoute,
-} as any)
-const MatchCenterProfileRoute = MatchCenterProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => MatchCenterRoute,
-} as any)
-const MatchCenterPerformanceRoute = MatchCenterPerformanceRouteImport.update({
-  id: '/performance',
-  path: '/performance',
-  getParentRoute: () => MatchCenterRoute,
-} as any)
-const MatchCenterMatchesRoute = MatchCenterMatchesRouteImport.update({
-  id: '/matches',
-  path: '/matches',
-  getParentRoute: () => MatchCenterRoute,
-} as any)
-const MatchCenterLiveRoute = MatchCenterLiveRouteImport.update({
-  id: '/live',
-  path: '/live',
-  getParentRoute: () => MatchCenterRoute,
-} as any)
-const MatchCenterLeaderboardsRoute = MatchCenterLeaderboardsRouteImport.update({
-  id: '/leaderboards',
-  path: '/leaderboards',
-  getParentRoute: () => MatchCenterRoute,
-} as any)
-const MatchCenterInsightsRoute = MatchCenterInsightsRouteImport.update({
-  id: '/insights',
-  path: '/insights',
-  getParentRoute: () => MatchCenterRoute,
-} as any)
-const MatchCenterDashboardRoute = MatchCenterDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => MatchCenterRoute,
-} as any)
-const MatchCenterCreateRoute = MatchCenterCreateRouteImport.update({
-  id: '/create',
-  path: '/create',
-  getParentRoute: () => MatchCenterRoute,
-} as any)
-const MatchCenterAwardsRoute = MatchCenterAwardsRouteImport.update({
-  id: '/awards',
-  path: '/awards',
-  getParentRoute: () => MatchCenterRoute,
-} as any)
-const MatchCenterAiInsightsRoute = MatchCenterAiInsightsRouteImport.update({
-  id: '/ai-insights',
-  path: '/ai-insights',
-  getParentRoute: () => MatchCenterRoute,
-} as any)
-const MSlugRoute = MSlugRouteImport.update({
-  id: '/m/$slug',
-  path: '/m/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InviteTokenRoute = InviteTokenRouteImport.update({
-  id: '/invite/$token',
-  path: '/invite/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardSubscriptionRoute = DashboardSubscriptionRouteImport.update({
-  id: '/subscription',
-  path: '/subscription',
+const DashboardAcademyRoute = DashboardAcademyRouteImport.update({
+  id: '/academy',
+  path: '/academy',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardStudentsRoute = DashboardStudentsRouteImport.update({
-  id: '/students',
-  path: '/students',
+const DashboardActivationRoute = DashboardActivationRouteImport.update({
+  id: '/activation',
+  path: '/activation',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardStaffRoute = DashboardStaffRouteImport.update({
-  id: '/staff',
-  path: '/staff',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardSiteRoute = DashboardSiteRouteImport.update({
-  id: '/site',
-  path: '/site',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardReportsRoute = DashboardReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardRemindersRoute = DashboardRemindersRouteImport.update({
-  id: '/reminders',
-  path: '/reminders',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardRegistrationsRoute = DashboardRegistrationsRouteImport.update({
-  id: '/registrations',
-  path: '/registrations',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardProfileRoute = DashboardProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardPaymentVerificationRoute =
-  DashboardPaymentVerificationRouteImport.update({
-    id: '/payment-verification',
-    path: '/payment-verification',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardPaymentSettingsRoute =
-  DashboardPaymentSettingsRouteImport.update({
-    id: '/payment-settings',
-    path: '/payment-settings',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardNotificationsRoute = DashboardNotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardNevoraiHealthRoute = DashboardNevoraiHealthRouteImport.update({
-  id: '/nevorai-health',
-  path: '/nevorai-health',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardNevoraiRoute = DashboardNevoraiRouteImport.update({
-  id: '/nevorai',
-  path: '/nevorai',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardLeadsRoute = DashboardLeadsRouteImport.update({
-  id: '/leads',
-  path: '/leads',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardInsightsRoute = DashboardInsightsRouteImport.update({
-  id: '/insights',
-  path: '/insights',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardFeesRoute = DashboardFeesRouteImport.update({
-  id: '/fees',
-  path: '/fees',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardFeePlansRoute = DashboardFeePlansRouteImport.update({
-  id: '/fee-plans',
-  path: '/fee-plans',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardCommunicationsRoute = DashboardCommunicationsRouteImport.update({
-  id: '/communications',
-  path: '/communications',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardCoachRoute = DashboardCoachRouteImport.update({
-  id: '/coach',
-  path: '/coach',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardBrandingRoute = DashboardBrandingRouteImport.update({
-  id: '/branding',
-  path: '/branding',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardBillingRoute = DashboardBillingRouteImport.update({
-  id: '/billing',
-  path: '/billing',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardBatchesRoute = DashboardBatchesRouteImport.update({
-  id: '/batches',
-  path: '/batches',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardAutomationTestRoute = DashboardAutomationTestRouteImport.update({
-  id: '/automation-test',
-  path: '/automation-test',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardAutomationSettingsRoute =
-  DashboardAutomationSettingsRouteImport.update({
-    id: '/automation-settings',
-    path: '/automation-settings',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardAutomationRoute = DashboardAutomationRouteImport.update({
-  id: '/automation',
-  path: '/automation',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardAttendanceQrRoute = DashboardAttendanceQrRouteImport.update({
-  id: '/attendance-qr',
-  path: '/attendance-qr',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardAttendanceCalendarRoute =
-  DashboardAttendanceCalendarRouteImport.update({
-    id: '/attendance-calendar',
-    path: '/attendance-calendar',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardAttendanceRoute = DashboardAttendanceRouteImport.update({
-  id: '/attendance',
-  path: '/attendance',
+const DashboardAdminsRoute = DashboardAdminsRouteImport.update({
+  id: '/admins',
+  path: '/admins',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardAdmissionsReviewRoute =
@@ -740,106 +374,427 @@ const DashboardAdmissionsReviewRoute =
     path: '/admissions-review',
     getParentRoute: () => DashboardRoute,
   } as any)
-const DashboardAdminsRoute = DashboardAdminsRouteImport.update({
-  id: '/admins',
-  path: '/admins',
+const DashboardAttendanceRoute = DashboardAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardActivationRoute = DashboardActivationRouteImport.update({
-  id: '/activation',
-  path: '/activation',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardAcademyRoute = DashboardAcademyRouteImport.update({
-  id: '/academy',
-  path: '/academy',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const ApplySlugRoute = ApplySlugRouteImport.update({
-  id: '/apply/$slug',
-  path: '/apply/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiChatRoute = ApiChatRouteImport.update({
-  id: '/api/chat',
-  path: '/api/chat',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ActivateTokenRoute = ActivateTokenRouteImport.update({
-  id: '/activate/$token',
-  path: '/activate/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AcademySlugRoute = AcademySlugRouteImport.update({
-  id: '/academy/$slug',
-  path: '/academy/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PlatformAdminTenantsIndexRoute =
-  PlatformAdminTenantsIndexRouteImport.update({
-    id: '/tenants/',
-    path: '/tenants/',
-    getParentRoute: () => PlatformAdminRoute,
+const DashboardAttendanceCalendarRoute =
+  DashboardAttendanceCalendarRouteImport.update({
+    id: '/attendance-calendar',
+    path: '/attendance-calendar',
+    getParentRoute: () => DashboardRoute,
   } as any)
-const MatchCenterTeamsIndexRoute = MatchCenterTeamsIndexRouteImport.update({
-  id: '/teams/',
-  path: '/teams/',
+const DashboardAttendanceQrRoute = DashboardAttendanceQrRouteImport.update({
+  id: '/attendance-qr',
+  path: '/attendance-qr',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAutomationRoute = DashboardAutomationRouteImport.update({
+  id: '/automation',
+  path: '/automation',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAutomationSettingsRoute =
+  DashboardAutomationSettingsRouteImport.update({
+    id: '/automation-settings',
+    path: '/automation-settings',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardAutomationTestRoute = DashboardAutomationTestRouteImport.update({
+  id: '/automation-test',
+  path: '/automation-test',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardBatchesRoute = DashboardBatchesRouteImport.update({
+  id: '/batches',
+  path: '/batches',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardBillingRoute = DashboardBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardBrandingRoute = DashboardBrandingRouteImport.update({
+  id: '/branding',
+  path: '/branding',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardCoachRoute = DashboardCoachRouteImport.update({
+  id: '/coach',
+  path: '/coach',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardCommunicationsRoute = DashboardCommunicationsRouteImport.update({
+  id: '/communications',
+  path: '/communications',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardFeePlansRoute = DashboardFeePlansRouteImport.update({
+  id: '/fee-plans',
+  path: '/fee-plans',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardFeesRoute = DashboardFeesRouteImport.update({
+  id: '/fees',
+  path: '/fees',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardInsightsRoute = DashboardInsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardLeadsRoute = DashboardLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardNevoraiRoute = DashboardNevoraiRouteImport.update({
+  id: '/nevorai',
+  path: '/nevorai',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardNevoraiHealthRoute = DashboardNevoraiHealthRouteImport.update({
+  id: '/nevorai-health',
+  path: '/nevorai-health',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardNotificationsRoute = DashboardNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardPaymentSettingsRoute =
+  DashboardPaymentSettingsRouteImport.update({
+    id: '/payment-settings',
+    path: '/payment-settings',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardPaymentVerificationRoute =
+  DashboardPaymentVerificationRouteImport.update({
+    id: '/payment-verification',
+    path: '/payment-verification',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardProfileRoute = DashboardProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardRegistrationsRoute = DashboardRegistrationsRouteImport.update({
+  id: '/registrations',
+  path: '/registrations',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardRemindersRoute = DashboardRemindersRouteImport.update({
+  id: '/reminders',
+  path: '/reminders',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardReportsRoute = DashboardReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardSiteRoute = DashboardSiteRouteImport.update({
+  id: '/site',
+  path: '/site',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardStaffRoute = DashboardStaffRouteImport.update({
+  id: '/staff',
+  path: '/staff',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardStudentsRoute = DashboardStudentsRouteImport.update({
+  id: '/students',
+  path: '/students',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardSubscriptionRoute = DashboardSubscriptionRouteImport.update({
+  id: '/subscription',
+  path: '/subscription',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const InviteTokenRoute = InviteTokenRouteImport.update({
+  id: '/invite/$token',
+  path: '/invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MSlugRoute = MSlugRouteImport.update({
+  id: '/m/$slug',
+  path: '/m/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MatchCenterIndexRoute = MatchCenterIndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => MatchCenterRoute,
 } as any)
-const MatchCenterPlayersIndexRoute = MatchCenterPlayersIndexRouteImport.update({
-  id: '/players/',
-  path: '/players/',
+const MatchCenterAiInsightsRoute = MatchCenterAiInsightsRouteImport.update({
+  id: '/ai-insights',
+  path: '/ai-insights',
   getParentRoute: () => MatchCenterRoute,
 } as any)
-const PlatformAdminTenantsIdRoute = PlatformAdminTenantsIdRouteImport.update({
-  id: '/tenants/$id',
-  path: '/tenants/$id',
+const MatchCenterAwardsRoute = MatchCenterAwardsRouteImport.update({
+  id: '/awards',
+  path: '/awards',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterCreateRoute = MatchCenterCreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterDashboardRoute = MatchCenterDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterInsightsRoute = MatchCenterInsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterLeaderboardsRoute = MatchCenterLeaderboardsRouteImport.update({
+  id: '/leaderboards',
+  path: '/leaderboards',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterLiveRoute = MatchCenterLiveRouteImport.update({
+  id: '/live',
+  path: '/live',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterMatchesRoute = MatchCenterMatchesRouteImport.update({
+  id: '/matches',
+  path: '/matches',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterPerformanceRoute = MatchCenterPerformanceRouteImport.update({
+  id: '/performance',
+  path: '/performance',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterProfileRoute = MatchCenterProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterRecognitionRoute = MatchCenterRecognitionRouteImport.update({
+  id: '/recognition',
+  path: '/recognition',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterRecordsRoute = MatchCenterRecordsRouteImport.update({
+  id: '/records',
+  path: '/records',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterScorersRoute = MatchCenterScorersRouteImport.update({
+  id: '/scorers',
+  path: '/scorers',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterSettingsRoute = MatchCenterSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterTournamentsRoute = MatchCenterTournamentsRouteImport.update({
+  id: '/tournaments',
+  path: '/tournaments',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterWebsiteRoute = MatchCenterWebsiteRouteImport.update({
+  id: '/website',
+  path: '/website',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchSlugRoute = MatchSlugRouteImport.update({
+  id: '/match/$slug',
+  path: '/match/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MatchesIndexRoute = MatchesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MatchesRoute,
+} as any)
+const MatchesMatchIdRoute = MatchesMatchIdRouteImport.update({
+  id: '/$matchId',
+  path: '/$matchId',
+  getParentRoute: () => MatchesRoute,
+} as any)
+const ParentIndexRoute = ParentIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ParentRoute,
+} as any)
+const ParentSplatRoute = ParentSplatRouteImport.update({
+  id: '/$',
+  path: '/$',
+  getParentRoute: () => ParentRoute,
+} as any)
+const PlatformAdminIndexRoute = PlatformAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => PlatformAdminRoute,
 } as any)
-const MatchCenterTournamentsTournamentIdRoute =
-  MatchCenterTournamentsTournamentIdRouteImport.update({
-    id: '/$tournamentId',
-    path: '/$tournamentId',
-    getParentRoute: () => MatchCenterTournamentsRoute,
-  } as any)
-const MatchCenterTeamsNewRoute = MatchCenterTeamsNewRouteImport.update({
-  id: '/teams/new',
-  path: '/teams/new',
-  getParentRoute: () => MatchCenterRoute,
+const PlatformAdminAuditRoute = PlatformAdminAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => PlatformAdminRoute,
 } as any)
-const MatchCenterTeamsTeamIdRoute = MatchCenterTeamsTeamIdRouteImport.update({
-  id: '/teams/$teamId',
-  path: '/teams/$teamId',
-  getParentRoute: () => MatchCenterRoute,
+const PlatformAdminCommunicationRoute =
+  PlatformAdminCommunicationRouteImport.update({
+    id: '/communication',
+    path: '/communication',
+    getParentRoute: () => PlatformAdminRoute,
+  } as any)
+const PlatformAdminFlagsRoute = PlatformAdminFlagsRouteImport.update({
+  id: '/flags',
+  path: '/flags',
+  getParentRoute: () => PlatformAdminRoute,
 } as any)
-const MatchCenterScorebookMatchIdRoute =
-  MatchCenterScorebookMatchIdRouteImport.update({
-    id: '/scorebook/$matchId',
-    path: '/scorebook/$matchId',
-    getParentRoute: () => MatchCenterRoute,
+const PlatformAdminFounderRoute = PlatformAdminFounderRouteImport.update({
+  id: '/founder',
+  path: '/founder',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
+const PlatformAdminHealthRoute = PlatformAdminHealthRouteImport.update({
+  id: '/health',
+  path: '/health',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
+const PlatformAdminNevoraiRoute = PlatformAdminNevoraiRouteImport.update({
+  id: '/nevorai',
+  path: '/nevorai',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
+const PlatformAdminNewRoute = PlatformAdminNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
+const PlatformAdminPaymentSettingsRoute =
+  PlatformAdminPaymentSettingsRouteImport.update({
+    id: '/payment-settings',
+    path: '/payment-settings',
+    getParentRoute: () => PlatformAdminRoute,
   } as any)
-const MatchCenterPlayersAthleteIdRoute =
-  MatchCenterPlayersAthleteIdRouteImport.update({
-    id: '/players/$athleteId',
-    path: '/players/$athleteId',
-    getParentRoute: () => MatchCenterRoute,
+const PlatformAdminPushRoute = PlatformAdminPushRouteImport.update({
+  id: '/push',
+  path: '/push',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
+const PlatformAdminSearchRoute = PlatformAdminSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
+const PlatformAdminSettingsRoute = PlatformAdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
+const PlatformAdminSportsRoute = PlatformAdminSportsRouteImport.update({
+  id: '/sports',
+  path: '/sports',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
+const PlatformAdminSubscriptionsRoute =
+  PlatformAdminSubscriptionsRouteImport.update({
+    id: '/subscriptions',
+    path: '/subscriptions',
+    getParentRoute: () => PlatformAdminRoute,
   } as any)
-const MatchCenterPerformanceCompareRoute =
-  MatchCenterPerformanceCompareRouteImport.update({
-    id: '/compare',
-    path: '/compare',
-    getParentRoute: () => MatchCenterPerformanceRoute,
-  } as any)
-const MatchCenterPerformanceAthleteIdRoute =
-  MatchCenterPerformanceAthleteIdRouteImport.update({
-    id: '/$athleteId',
-    path: '/$athleteId',
-    getParentRoute: () => MatchCenterPerformanceRoute,
-  } as any)
-const DashboardStudentsIdRoute = DashboardStudentsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => DashboardStudentsRoute,
+const PlatformAdminSupportRoute = PlatformAdminSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
+const PlatformAdminUsageRoute = PlatformAdminUsageRouteImport.update({
+  id: '/usage',
+  path: '/usage',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
+const PoliciesKindRoute = PoliciesKindRouteImport.update({
+  id: '/policies/$kind',
+  path: '/policies/$kind',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScorerMatchIdRoute = ScorerMatchIdRouteImport.update({
+  id: '/scorer/$matchId',
+  path: '/scorer/$matchId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudentIndexRoute = StudentIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => StudentRoute,
+} as any)
+const StudentAttendanceRoute = StudentAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => StudentRoute,
+} as any)
+const StudentFeesRoute = StudentFeesRouteImport.update({
+  id: '/fees',
+  path: '/fees',
+  getParentRoute: () => StudentRoute,
+} as any)
+const StudentManageRoute = StudentManageRouteImport.update({
+  id: '/manage',
+  path: '/manage',
+  getParentRoute: () => StudentRoute,
+} as any)
+const StudentMatchesRoute = StudentMatchesRouteImport.update({
+  id: '/matches',
+  path: '/matches',
+  getParentRoute: () => StudentRoute,
+} as any)
+const StudentPendingRoute = StudentPendingRouteImport.update({
+  id: '/pending',
+  path: '/pending',
+  getParentRoute: () => StudentRoute,
+} as any)
+const StudentProfileRoute = StudentProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => StudentRoute,
+} as any)
+const StudentProgressRoute = StudentProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
+  getParentRoute: () => StudentRoute,
+} as any)
+const StudentTimelineRoute = StudentTimelineRouteImport.update({
+  id: '/timeline',
+  path: '/timeline',
+  getParentRoute: () => StudentRoute,
+} as any)
+const ApiPublicTenantIconRoute = ApiPublicTenantIconRouteImport.update({
+  id: '/api/public/tenant-icon',
+  path: '/api/public/tenant-icon',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardCoachAnalyticsRoute = DashboardCoachAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => DashboardCoachRoute,
+} as any)
+const DashboardCoachApprovalsRoute = DashboardCoachApprovalsRouteImport.update({
+  id: '/approvals',
+  path: '/approvals',
+  getParentRoute: () => DashboardCoachRoute,
 } as any)
 const DashboardCoachOnboardingRoute =
   DashboardCoachOnboardingRouteImport.update({
@@ -847,55 +802,76 @@ const DashboardCoachOnboardingRoute =
     path: '/onboarding',
     getParentRoute: () => DashboardCoachRoute,
   } as any)
-const DashboardCoachApprovalsRoute = DashboardCoachApprovalsRouteImport.update({
-  id: '/approvals',
-  path: '/approvals',
-  getParentRoute: () => DashboardCoachRoute,
+const DashboardStudentsIdRoute = DashboardStudentsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => DashboardStudentsRoute,
 } as any)
-const DashboardCoachAnalyticsRoute = DashboardCoachAnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
-  getParentRoute: () => DashboardCoachRoute,
+const MatchCenterPerformanceAthleteIdRoute =
+  MatchCenterPerformanceAthleteIdRouteImport.update({
+    id: '/$athleteId',
+    path: '/$athleteId',
+    getParentRoute: () => MatchCenterPerformanceRoute,
+  } as any)
+const MatchCenterPerformanceCompareRoute =
+  MatchCenterPerformanceCompareRouteImport.update({
+    id: '/compare',
+    path: '/compare',
+    getParentRoute: () => MatchCenterPerformanceRoute,
+  } as any)
+const MatchCenterPlayersIndexRoute = MatchCenterPlayersIndexRouteImport.update({
+  id: '/players/',
+  path: '/players/',
+  getParentRoute: () => MatchCenterRoute,
 } as any)
-const ApiPublicTenantIconRoute = ApiPublicTenantIconRouteImport.update({
-  id: '/api/public/tenant-icon',
-  path: '/api/public/tenant-icon',
-  getParentRoute: () => rootRouteImport,
+const MatchCenterPlayersAthleteIdRoute =
+  MatchCenterPlayersAthleteIdRouteImport.update({
+    id: '/players/$athleteId',
+    path: '/players/$athleteId',
+    getParentRoute: () => MatchCenterRoute,
+  } as any)
+const MatchCenterScorebookMatchIdRoute =
+  MatchCenterScorebookMatchIdRouteImport.update({
+    id: '/scorebook/$matchId',
+    path: '/scorebook/$matchId',
+    getParentRoute: () => MatchCenterRoute,
+  } as any)
+const MatchCenterTeamsIndexRoute = MatchCenterTeamsIndexRouteImport.update({
+  id: '/teams/',
+  path: '/teams/',
+  getParentRoute: () => MatchCenterRoute,
 } as any)
-const ApiPublicManifestWebmanifestRoute =
-  ApiPublicManifestWebmanifestRouteImport.update({
-    id: '/api/public/manifest/webmanifest',
-    path: '/api/public/manifest/webmanifest',
-    getParentRoute: () => rootRouteImport,
+const MatchCenterTeamsTeamIdRoute = MatchCenterTeamsTeamIdRouteImport.update({
+  id: '/teams/$teamId',
+  path: '/teams/$teamId',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterTeamsNewRoute = MatchCenterTeamsNewRouteImport.update({
+  id: '/teams/new',
+  path: '/teams/new',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterTournamentsTournamentIdRoute =
+  MatchCenterTournamentsTournamentIdRouteImport.update({
+    id: '/$tournamentId',
+    path: '/$tournamentId',
+    getParentRoute: () => MatchCenterTournamentsRoute,
   } as any)
-const ApiPublicHooksSubscriptionCheckRoute =
-  ApiPublicHooksSubscriptionCheckRouteImport.update({
-    id: '/api/public/hooks/subscription-check',
-    path: '/api/public/hooks/subscription-check',
-    getParentRoute: () => rootRouteImport,
+const PlatformAdminTenantsIndexRoute =
+  PlatformAdminTenantsIndexRouteImport.update({
+    id: '/tenants/',
+    path: '/tenants/',
+    getParentRoute: () => PlatformAdminRoute,
   } as any)
-const ApiPublicHooksOwnerSummariesRoute =
-  ApiPublicHooksOwnerSummariesRouteImport.update({
-    id: '/api/public/hooks/owner-summaries',
-    path: '/api/public/hooks/owner-summaries',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksNevoraiBriefRoute =
-  ApiPublicHooksNevoraiBriefRouteImport.update({
-    id: '/api/public/hooks/nevorai-brief',
-    path: '/api/public/hooks/nevorai-brief',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksFeeRemindersRoute =
-  ApiPublicHooksFeeRemindersRouteImport.update({
-    id: '/api/public/hooks/fee-reminders',
-    path: '/api/public/hooks/fee-reminders',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksDispatchCampaignsRoute =
-  ApiPublicHooksDispatchCampaignsRouteImport.update({
-    id: '/api/public/hooks/dispatch-campaigns',
-    path: '/api/public/hooks/dispatch-campaigns',
+const PlatformAdminTenantsIdRoute = PlatformAdminTenantsIdRouteImport.update({
+  id: '/tenants/$id',
+  path: '/tenants/$id',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
+const AcademyAcademySlugTournamentsTournamentSlugRoute =
+  AcademyAcademySlugTournamentsTournamentSlugRouteImport.update({
+    id: '/academy/$academySlug/tournaments/$tournamentSlug',
+    path: '/academy/$academySlug/tournaments/$tournamentSlug',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicHooksAutomationTickRoute =
@@ -904,10 +880,40 @@ const ApiPublicHooksAutomationTickRoute =
     path: '/api/public/hooks/automation-tick',
     getParentRoute: () => rootRouteImport,
   } as any)
-const AcademyAcademySlugTournamentsTournamentSlugRoute =
-  AcademyAcademySlugTournamentsTournamentSlugRouteImport.update({
-    id: '/academy/$academySlug/tournaments/$tournamentSlug',
-    path: '/academy/$academySlug/tournaments/$tournamentSlug',
+const ApiPublicHooksDispatchCampaignsRoute =
+  ApiPublicHooksDispatchCampaignsRouteImport.update({
+    id: '/api/public/hooks/dispatch-campaigns',
+    path: '/api/public/hooks/dispatch-campaigns',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksFeeRemindersRoute =
+  ApiPublicHooksFeeRemindersRouteImport.update({
+    id: '/api/public/hooks/fee-reminders',
+    path: '/api/public/hooks/fee-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksNevoraiBriefRoute =
+  ApiPublicHooksNevoraiBriefRouteImport.update({
+    id: '/api/public/hooks/nevorai-brief',
+    path: '/api/public/hooks/nevorai-brief',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksOwnerSummariesRoute =
+  ApiPublicHooksOwnerSummariesRouteImport.update({
+    id: '/api/public/hooks/owner-summaries',
+    path: '/api/public/hooks/owner-summaries',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksSubscriptionCheckRoute =
+  ApiPublicHooksSubscriptionCheckRouteImport.update({
+    id: '/api/public/hooks/subscription-check',
+    path: '/api/public/hooks/subscription-check',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicManifestWebmanifestRoute =
+  ApiPublicManifestWebmanifestRouteImport.update({
+    id: '/api/public/manifest/webmanifest',
+    path: '/api/public/manifest/webmanifest',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicPaymentsProviderWebhookRoute =
@@ -1027,6 +1033,7 @@ export interface FileRoutesByFullPath {
   '/platform-admin/usage': typeof PlatformAdminUsageRoute
   '/policies/$kind': typeof PoliciesKindRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
+  '/student/attendance': typeof StudentAttendanceRoute
   '/student/fees': typeof StudentFeesRoute
   '/student/manage': typeof StudentManageRoute
   '/student/matches': typeof StudentMatchesRoute
@@ -1170,6 +1177,7 @@ export interface FileRoutesByTo {
   '/platform-admin/usage': typeof PlatformAdminUsageRoute
   '/policies/$kind': typeof PoliciesKindRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
+  '/student/attendance': typeof StudentAttendanceRoute
   '/student/fees': typeof StudentFeesRoute
   '/student/manage': typeof StudentManageRoute
   '/student/matches': typeof StudentMatchesRoute
@@ -1320,6 +1328,7 @@ export interface FileRoutesById {
   '/platform-admin/usage': typeof PlatformAdminUsageRoute
   '/policies/$kind': typeof PoliciesKindRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
+  '/student/attendance': typeof StudentAttendanceRoute
   '/student/fees': typeof StudentFeesRoute
   '/student/manage': typeof StudentManageRoute
   '/student/matches': typeof StudentMatchesRoute
@@ -1471,6 +1480,7 @@ export interface FileRouteTypes {
     | '/platform-admin/usage'
     | '/policies/$kind'
     | '/scorer/$matchId'
+    | '/student/attendance'
     | '/student/fees'
     | '/student/manage'
     | '/student/matches'
@@ -1614,6 +1624,7 @@ export interface FileRouteTypes {
     | '/platform-admin/usage'
     | '/policies/$kind'
     | '/scorer/$matchId'
+    | '/student/attendance'
     | '/student/fees'
     | '/student/manage'
     | '/student/matches'
@@ -1763,6 +1774,7 @@ export interface FileRouteTypes {
     | '/platform-admin/usage'
     | '/policies/$kind'
     | '/scorer/$matchId'
+    | '/student/attendance'
     | '/student/fees'
     | '/student/manage'
     | '/student/matches'
@@ -1861,228 +1873,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/testimonials': {
-      id: '/testimonials'
-      path: '/testimonials'
-      fullPath: '/testimonials'
-      preLoaderRoute: typeof TestimonialsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/student': {
-      id: '/student'
-      path: '/student'
-      fullPath: '/student'
-      preLoaderRoute: typeof StudentRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/star-players': {
-      id: '/star-players'
-      path: '/star-players'
-      fullPath: '/star-players'
-      preLoaderRoute: typeof StarPlayersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/robots.txt': {
-      id: '/robots.txt'
-      path: '/robots.txt'
-      fullPath: '/robots.txt'
-      preLoaderRoute: typeof RobotsDottxtRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/register': {
-      id: '/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/refund': {
-      id: '/refund'
-      path: '/refund'
-      fullPath: '/refund'
-      preLoaderRoute: typeof RefundRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/programs': {
-      id: '/programs'
-      path: '/programs'
-      fullPath: '/programs'
-      preLoaderRoute: typeof ProgramsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pricing': {
-      id: '/pricing'
-      path: '/pricing'
-      fullPath: '/pricing'
-      preLoaderRoute: typeof PricingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/platform-admin': {
-      id: '/platform-admin'
-      path: '/platform-admin'
-      fullPath: '/platform-admin'
-      preLoaderRoute: typeof PlatformAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/parent-portal': {
-      id: '/parent-portal'
-      path: '/parent-portal'
-      fullPath: '/parent-portal'
-      preLoaderRoute: typeof ParentPortalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/parent': {
-      id: '/parent'
-      path: '/parent'
-      fullPath: '/parent'
-      preLoaderRoute: typeof ParentRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/notifications': {
-      id: '/notifications'
-      path: '/notifications'
-      fullPath: '/notifications'
-      preLoaderRoute: typeof NotificationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/matches': {
-      id: '/matches'
-      path: '/matches'
-      fullPath: '/matches'
-      preLoaderRoute: typeof MatchesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/match-center': {
-      id: '/match-center'
-      path: '/match-center'
-      fullPath: '/match-center'
-      preLoaderRoute: typeof MatchCenterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/location': {
-      id: '/location'
-      path: '/location'
-      fullPath: '/location'
-      preLoaderRoute: typeof LocationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/gallery': {
-      id: '/gallery'
-      path: '/gallery'
-      fullPath: '/gallery'
-      preLoaderRoute: typeof GalleryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/fees': {
-      id: '/fees'
-      path: '/fees'
-      fullPath: '/fees'
-      preLoaderRoute: typeof FeesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/features': {
-      id: '/features'
-      path: '/features'
-      fullPath: '/features'
-      preLoaderRoute: typeof FeaturesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/faq': {
-      id: '/faq'
-      path: '/faq'
-      fullPath: '/faq'
-      preLoaderRoute: typeof FaqRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/facilities': {
-      id: '/facilities'
-      path: '/facilities'
-      fullPath: '/facilities'
-      preLoaderRoute: typeof FacilitiesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo': {
-      id: '/demo'
-      path: '/demo'
-      fullPath: '/demo'
-      preLoaderRoute: typeof DemoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contact': {
-      id: '/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/coaches': {
-      id: '/coaches'
-      path: '/coaches'
-      fullPath: '/coaches'
-      preLoaderRoute: typeof CoachesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/checkin': {
-      id: '/checkin'
-      path: '/checkin'
-      fullPath: '/checkin'
-      preLoaderRoute: typeof CheckinRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app-launch': {
-      id: '/app-launch'
-      path: '/app-launch'
-      fullPath: '/app-launch'
-      preLoaderRoute: typeof AppLaunchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admissions': {
-      id: '/admissions'
-      path: '/admissions'
-      fullPath: '/admissions'
-      preLoaderRoute: typeof AdmissionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/achievements': {
-      id: '/achievements'
-      path: '/achievements'
-      fullPath: '/achievements'
-      preLoaderRoute: typeof AchievementsRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -2092,620 +1887,228 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/achievements': {
+      id: '/achievements'
+      path: '/achievements'
+      fullPath: '/achievements'
+      preLoaderRoute: typeof AchievementsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/student/': {
-      id: '/student/'
-      path: '/'
-      fullPath: '/student/'
-      preLoaderRoute: typeof StudentIndexRouteImport
-      parentRoute: typeof StudentRoute
-    }
-    '/platform-admin/': {
-      id: '/platform-admin/'
-      path: '/'
-      fullPath: '/platform-admin/'
-      preLoaderRoute: typeof PlatformAdminIndexRouteImport
-      parentRoute: typeof PlatformAdminRoute
-    }
-    '/parent/': {
-      id: '/parent/'
-      path: '/'
-      fullPath: '/parent/'
-      preLoaderRoute: typeof ParentIndexRouteImport
-      parentRoute: typeof ParentRoute
-    }
-    '/matches/': {
-      id: '/matches/'
-      path: '/'
-      fullPath: '/matches/'
-      preLoaderRoute: typeof MatchesIndexRouteImport
-      parentRoute: typeof MatchesRoute
-    }
-    '/match-center/': {
-      id: '/match-center/'
-      path: '/'
-      fullPath: '/match-center/'
-      preLoaderRoute: typeof MatchCenterIndexRouteImport
-      parentRoute: typeof MatchCenterRoute
-    }
-    '/dashboard/': {
-      id: '/dashboard/'
-      path: '/'
-      fullPath: '/dashboard/'
-      preLoaderRoute: typeof DashboardIndexRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/student/timeline': {
-      id: '/student/timeline'
-      path: '/timeline'
-      fullPath: '/student/timeline'
-      preLoaderRoute: typeof StudentTimelineRouteImport
-      parentRoute: typeof StudentRoute
-    }
-    '/student/progress': {
-      id: '/student/progress'
-      path: '/progress'
-      fullPath: '/student/progress'
-      preLoaderRoute: typeof StudentProgressRouteImport
-      parentRoute: typeof StudentRoute
-    }
-    '/student/profile': {
-      id: '/student/profile'
-      path: '/profile'
-      fullPath: '/student/profile'
-      preLoaderRoute: typeof StudentProfileRouteImport
-      parentRoute: typeof StudentRoute
-    }
-    '/student/pending': {
-      id: '/student/pending'
-      path: '/pending'
-      fullPath: '/student/pending'
-      preLoaderRoute: typeof StudentPendingRouteImport
-      parentRoute: typeof StudentRoute
-    }
-    '/student/matches': {
-      id: '/student/matches'
-      path: '/matches'
-      fullPath: '/student/matches'
-      preLoaderRoute: typeof StudentMatchesRouteImport
-      parentRoute: typeof StudentRoute
-    }
-    '/student/manage': {
-      id: '/student/manage'
-      path: '/manage'
-      fullPath: '/student/manage'
-      preLoaderRoute: typeof StudentManageRouteImport
-      parentRoute: typeof StudentRoute
-    }
-    '/student/fees': {
-      id: '/student/fees'
-      path: '/fees'
-      fullPath: '/student/fees'
-      preLoaderRoute: typeof StudentFeesRouteImport
-      parentRoute: typeof StudentRoute
-    }
-    '/scorer/$matchId': {
-      id: '/scorer/$matchId'
-      path: '/scorer/$matchId'
-      fullPath: '/scorer/$matchId'
-      preLoaderRoute: typeof ScorerMatchIdRouteImport
+    '/admissions': {
+      id: '/admissions'
+      path: '/admissions'
+      fullPath: '/admissions'
+      preLoaderRoute: typeof AdmissionsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/policies/$kind': {
-      id: '/policies/$kind'
-      path: '/policies/$kind'
-      fullPath: '/policies/$kind'
-      preLoaderRoute: typeof PoliciesKindRouteImport
+    '/app-launch': {
+      id: '/app-launch'
+      path: '/app-launch'
+      fullPath: '/app-launch'
+      preLoaderRoute: typeof AppLaunchRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/platform-admin/usage': {
-      id: '/platform-admin/usage'
-      path: '/usage'
-      fullPath: '/platform-admin/usage'
-      preLoaderRoute: typeof PlatformAdminUsageRouteImport
-      parentRoute: typeof PlatformAdminRoute
-    }
-    '/platform-admin/support': {
-      id: '/platform-admin/support'
-      path: '/support'
-      fullPath: '/platform-admin/support'
-      preLoaderRoute: typeof PlatformAdminSupportRouteImport
-      parentRoute: typeof PlatformAdminRoute
-    }
-    '/platform-admin/subscriptions': {
-      id: '/platform-admin/subscriptions'
-      path: '/subscriptions'
-      fullPath: '/platform-admin/subscriptions'
-      preLoaderRoute: typeof PlatformAdminSubscriptionsRouteImport
-      parentRoute: typeof PlatformAdminRoute
-    }
-    '/platform-admin/sports': {
-      id: '/platform-admin/sports'
-      path: '/sports'
-      fullPath: '/platform-admin/sports'
-      preLoaderRoute: typeof PlatformAdminSportsRouteImport
-      parentRoute: typeof PlatformAdminRoute
-    }
-    '/platform-admin/settings': {
-      id: '/platform-admin/settings'
-      path: '/settings'
-      fullPath: '/platform-admin/settings'
-      preLoaderRoute: typeof PlatformAdminSettingsRouteImport
-      parentRoute: typeof PlatformAdminRoute
-    }
-    '/platform-admin/search': {
-      id: '/platform-admin/search'
-      path: '/search'
-      fullPath: '/platform-admin/search'
-      preLoaderRoute: typeof PlatformAdminSearchRouteImport
-      parentRoute: typeof PlatformAdminRoute
-    }
-    '/platform-admin/push': {
-      id: '/platform-admin/push'
-      path: '/push'
-      fullPath: '/platform-admin/push'
-      preLoaderRoute: typeof PlatformAdminPushRouteImport
-      parentRoute: typeof PlatformAdminRoute
-    }
-    '/platform-admin/payment-settings': {
-      id: '/platform-admin/payment-settings'
-      path: '/payment-settings'
-      fullPath: '/platform-admin/payment-settings'
-      preLoaderRoute: typeof PlatformAdminPaymentSettingsRouteImport
-      parentRoute: typeof PlatformAdminRoute
-    }
-    '/platform-admin/new': {
-      id: '/platform-admin/new'
-      path: '/new'
-      fullPath: '/platform-admin/new'
-      preLoaderRoute: typeof PlatformAdminNewRouteImport
-      parentRoute: typeof PlatformAdminRoute
-    }
-    '/platform-admin/nevorai': {
-      id: '/platform-admin/nevorai'
-      path: '/nevorai'
-      fullPath: '/platform-admin/nevorai'
-      preLoaderRoute: typeof PlatformAdminNevoraiRouteImport
-      parentRoute: typeof PlatformAdminRoute
-    }
-    '/platform-admin/health': {
-      id: '/platform-admin/health'
-      path: '/health'
-      fullPath: '/platform-admin/health'
-      preLoaderRoute: typeof PlatformAdminHealthRouteImport
-      parentRoute: typeof PlatformAdminRoute
-    }
-    '/platform-admin/founder': {
-      id: '/platform-admin/founder'
-      path: '/founder'
-      fullPath: '/platform-admin/founder'
-      preLoaderRoute: typeof PlatformAdminFounderRouteImport
-      parentRoute: typeof PlatformAdminRoute
-    }
-    '/platform-admin/flags': {
-      id: '/platform-admin/flags'
-      path: '/flags'
-      fullPath: '/platform-admin/flags'
-      preLoaderRoute: typeof PlatformAdminFlagsRouteImport
-      parentRoute: typeof PlatformAdminRoute
-    }
-    '/platform-admin/communication': {
-      id: '/platform-admin/communication'
-      path: '/communication'
-      fullPath: '/platform-admin/communication'
-      preLoaderRoute: typeof PlatformAdminCommunicationRouteImport
-      parentRoute: typeof PlatformAdminRoute
-    }
-    '/platform-admin/audit': {
-      id: '/platform-admin/audit'
-      path: '/audit'
-      fullPath: '/platform-admin/audit'
-      preLoaderRoute: typeof PlatformAdminAuditRouteImport
-      parentRoute: typeof PlatformAdminRoute
-    }
-    '/parent/$': {
-      id: '/parent/$'
-      path: '/$'
-      fullPath: '/parent/$'
-      preLoaderRoute: typeof ParentSplatRouteImport
-      parentRoute: typeof ParentRoute
-    }
-    '/matches/$matchId': {
-      id: '/matches/$matchId'
-      path: '/$matchId'
-      fullPath: '/matches/$matchId'
-      preLoaderRoute: typeof MatchesMatchIdRouteImport
-      parentRoute: typeof MatchesRoute
-    }
-    '/match/$slug': {
-      id: '/match/$slug'
-      path: '/match/$slug'
-      fullPath: '/match/$slug'
-      preLoaderRoute: typeof MatchSlugRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/match-center/website': {
-      id: '/match-center/website'
-      path: '/website'
-      fullPath: '/match-center/website'
-      preLoaderRoute: typeof MatchCenterWebsiteRouteImport
-      parentRoute: typeof MatchCenterRoute
+    '/checkin': {
+      id: '/checkin'
+      path: '/checkin'
+      fullPath: '/checkin'
+      preLoaderRoute: typeof CheckinRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/match-center/tournaments': {
-      id: '/match-center/tournaments'
-      path: '/tournaments'
-      fullPath: '/match-center/tournaments'
-      preLoaderRoute: typeof MatchCenterTournamentsRouteImport
-      parentRoute: typeof MatchCenterRoute
+    '/coaches': {
+      id: '/coaches'
+      path: '/coaches'
+      fullPath: '/coaches'
+      preLoaderRoute: typeof CoachesRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/match-center/settings': {
-      id: '/match-center/settings'
-      path: '/settings'
-      fullPath: '/match-center/settings'
-      preLoaderRoute: typeof MatchCenterSettingsRouteImport
-      parentRoute: typeof MatchCenterRoute
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/match-center/scorers': {
-      id: '/match-center/scorers'
-      path: '/scorers'
-      fullPath: '/match-center/scorers'
-      preLoaderRoute: typeof MatchCenterScorersRouteImport
-      parentRoute: typeof MatchCenterRoute
-    }
-    '/match-center/records': {
-      id: '/match-center/records'
-      path: '/records'
-      fullPath: '/match-center/records'
-      preLoaderRoute: typeof MatchCenterRecordsRouteImport
-      parentRoute: typeof MatchCenterRoute
-    }
-    '/match-center/recognition': {
-      id: '/match-center/recognition'
-      path: '/recognition'
-      fullPath: '/match-center/recognition'
-      preLoaderRoute: typeof MatchCenterRecognitionRouteImport
-      parentRoute: typeof MatchCenterRoute
-    }
-    '/match-center/profile': {
-      id: '/match-center/profile'
-      path: '/profile'
-      fullPath: '/match-center/profile'
-      preLoaderRoute: typeof MatchCenterProfileRouteImport
-      parentRoute: typeof MatchCenterRoute
-    }
-    '/match-center/performance': {
-      id: '/match-center/performance'
-      path: '/performance'
-      fullPath: '/match-center/performance'
-      preLoaderRoute: typeof MatchCenterPerformanceRouteImport
-      parentRoute: typeof MatchCenterRoute
-    }
-    '/match-center/matches': {
-      id: '/match-center/matches'
-      path: '/matches'
-      fullPath: '/match-center/matches'
-      preLoaderRoute: typeof MatchCenterMatchesRouteImport
-      parentRoute: typeof MatchCenterRoute
-    }
-    '/match-center/live': {
-      id: '/match-center/live'
-      path: '/live'
-      fullPath: '/match-center/live'
-      preLoaderRoute: typeof MatchCenterLiveRouteImport
-      parentRoute: typeof MatchCenterRoute
-    }
-    '/match-center/leaderboards': {
-      id: '/match-center/leaderboards'
-      path: '/leaderboards'
-      fullPath: '/match-center/leaderboards'
-      preLoaderRoute: typeof MatchCenterLeaderboardsRouteImport
-      parentRoute: typeof MatchCenterRoute
-    }
-    '/match-center/insights': {
-      id: '/match-center/insights'
-      path: '/insights'
-      fullPath: '/match-center/insights'
-      preLoaderRoute: typeof MatchCenterInsightsRouteImport
-      parentRoute: typeof MatchCenterRoute
-    }
-    '/match-center/dashboard': {
-      id: '/match-center/dashboard'
+    '/dashboard': {
+      id: '/dashboard'
       path: '/dashboard'
-      fullPath: '/match-center/dashboard'
-      preLoaderRoute: typeof MatchCenterDashboardRouteImport
-      parentRoute: typeof MatchCenterRoute
-    }
-    '/match-center/create': {
-      id: '/match-center/create'
-      path: '/create'
-      fullPath: '/match-center/create'
-      preLoaderRoute: typeof MatchCenterCreateRouteImport
-      parentRoute: typeof MatchCenterRoute
-    }
-    '/match-center/awards': {
-      id: '/match-center/awards'
-      path: '/awards'
-      fullPath: '/match-center/awards'
-      preLoaderRoute: typeof MatchCenterAwardsRouteImport
-      parentRoute: typeof MatchCenterRoute
-    }
-    '/match-center/ai-insights': {
-      id: '/match-center/ai-insights'
-      path: '/ai-insights'
-      fullPath: '/match-center/ai-insights'
-      preLoaderRoute: typeof MatchCenterAiInsightsRouteImport
-      parentRoute: typeof MatchCenterRoute
-    }
-    '/m/$slug': {
-      id: '/m/$slug'
-      path: '/m/$slug'
-      fullPath: '/m/$slug'
-      preLoaderRoute: typeof MSlugRouteImport
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/invite/$token': {
-      id: '/invite/$token'
-      path: '/invite/$token'
-      fullPath: '/invite/$token'
-      preLoaderRoute: typeof InviteTokenRouteImport
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard/subscription': {
-      id: '/dashboard/subscription'
-      path: '/subscription'
-      fullPath: '/dashboard/subscription'
-      preLoaderRoute: typeof DashboardSubscriptionRouteImport
-      parentRoute: typeof DashboardRoute
+    '/facilities': {
+      id: '/facilities'
+      path: '/facilities'
+      fullPath: '/facilities'
+      preLoaderRoute: typeof FacilitiesRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/dashboard/students': {
-      id: '/dashboard/students'
-      path: '/students'
-      fullPath: '/dashboard/students'
-      preLoaderRoute: typeof DashboardStudentsRouteImport
-      parentRoute: typeof DashboardRoute
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/dashboard/staff': {
-      id: '/dashboard/staff'
-      path: '/staff'
-      fullPath: '/dashboard/staff'
-      preLoaderRoute: typeof DashboardStaffRouteImport
-      parentRoute: typeof DashboardRoute
+    '/features': {
+      id: '/features'
+      path: '/features'
+      fullPath: '/features'
+      preLoaderRoute: typeof FeaturesRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/dashboard/site': {
-      id: '/dashboard/site'
-      path: '/site'
-      fullPath: '/dashboard/site'
-      preLoaderRoute: typeof DashboardSiteRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/settings': {
-      id: '/dashboard/settings'
-      path: '/settings'
-      fullPath: '/dashboard/settings'
-      preLoaderRoute: typeof DashboardSettingsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/reports': {
-      id: '/dashboard/reports'
-      path: '/reports'
-      fullPath: '/dashboard/reports'
-      preLoaderRoute: typeof DashboardReportsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/reminders': {
-      id: '/dashboard/reminders'
-      path: '/reminders'
-      fullPath: '/dashboard/reminders'
-      preLoaderRoute: typeof DashboardRemindersRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/registrations': {
-      id: '/dashboard/registrations'
-      path: '/registrations'
-      fullPath: '/dashboard/registrations'
-      preLoaderRoute: typeof DashboardRegistrationsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/profile': {
-      id: '/dashboard/profile'
-      path: '/profile'
-      fullPath: '/dashboard/profile'
-      preLoaderRoute: typeof DashboardProfileRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/payment-verification': {
-      id: '/dashboard/payment-verification'
-      path: '/payment-verification'
-      fullPath: '/dashboard/payment-verification'
-      preLoaderRoute: typeof DashboardPaymentVerificationRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/payment-settings': {
-      id: '/dashboard/payment-settings'
-      path: '/payment-settings'
-      fullPath: '/dashboard/payment-settings'
-      preLoaderRoute: typeof DashboardPaymentSettingsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/notifications': {
-      id: '/dashboard/notifications'
-      path: '/notifications'
-      fullPath: '/dashboard/notifications'
-      preLoaderRoute: typeof DashboardNotificationsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/nevorai-health': {
-      id: '/dashboard/nevorai-health'
-      path: '/nevorai-health'
-      fullPath: '/dashboard/nevorai-health'
-      preLoaderRoute: typeof DashboardNevoraiHealthRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/nevorai': {
-      id: '/dashboard/nevorai'
-      path: '/nevorai'
-      fullPath: '/dashboard/nevorai'
-      preLoaderRoute: typeof DashboardNevoraiRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/leads': {
-      id: '/dashboard/leads'
-      path: '/leads'
-      fullPath: '/dashboard/leads'
-      preLoaderRoute: typeof DashboardLeadsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/insights': {
-      id: '/dashboard/insights'
-      path: '/insights'
-      fullPath: '/dashboard/insights'
-      preLoaderRoute: typeof DashboardInsightsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/fees': {
-      id: '/dashboard/fees'
+    '/fees': {
+      id: '/fees'
       path: '/fees'
-      fullPath: '/dashboard/fees'
-      preLoaderRoute: typeof DashboardFeesRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/fee-plans': {
-      id: '/dashboard/fee-plans'
-      path: '/fee-plans'
-      fullPath: '/dashboard/fee-plans'
-      preLoaderRoute: typeof DashboardFeePlansRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/communications': {
-      id: '/dashboard/communications'
-      path: '/communications'
-      fullPath: '/dashboard/communications'
-      preLoaderRoute: typeof DashboardCommunicationsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/coach': {
-      id: '/dashboard/coach'
-      path: '/coach'
-      fullPath: '/dashboard/coach'
-      preLoaderRoute: typeof DashboardCoachRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/branding': {
-      id: '/dashboard/branding'
-      path: '/branding'
-      fullPath: '/dashboard/branding'
-      preLoaderRoute: typeof DashboardBrandingRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/billing': {
-      id: '/dashboard/billing'
-      path: '/billing'
-      fullPath: '/dashboard/billing'
-      preLoaderRoute: typeof DashboardBillingRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/batches': {
-      id: '/dashboard/batches'
-      path: '/batches'
-      fullPath: '/dashboard/batches'
-      preLoaderRoute: typeof DashboardBatchesRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/automation-test': {
-      id: '/dashboard/automation-test'
-      path: '/automation-test'
-      fullPath: '/dashboard/automation-test'
-      preLoaderRoute: typeof DashboardAutomationTestRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/automation-settings': {
-      id: '/dashboard/automation-settings'
-      path: '/automation-settings'
-      fullPath: '/dashboard/automation-settings'
-      preLoaderRoute: typeof DashboardAutomationSettingsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/automation': {
-      id: '/dashboard/automation'
-      path: '/automation'
-      fullPath: '/dashboard/automation'
-      preLoaderRoute: typeof DashboardAutomationRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/attendance-qr': {
-      id: '/dashboard/attendance-qr'
-      path: '/attendance-qr'
-      fullPath: '/dashboard/attendance-qr'
-      preLoaderRoute: typeof DashboardAttendanceQrRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/attendance-calendar': {
-      id: '/dashboard/attendance-calendar'
-      path: '/attendance-calendar'
-      fullPath: '/dashboard/attendance-calendar'
-      preLoaderRoute: typeof DashboardAttendanceCalendarRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/attendance': {
-      id: '/dashboard/attendance'
-      path: '/attendance'
-      fullPath: '/dashboard/attendance'
-      preLoaderRoute: typeof DashboardAttendanceRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/admissions-review': {
-      id: '/dashboard/admissions-review'
-      path: '/admissions-review'
-      fullPath: '/dashboard/admissions-review'
-      preLoaderRoute: typeof DashboardAdmissionsReviewRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/admins': {
-      id: '/dashboard/admins'
-      path: '/admins'
-      fullPath: '/dashboard/admins'
-      preLoaderRoute: typeof DashboardAdminsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/activation': {
-      id: '/dashboard/activation'
-      path: '/activation'
-      fullPath: '/dashboard/activation'
-      preLoaderRoute: typeof DashboardActivationRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/academy': {
-      id: '/dashboard/academy'
-      path: '/academy'
-      fullPath: '/dashboard/academy'
-      preLoaderRoute: typeof DashboardAcademyRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/apply/$slug': {
-      id: '/apply/$slug'
-      path: '/apply/$slug'
-      fullPath: '/apply/$slug'
-      preLoaderRoute: typeof ApplySlugRouteImport
+      fullPath: '/fees'
+      preLoaderRoute: typeof FeesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/chat': {
-      id: '/api/chat'
-      path: '/api/chat'
-      fullPath: '/api/chat'
-      preLoaderRoute: typeof ApiChatRouteImport
+    '/gallery': {
+      id: '/gallery'
+      path: '/gallery'
+      fullPath: '/gallery'
+      preLoaderRoute: typeof GalleryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/activate/$token': {
-      id: '/activate/$token'
-      path: '/activate/$token'
-      fullPath: '/activate/$token'
-      preLoaderRoute: typeof ActivateTokenRouteImport
+    '/location': {
+      id: '/location'
+      path: '/location'
+      fullPath: '/location'
+      preLoaderRoute: typeof LocationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/match-center': {
+      id: '/match-center'
+      path: '/match-center'
+      fullPath: '/match-center'
+      preLoaderRoute: typeof MatchCenterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/matches': {
+      id: '/matches'
+      path: '/matches'
+      fullPath: '/matches'
+      preLoaderRoute: typeof MatchesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/parent': {
+      id: '/parent'
+      path: '/parent'
+      fullPath: '/parent'
+      preLoaderRoute: typeof ParentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/parent-portal': {
+      id: '/parent-portal'
+      path: '/parent-portal'
+      fullPath: '/parent-portal'
+      preLoaderRoute: typeof ParentPortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/platform-admin': {
+      id: '/platform-admin'
+      path: '/platform-admin'
+      fullPath: '/platform-admin'
+      preLoaderRoute: typeof PlatformAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/programs': {
+      id: '/programs'
+      path: '/programs'
+      fullPath: '/programs'
+      preLoaderRoute: typeof ProgramsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refund': {
+      id: '/refund'
+      path: '/refund'
+      fullPath: '/refund'
+      preLoaderRoute: typeof RefundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/star-players': {
+      id: '/star-players'
+      path: '/star-players'
+      fullPath: '/star-players'
+      preLoaderRoute: typeof StarPlayersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/student': {
+      id: '/student'
+      path: '/student'
+      fullPath: '/student'
+      preLoaderRoute: typeof StudentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/testimonials': {
+      id: '/testimonials'
+      path: '/testimonials'
+      fullPath: '/testimonials'
+      preLoaderRoute: typeof TestimonialsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/academy/$slug': {
@@ -2715,95 +2118,634 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AcademySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/platform-admin/tenants/': {
-      id: '/platform-admin/tenants/'
-      path: '/tenants'
-      fullPath: '/platform-admin/tenants/'
-      preLoaderRoute: typeof PlatformAdminTenantsIndexRouteImport
+    '/activate/$token': {
+      id: '/activate/$token'
+      path: '/activate/$token'
+      fullPath: '/activate/$token'
+      preLoaderRoute: typeof ActivateTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apply/$slug': {
+      id: '/apply/$slug'
+      path: '/apply/$slug'
+      fullPath: '/apply/$slug'
+      preLoaderRoute: typeof ApplySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/academy': {
+      id: '/dashboard/academy'
+      path: '/academy'
+      fullPath: '/dashboard/academy'
+      preLoaderRoute: typeof DashboardAcademyRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/activation': {
+      id: '/dashboard/activation'
+      path: '/activation'
+      fullPath: '/dashboard/activation'
+      preLoaderRoute: typeof DashboardActivationRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/admins': {
+      id: '/dashboard/admins'
+      path: '/admins'
+      fullPath: '/dashboard/admins'
+      preLoaderRoute: typeof DashboardAdminsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/admissions-review': {
+      id: '/dashboard/admissions-review'
+      path: '/admissions-review'
+      fullPath: '/dashboard/admissions-review'
+      preLoaderRoute: typeof DashboardAdmissionsReviewRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/attendance': {
+      id: '/dashboard/attendance'
+      path: '/attendance'
+      fullPath: '/dashboard/attendance'
+      preLoaderRoute: typeof DashboardAttendanceRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/attendance-calendar': {
+      id: '/dashboard/attendance-calendar'
+      path: '/attendance-calendar'
+      fullPath: '/dashboard/attendance-calendar'
+      preLoaderRoute: typeof DashboardAttendanceCalendarRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/attendance-qr': {
+      id: '/dashboard/attendance-qr'
+      path: '/attendance-qr'
+      fullPath: '/dashboard/attendance-qr'
+      preLoaderRoute: typeof DashboardAttendanceQrRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/automation': {
+      id: '/dashboard/automation'
+      path: '/automation'
+      fullPath: '/dashboard/automation'
+      preLoaderRoute: typeof DashboardAutomationRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/automation-settings': {
+      id: '/dashboard/automation-settings'
+      path: '/automation-settings'
+      fullPath: '/dashboard/automation-settings'
+      preLoaderRoute: typeof DashboardAutomationSettingsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/automation-test': {
+      id: '/dashboard/automation-test'
+      path: '/automation-test'
+      fullPath: '/dashboard/automation-test'
+      preLoaderRoute: typeof DashboardAutomationTestRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/batches': {
+      id: '/dashboard/batches'
+      path: '/batches'
+      fullPath: '/dashboard/batches'
+      preLoaderRoute: typeof DashboardBatchesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/billing': {
+      id: '/dashboard/billing'
+      path: '/billing'
+      fullPath: '/dashboard/billing'
+      preLoaderRoute: typeof DashboardBillingRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/branding': {
+      id: '/dashboard/branding'
+      path: '/branding'
+      fullPath: '/dashboard/branding'
+      preLoaderRoute: typeof DashboardBrandingRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/coach': {
+      id: '/dashboard/coach'
+      path: '/coach'
+      fullPath: '/dashboard/coach'
+      preLoaderRoute: typeof DashboardCoachRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/communications': {
+      id: '/dashboard/communications'
+      path: '/communications'
+      fullPath: '/dashboard/communications'
+      preLoaderRoute: typeof DashboardCommunicationsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/fee-plans': {
+      id: '/dashboard/fee-plans'
+      path: '/fee-plans'
+      fullPath: '/dashboard/fee-plans'
+      preLoaderRoute: typeof DashboardFeePlansRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/fees': {
+      id: '/dashboard/fees'
+      path: '/fees'
+      fullPath: '/dashboard/fees'
+      preLoaderRoute: typeof DashboardFeesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/insights': {
+      id: '/dashboard/insights'
+      path: '/insights'
+      fullPath: '/dashboard/insights'
+      preLoaderRoute: typeof DashboardInsightsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/leads': {
+      id: '/dashboard/leads'
+      path: '/leads'
+      fullPath: '/dashboard/leads'
+      preLoaderRoute: typeof DashboardLeadsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/nevorai': {
+      id: '/dashboard/nevorai'
+      path: '/nevorai'
+      fullPath: '/dashboard/nevorai'
+      preLoaderRoute: typeof DashboardNevoraiRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/nevorai-health': {
+      id: '/dashboard/nevorai-health'
+      path: '/nevorai-health'
+      fullPath: '/dashboard/nevorai-health'
+      preLoaderRoute: typeof DashboardNevoraiHealthRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/notifications': {
+      id: '/dashboard/notifications'
+      path: '/notifications'
+      fullPath: '/dashboard/notifications'
+      preLoaderRoute: typeof DashboardNotificationsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/payment-settings': {
+      id: '/dashboard/payment-settings'
+      path: '/payment-settings'
+      fullPath: '/dashboard/payment-settings'
+      preLoaderRoute: typeof DashboardPaymentSettingsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/payment-verification': {
+      id: '/dashboard/payment-verification'
+      path: '/payment-verification'
+      fullPath: '/dashboard/payment-verification'
+      preLoaderRoute: typeof DashboardPaymentVerificationRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/profile': {
+      id: '/dashboard/profile'
+      path: '/profile'
+      fullPath: '/dashboard/profile'
+      preLoaderRoute: typeof DashboardProfileRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/registrations': {
+      id: '/dashboard/registrations'
+      path: '/registrations'
+      fullPath: '/dashboard/registrations'
+      preLoaderRoute: typeof DashboardRegistrationsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/reminders': {
+      id: '/dashboard/reminders'
+      path: '/reminders'
+      fullPath: '/dashboard/reminders'
+      preLoaderRoute: typeof DashboardRemindersRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/reports': {
+      id: '/dashboard/reports'
+      path: '/reports'
+      fullPath: '/dashboard/reports'
+      preLoaderRoute: typeof DashboardReportsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/settings': {
+      id: '/dashboard/settings'
+      path: '/settings'
+      fullPath: '/dashboard/settings'
+      preLoaderRoute: typeof DashboardSettingsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/site': {
+      id: '/dashboard/site'
+      path: '/site'
+      fullPath: '/dashboard/site'
+      preLoaderRoute: typeof DashboardSiteRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/staff': {
+      id: '/dashboard/staff'
+      path: '/staff'
+      fullPath: '/dashboard/staff'
+      preLoaderRoute: typeof DashboardStaffRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/students': {
+      id: '/dashboard/students'
+      path: '/students'
+      fullPath: '/dashboard/students'
+      preLoaderRoute: typeof DashboardStudentsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/subscription': {
+      id: '/dashboard/subscription'
+      path: '/subscription'
+      fullPath: '/dashboard/subscription'
+      preLoaderRoute: typeof DashboardSubscriptionRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/invite/$token': {
+      id: '/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof InviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/m/$slug': {
+      id: '/m/$slug'
+      path: '/m/$slug'
+      fullPath: '/m/$slug'
+      preLoaderRoute: typeof MSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/match-center/': {
+      id: '/match-center/'
+      path: '/'
+      fullPath: '/match-center/'
+      preLoaderRoute: typeof MatchCenterIndexRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/ai-insights': {
+      id: '/match-center/ai-insights'
+      path: '/ai-insights'
+      fullPath: '/match-center/ai-insights'
+      preLoaderRoute: typeof MatchCenterAiInsightsRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/awards': {
+      id: '/match-center/awards'
+      path: '/awards'
+      fullPath: '/match-center/awards'
+      preLoaderRoute: typeof MatchCenterAwardsRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/create': {
+      id: '/match-center/create'
+      path: '/create'
+      fullPath: '/match-center/create'
+      preLoaderRoute: typeof MatchCenterCreateRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/dashboard': {
+      id: '/match-center/dashboard'
+      path: '/dashboard'
+      fullPath: '/match-center/dashboard'
+      preLoaderRoute: typeof MatchCenterDashboardRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/insights': {
+      id: '/match-center/insights'
+      path: '/insights'
+      fullPath: '/match-center/insights'
+      preLoaderRoute: typeof MatchCenterInsightsRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/leaderboards': {
+      id: '/match-center/leaderboards'
+      path: '/leaderboards'
+      fullPath: '/match-center/leaderboards'
+      preLoaderRoute: typeof MatchCenterLeaderboardsRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/live': {
+      id: '/match-center/live'
+      path: '/live'
+      fullPath: '/match-center/live'
+      preLoaderRoute: typeof MatchCenterLiveRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/matches': {
+      id: '/match-center/matches'
+      path: '/matches'
+      fullPath: '/match-center/matches'
+      preLoaderRoute: typeof MatchCenterMatchesRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/performance': {
+      id: '/match-center/performance'
+      path: '/performance'
+      fullPath: '/match-center/performance'
+      preLoaderRoute: typeof MatchCenterPerformanceRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/profile': {
+      id: '/match-center/profile'
+      path: '/profile'
+      fullPath: '/match-center/profile'
+      preLoaderRoute: typeof MatchCenterProfileRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/recognition': {
+      id: '/match-center/recognition'
+      path: '/recognition'
+      fullPath: '/match-center/recognition'
+      preLoaderRoute: typeof MatchCenterRecognitionRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/records': {
+      id: '/match-center/records'
+      path: '/records'
+      fullPath: '/match-center/records'
+      preLoaderRoute: typeof MatchCenterRecordsRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/scorers': {
+      id: '/match-center/scorers'
+      path: '/scorers'
+      fullPath: '/match-center/scorers'
+      preLoaderRoute: typeof MatchCenterScorersRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/settings': {
+      id: '/match-center/settings'
+      path: '/settings'
+      fullPath: '/match-center/settings'
+      preLoaderRoute: typeof MatchCenterSettingsRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/tournaments': {
+      id: '/match-center/tournaments'
+      path: '/tournaments'
+      fullPath: '/match-center/tournaments'
+      preLoaderRoute: typeof MatchCenterTournamentsRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/website': {
+      id: '/match-center/website'
+      path: '/website'
+      fullPath: '/match-center/website'
+      preLoaderRoute: typeof MatchCenterWebsiteRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match/$slug': {
+      id: '/match/$slug'
+      path: '/match/$slug'
+      fullPath: '/match/$slug'
+      preLoaderRoute: typeof MatchSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/matches/': {
+      id: '/matches/'
+      path: '/'
+      fullPath: '/matches/'
+      preLoaderRoute: typeof MatchesIndexRouteImport
+      parentRoute: typeof MatchesRoute
+    }
+    '/matches/$matchId': {
+      id: '/matches/$matchId'
+      path: '/$matchId'
+      fullPath: '/matches/$matchId'
+      preLoaderRoute: typeof MatchesMatchIdRouteImport
+      parentRoute: typeof MatchesRoute
+    }
+    '/parent/': {
+      id: '/parent/'
+      path: '/'
+      fullPath: '/parent/'
+      preLoaderRoute: typeof ParentIndexRouteImport
+      parentRoute: typeof ParentRoute
+    }
+    '/parent/$': {
+      id: '/parent/$'
+      path: '/$'
+      fullPath: '/parent/$'
+      preLoaderRoute: typeof ParentSplatRouteImport
+      parentRoute: typeof ParentRoute
+    }
+    '/platform-admin/': {
+      id: '/platform-admin/'
+      path: '/'
+      fullPath: '/platform-admin/'
+      preLoaderRoute: typeof PlatformAdminIndexRouteImport
       parentRoute: typeof PlatformAdminRoute
     }
-    '/match-center/teams/': {
-      id: '/match-center/teams/'
-      path: '/teams'
-      fullPath: '/match-center/teams/'
-      preLoaderRoute: typeof MatchCenterTeamsIndexRouteImport
-      parentRoute: typeof MatchCenterRoute
-    }
-    '/match-center/players/': {
-      id: '/match-center/players/'
-      path: '/players'
-      fullPath: '/match-center/players/'
-      preLoaderRoute: typeof MatchCenterPlayersIndexRouteImport
-      parentRoute: typeof MatchCenterRoute
-    }
-    '/platform-admin/tenants/$id': {
-      id: '/platform-admin/tenants/$id'
-      path: '/tenants/$id'
-      fullPath: '/platform-admin/tenants/$id'
-      preLoaderRoute: typeof PlatformAdminTenantsIdRouteImport
+    '/platform-admin/audit': {
+      id: '/platform-admin/audit'
+      path: '/audit'
+      fullPath: '/platform-admin/audit'
+      preLoaderRoute: typeof PlatformAdminAuditRouteImport
       parentRoute: typeof PlatformAdminRoute
     }
-    '/match-center/tournaments/$tournamentId': {
-      id: '/match-center/tournaments/$tournamentId'
-      path: '/$tournamentId'
-      fullPath: '/match-center/tournaments/$tournamentId'
-      preLoaderRoute: typeof MatchCenterTournamentsTournamentIdRouteImport
-      parentRoute: typeof MatchCenterTournamentsRoute
+    '/platform-admin/communication': {
+      id: '/platform-admin/communication'
+      path: '/communication'
+      fullPath: '/platform-admin/communication'
+      preLoaderRoute: typeof PlatformAdminCommunicationRouteImport
+      parentRoute: typeof PlatformAdminRoute
     }
-    '/match-center/teams/new': {
-      id: '/match-center/teams/new'
-      path: '/teams/new'
-      fullPath: '/match-center/teams/new'
-      preLoaderRoute: typeof MatchCenterTeamsNewRouteImport
-      parentRoute: typeof MatchCenterRoute
+    '/platform-admin/flags': {
+      id: '/platform-admin/flags'
+      path: '/flags'
+      fullPath: '/platform-admin/flags'
+      preLoaderRoute: typeof PlatformAdminFlagsRouteImport
+      parentRoute: typeof PlatformAdminRoute
     }
-    '/match-center/teams/$teamId': {
-      id: '/match-center/teams/$teamId'
-      path: '/teams/$teamId'
-      fullPath: '/match-center/teams/$teamId'
-      preLoaderRoute: typeof MatchCenterTeamsTeamIdRouteImport
-      parentRoute: typeof MatchCenterRoute
+    '/platform-admin/founder': {
+      id: '/platform-admin/founder'
+      path: '/founder'
+      fullPath: '/platform-admin/founder'
+      preLoaderRoute: typeof PlatformAdminFounderRouteImport
+      parentRoute: typeof PlatformAdminRoute
     }
-    '/match-center/scorebook/$matchId': {
-      id: '/match-center/scorebook/$matchId'
-      path: '/scorebook/$matchId'
-      fullPath: '/match-center/scorebook/$matchId'
-      preLoaderRoute: typeof MatchCenterScorebookMatchIdRouteImport
-      parentRoute: typeof MatchCenterRoute
+    '/platform-admin/health': {
+      id: '/platform-admin/health'
+      path: '/health'
+      fullPath: '/platform-admin/health'
+      preLoaderRoute: typeof PlatformAdminHealthRouteImport
+      parentRoute: typeof PlatformAdminRoute
     }
-    '/match-center/players/$athleteId': {
-      id: '/match-center/players/$athleteId'
-      path: '/players/$athleteId'
-      fullPath: '/match-center/players/$athleteId'
-      preLoaderRoute: typeof MatchCenterPlayersAthleteIdRouteImport
-      parentRoute: typeof MatchCenterRoute
+    '/platform-admin/nevorai': {
+      id: '/platform-admin/nevorai'
+      path: '/nevorai'
+      fullPath: '/platform-admin/nevorai'
+      preLoaderRoute: typeof PlatformAdminNevoraiRouteImport
+      parentRoute: typeof PlatformAdminRoute
     }
-    '/match-center/performance/compare': {
-      id: '/match-center/performance/compare'
-      path: '/compare'
-      fullPath: '/match-center/performance/compare'
-      preLoaderRoute: typeof MatchCenterPerformanceCompareRouteImport
-      parentRoute: typeof MatchCenterPerformanceRoute
+    '/platform-admin/new': {
+      id: '/platform-admin/new'
+      path: '/new'
+      fullPath: '/platform-admin/new'
+      preLoaderRoute: typeof PlatformAdminNewRouteImport
+      parentRoute: typeof PlatformAdminRoute
     }
-    '/match-center/performance/$athleteId': {
-      id: '/match-center/performance/$athleteId'
-      path: '/$athleteId'
-      fullPath: '/match-center/performance/$athleteId'
-      preLoaderRoute: typeof MatchCenterPerformanceAthleteIdRouteImport
-      parentRoute: typeof MatchCenterPerformanceRoute
+    '/platform-admin/payment-settings': {
+      id: '/platform-admin/payment-settings'
+      path: '/payment-settings'
+      fullPath: '/platform-admin/payment-settings'
+      preLoaderRoute: typeof PlatformAdminPaymentSettingsRouteImport
+      parentRoute: typeof PlatformAdminRoute
     }
-    '/dashboard/students/$id': {
-      id: '/dashboard/students/$id'
-      path: '/$id'
-      fullPath: '/dashboard/students/$id'
-      preLoaderRoute: typeof DashboardStudentsIdRouteImport
-      parentRoute: typeof DashboardStudentsRoute
+    '/platform-admin/push': {
+      id: '/platform-admin/push'
+      path: '/push'
+      fullPath: '/platform-admin/push'
+      preLoaderRoute: typeof PlatformAdminPushRouteImport
+      parentRoute: typeof PlatformAdminRoute
     }
-    '/dashboard/coach/onboarding': {
-      id: '/dashboard/coach/onboarding'
-      path: '/onboarding'
-      fullPath: '/dashboard/coach/onboarding'
-      preLoaderRoute: typeof DashboardCoachOnboardingRouteImport
+    '/platform-admin/search': {
+      id: '/platform-admin/search'
+      path: '/search'
+      fullPath: '/platform-admin/search'
+      preLoaderRoute: typeof PlatformAdminSearchRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
+    '/platform-admin/settings': {
+      id: '/platform-admin/settings'
+      path: '/settings'
+      fullPath: '/platform-admin/settings'
+      preLoaderRoute: typeof PlatformAdminSettingsRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
+    '/platform-admin/sports': {
+      id: '/platform-admin/sports'
+      path: '/sports'
+      fullPath: '/platform-admin/sports'
+      preLoaderRoute: typeof PlatformAdminSportsRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
+    '/platform-admin/subscriptions': {
+      id: '/platform-admin/subscriptions'
+      path: '/subscriptions'
+      fullPath: '/platform-admin/subscriptions'
+      preLoaderRoute: typeof PlatformAdminSubscriptionsRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
+    '/platform-admin/support': {
+      id: '/platform-admin/support'
+      path: '/support'
+      fullPath: '/platform-admin/support'
+      preLoaderRoute: typeof PlatformAdminSupportRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
+    '/platform-admin/usage': {
+      id: '/platform-admin/usage'
+      path: '/usage'
+      fullPath: '/platform-admin/usage'
+      preLoaderRoute: typeof PlatformAdminUsageRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
+    '/policies/$kind': {
+      id: '/policies/$kind'
+      path: '/policies/$kind'
+      fullPath: '/policies/$kind'
+      preLoaderRoute: typeof PoliciesKindRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scorer/$matchId': {
+      id: '/scorer/$matchId'
+      path: '/scorer/$matchId'
+      fullPath: '/scorer/$matchId'
+      preLoaderRoute: typeof ScorerMatchIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/student/': {
+      id: '/student/'
+      path: '/'
+      fullPath: '/student/'
+      preLoaderRoute: typeof StudentIndexRouteImport
+      parentRoute: typeof StudentRoute
+    }
+    '/student/attendance': {
+      id: '/student/attendance'
+      path: '/attendance'
+      fullPath: '/student/attendance'
+      preLoaderRoute: typeof StudentAttendanceRouteImport
+      parentRoute: typeof StudentRoute
+    }
+    '/student/fees': {
+      id: '/student/fees'
+      path: '/fees'
+      fullPath: '/student/fees'
+      preLoaderRoute: typeof StudentFeesRouteImport
+      parentRoute: typeof StudentRoute
+    }
+    '/student/manage': {
+      id: '/student/manage'
+      path: '/manage'
+      fullPath: '/student/manage'
+      preLoaderRoute: typeof StudentManageRouteImport
+      parentRoute: typeof StudentRoute
+    }
+    '/student/matches': {
+      id: '/student/matches'
+      path: '/matches'
+      fullPath: '/student/matches'
+      preLoaderRoute: typeof StudentMatchesRouteImport
+      parentRoute: typeof StudentRoute
+    }
+    '/student/pending': {
+      id: '/student/pending'
+      path: '/pending'
+      fullPath: '/student/pending'
+      preLoaderRoute: typeof StudentPendingRouteImport
+      parentRoute: typeof StudentRoute
+    }
+    '/student/profile': {
+      id: '/student/profile'
+      path: '/profile'
+      fullPath: '/student/profile'
+      preLoaderRoute: typeof StudentProfileRouteImport
+      parentRoute: typeof StudentRoute
+    }
+    '/student/progress': {
+      id: '/student/progress'
+      path: '/progress'
+      fullPath: '/student/progress'
+      preLoaderRoute: typeof StudentProgressRouteImport
+      parentRoute: typeof StudentRoute
+    }
+    '/student/timeline': {
+      id: '/student/timeline'
+      path: '/timeline'
+      fullPath: '/student/timeline'
+      preLoaderRoute: typeof StudentTimelineRouteImport
+      parentRoute: typeof StudentRoute
+    }
+    '/api/public/tenant-icon': {
+      id: '/api/public/tenant-icon'
+      path: '/api/public/tenant-icon'
+      fullPath: '/api/public/tenant-icon'
+      preLoaderRoute: typeof ApiPublicTenantIconRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/coach/analytics': {
+      id: '/dashboard/coach/analytics'
+      path: '/analytics'
+      fullPath: '/dashboard/coach/analytics'
+      preLoaderRoute: typeof DashboardCoachAnalyticsRouteImport
       parentRoute: typeof DashboardCoachRoute
     }
     '/dashboard/coach/approvals': {
@@ -2813,60 +2755,102 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardCoachApprovalsRouteImport
       parentRoute: typeof DashboardCoachRoute
     }
-    '/dashboard/coach/analytics': {
-      id: '/dashboard/coach/analytics'
-      path: '/analytics'
-      fullPath: '/dashboard/coach/analytics'
-      preLoaderRoute: typeof DashboardCoachAnalyticsRouteImport
+    '/dashboard/coach/onboarding': {
+      id: '/dashboard/coach/onboarding'
+      path: '/onboarding'
+      fullPath: '/dashboard/coach/onboarding'
+      preLoaderRoute: typeof DashboardCoachOnboardingRouteImport
       parentRoute: typeof DashboardCoachRoute
     }
-    '/api/public/tenant-icon': {
-      id: '/api/public/tenant-icon'
-      path: '/api/public/tenant-icon'
-      fullPath: '/api/public/tenant-icon'
-      preLoaderRoute: typeof ApiPublicTenantIconRouteImport
-      parentRoute: typeof rootRouteImport
+    '/dashboard/students/$id': {
+      id: '/dashboard/students/$id'
+      path: '/$id'
+      fullPath: '/dashboard/students/$id'
+      preLoaderRoute: typeof DashboardStudentsIdRouteImport
+      parentRoute: typeof DashboardStudentsRoute
     }
-    '/api/public/manifest/webmanifest': {
-      id: '/api/public/manifest/webmanifest'
-      path: '/api/public/manifest/webmanifest'
-      fullPath: '/api/public/manifest/webmanifest'
-      preLoaderRoute: typeof ApiPublicManifestWebmanifestRouteImport
-      parentRoute: typeof rootRouteImport
+    '/match-center/performance/$athleteId': {
+      id: '/match-center/performance/$athleteId'
+      path: '/$athleteId'
+      fullPath: '/match-center/performance/$athleteId'
+      preLoaderRoute: typeof MatchCenterPerformanceAthleteIdRouteImport
+      parentRoute: typeof MatchCenterPerformanceRoute
     }
-    '/api/public/hooks/subscription-check': {
-      id: '/api/public/hooks/subscription-check'
-      path: '/api/public/hooks/subscription-check'
-      fullPath: '/api/public/hooks/subscription-check'
-      preLoaderRoute: typeof ApiPublicHooksSubscriptionCheckRouteImport
-      parentRoute: typeof rootRouteImport
+    '/match-center/performance/compare': {
+      id: '/match-center/performance/compare'
+      path: '/compare'
+      fullPath: '/match-center/performance/compare'
+      preLoaderRoute: typeof MatchCenterPerformanceCompareRouteImport
+      parentRoute: typeof MatchCenterPerformanceRoute
     }
-    '/api/public/hooks/owner-summaries': {
-      id: '/api/public/hooks/owner-summaries'
-      path: '/api/public/hooks/owner-summaries'
-      fullPath: '/api/public/hooks/owner-summaries'
-      preLoaderRoute: typeof ApiPublicHooksOwnerSummariesRouteImport
-      parentRoute: typeof rootRouteImport
+    '/match-center/players/': {
+      id: '/match-center/players/'
+      path: '/players'
+      fullPath: '/match-center/players/'
+      preLoaderRoute: typeof MatchCenterPlayersIndexRouteImport
+      parentRoute: typeof MatchCenterRoute
     }
-    '/api/public/hooks/nevorai-brief': {
-      id: '/api/public/hooks/nevorai-brief'
-      path: '/api/public/hooks/nevorai-brief'
-      fullPath: '/api/public/hooks/nevorai-brief'
-      preLoaderRoute: typeof ApiPublicHooksNevoraiBriefRouteImport
-      parentRoute: typeof rootRouteImport
+    '/match-center/players/$athleteId': {
+      id: '/match-center/players/$athleteId'
+      path: '/players/$athleteId'
+      fullPath: '/match-center/players/$athleteId'
+      preLoaderRoute: typeof MatchCenterPlayersAthleteIdRouteImport
+      parentRoute: typeof MatchCenterRoute
     }
-    '/api/public/hooks/fee-reminders': {
-      id: '/api/public/hooks/fee-reminders'
-      path: '/api/public/hooks/fee-reminders'
-      fullPath: '/api/public/hooks/fee-reminders'
-      preLoaderRoute: typeof ApiPublicHooksFeeRemindersRouteImport
-      parentRoute: typeof rootRouteImport
+    '/match-center/scorebook/$matchId': {
+      id: '/match-center/scorebook/$matchId'
+      path: '/scorebook/$matchId'
+      fullPath: '/match-center/scorebook/$matchId'
+      preLoaderRoute: typeof MatchCenterScorebookMatchIdRouteImport
+      parentRoute: typeof MatchCenterRoute
     }
-    '/api/public/hooks/dispatch-campaigns': {
-      id: '/api/public/hooks/dispatch-campaigns'
-      path: '/api/public/hooks/dispatch-campaigns'
-      fullPath: '/api/public/hooks/dispatch-campaigns'
-      preLoaderRoute: typeof ApiPublicHooksDispatchCampaignsRouteImport
+    '/match-center/teams/': {
+      id: '/match-center/teams/'
+      path: '/teams'
+      fullPath: '/match-center/teams/'
+      preLoaderRoute: typeof MatchCenterTeamsIndexRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/teams/$teamId': {
+      id: '/match-center/teams/$teamId'
+      path: '/teams/$teamId'
+      fullPath: '/match-center/teams/$teamId'
+      preLoaderRoute: typeof MatchCenterTeamsTeamIdRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/teams/new': {
+      id: '/match-center/teams/new'
+      path: '/teams/new'
+      fullPath: '/match-center/teams/new'
+      preLoaderRoute: typeof MatchCenterTeamsNewRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/tournaments/$tournamentId': {
+      id: '/match-center/tournaments/$tournamentId'
+      path: '/$tournamentId'
+      fullPath: '/match-center/tournaments/$tournamentId'
+      preLoaderRoute: typeof MatchCenterTournamentsTournamentIdRouteImport
+      parentRoute: typeof MatchCenterTournamentsRoute
+    }
+    '/platform-admin/tenants/': {
+      id: '/platform-admin/tenants/'
+      path: '/tenants'
+      fullPath: '/platform-admin/tenants/'
+      preLoaderRoute: typeof PlatformAdminTenantsIndexRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
+    '/platform-admin/tenants/$id': {
+      id: '/platform-admin/tenants/$id'
+      path: '/tenants/$id'
+      fullPath: '/platform-admin/tenants/$id'
+      preLoaderRoute: typeof PlatformAdminTenantsIdRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
+    '/academy/$academySlug/tournaments/$tournamentSlug': {
+      id: '/academy/$academySlug/tournaments/$tournamentSlug'
+      path: '/academy/$academySlug/tournaments/$tournamentSlug'
+      fullPath: '/academy/$academySlug/tournaments/$tournamentSlug'
+      preLoaderRoute: typeof AcademyAcademySlugTournamentsTournamentSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/automation-tick': {
@@ -2876,11 +2860,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksAutomationTickRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/academy/$academySlug/tournaments/$tournamentSlug': {
-      id: '/academy/$academySlug/tournaments/$tournamentSlug'
-      path: '/academy/$academySlug/tournaments/$tournamentSlug'
-      fullPath: '/academy/$academySlug/tournaments/$tournamentSlug'
-      preLoaderRoute: typeof AcademyAcademySlugTournamentsTournamentSlugRouteImport
+    '/api/public/hooks/dispatch-campaigns': {
+      id: '/api/public/hooks/dispatch-campaigns'
+      path: '/api/public/hooks/dispatch-campaigns'
+      fullPath: '/api/public/hooks/dispatch-campaigns'
+      preLoaderRoute: typeof ApiPublicHooksDispatchCampaignsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/fee-reminders': {
+      id: '/api/public/hooks/fee-reminders'
+      path: '/api/public/hooks/fee-reminders'
+      fullPath: '/api/public/hooks/fee-reminders'
+      preLoaderRoute: typeof ApiPublicHooksFeeRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/nevorai-brief': {
+      id: '/api/public/hooks/nevorai-brief'
+      path: '/api/public/hooks/nevorai-brief'
+      fullPath: '/api/public/hooks/nevorai-brief'
+      preLoaderRoute: typeof ApiPublicHooksNevoraiBriefRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/owner-summaries': {
+      id: '/api/public/hooks/owner-summaries'
+      path: '/api/public/hooks/owner-summaries'
+      fullPath: '/api/public/hooks/owner-summaries'
+      preLoaderRoute: typeof ApiPublicHooksOwnerSummariesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/subscription-check': {
+      id: '/api/public/hooks/subscription-check'
+      path: '/api/public/hooks/subscription-check'
+      fullPath: '/api/public/hooks/subscription-check'
+      preLoaderRoute: typeof ApiPublicHooksSubscriptionCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/manifest/webmanifest': {
+      id: '/api/public/manifest/webmanifest'
+      path: '/api/public/manifest/webmanifest'
+      fullPath: '/api/public/manifest/webmanifest'
+      preLoaderRoute: typeof ApiPublicManifestWebmanifestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/payments/$provider/webhook': {
@@ -3158,6 +3177,7 @@ const PlatformAdminRouteWithChildren = PlatformAdminRoute._addFileChildren(
 )
 
 interface StudentRouteChildren {
+  StudentAttendanceRoute: typeof StudentAttendanceRoute
   StudentFeesRoute: typeof StudentFeesRoute
   StudentManageRoute: typeof StudentManageRoute
   StudentMatchesRoute: typeof StudentMatchesRoute
@@ -3169,6 +3189,7 @@ interface StudentRouteChildren {
 }
 
 const StudentRouteChildren: StudentRouteChildren = {
+  StudentAttendanceRoute: StudentAttendanceRoute,
   StudentFeesRoute: StudentFeesRoute,
   StudentManageRoute: StudentManageRoute,
   StudentMatchesRoute: StudentMatchesRoute,

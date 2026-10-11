@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  dayRows,
   dayState,
   groupByStudent,
   monthDays,
   playerStates,
   shiftMonth,
   summarize,
+  sundayLead,
   type Visit,
 } from "./calendar";
 
@@ -60,5 +62,33 @@ describe("attendance calendar", () => {
     const g = groupByStudent([v("present", "2026-10-05", "a"), v("late", "2026-10-06", "a"), v("absent", "2026-10-05", "b")]);
     expect(g.get("a")?.size).toBe(2);
     expect(g.get("b")?.get("2026-10-05")).toHaveLength(1);
+  });
+
+  it("starts the week on Sunday for the calendar grid", () => {
+    expect(sundayLead(2026, 9)).toBe(4); // 1 Oct 2026 is a Thursday: Sun Mon Tue Wed blank
+    expect(sundayLead(2026, 10)).toBe(0); // 1 Nov 2026 is a Sunday
+  });
+
+  it("builds the table: newest first, no future days, no days without a session", () => {
+    const days = monthDays(2026, 9);
+    const timed = (date: string, status: Visit["status"], inAt: string | null, outAt: string | null, mins: number | null): Visit => ({
+      ...v(status, date),
+      check_in_at: inAt,
+      check_out_at: outAt,
+      duration_minutes: mins,
+    });
+    const visits = [
+      timed("2026-10-05", "present", "2026-10-05T11:30:00Z", "2026-10-05T13:00:00Z", 90),
+      timed("2026-10-06", "late", "2026-10-06T11:50:00Z", null, null),
+    ];
+    const byDate = new Map<string, Visit[]>();
+    for (const x of visits) byDate.set(x.session_date, [...(byDate.get(x.session_date) ?? []), x]);
+    const sessions = new Set(["2026-10-05", "2026-10-06", "2026-10-07", "2026-10-20"]);
+    const states = playerStates(days, byDate, sessions);
+    const rows = dayRows(days, states, byDate, "2026-10-07");
+    expect(rows.map((r) => r.date)).toEqual(["2026-10-07", "2026-10-06", "2026-10-05"]);
+    expect(rows[0]).toMatchObject({ state: "absent", inAt: null, open: false, minutes: null });
+    expect(rows[1]).toMatchObject({ state: "late", open: true, outAt: null });
+    expect(rows[2]).toMatchObject({ state: "present", open: false, minutes: 90 });
   });
 });

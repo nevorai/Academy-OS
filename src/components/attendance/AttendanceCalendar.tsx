@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -12,13 +12,19 @@ import {
   groupByStudent,
   monthDays,
   monthLabel,
+  dayRows,
   playerStates,
+  practiceMinutes,
   shiftMonth,
   summarize,
+  sundayLead,
   todayISO,
+  type DayRow,
   type DayState,
   type Visit,
 } from "@/lib/attendance/calendar";
+import { formatDuration } from "@/lib/attendance/constants";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const DOT: Record<DayState, string> = {
   present: "bg-emerald-500 text-white",
@@ -27,7 +33,7 @@ const DOT: Record<DayState, string> = {
   none: "bg-muted text-muted-foreground/60",
 };
 
-const WEEK = ["M", "T", "W", "T", "F", "S", "S"];
+const WEEK_SUN = ["S", "M", "T", "W", "T", "F", "S"];
 
 const time = (iso: string | null) =>
   iso ? new Date(iso).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }) : null;
@@ -67,11 +73,199 @@ export function MonthNav({
   );
 }
 
-function Chip({ label, value, tone }: { label: string; value: string | number; tone: string }) {
+/** The ring of months a player can look back at: this month, last month, then four more. */
+function monthChoices(now = new Date()) {
+  return Array.from({ length: 6 }, (_, i) => {
+    const m = shiftMonth(now.getFullYear(), now.getMonth(), -i);
+    const label = i === 0 ? "This month" : i === 1 ? "Last month" : monthLabel(m.year, m.m0);
+    return { value: `${m.year}-${m.m0}`, label, ...m };
+  });
+}
+
+const STATE_WORD: Record<DayState, string> = {
+  present: "Present",
+  late: "Late",
+  absent: "Absent",
+  none: "No practice",
+};
+
+const dayLabel = (date: string) =>
+  new Date(date + "T00:00:00").toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+
+/**
+ * The month view, laid out like the Metrol CRM Attendance tab: month picker, coloured
+ * day squares (green present, amber late, red absent), the counts, then a table of days.
+ */
+export function AttendanceMonthView({
+  ym,
+  onMonth,
+  days,
+  states,
+  rows,
+  summary,
+  practice,
+  today,
+  picked,
+  onPick,
+  top,
+}: {
+  /** Shown between the title row and the calendar (the player's "today" card). */
+  top?: ReactNode;
+  ym: { year: number; m0: number };
+  onMonth: (next: { year: number; m0: number }) => void;
+  days: ReturnType<typeof monthDays>;
+  states: Record<string, DayState>;
+  rows: DayRow[];
+  summary: ReturnType<typeof summarize>;
+  practice: number;
+  today: string;
+  picked: string | null;
+  onPick: (date: string | null) => void;
+}) {
+  const choices = monthChoices();
+  const current = choices.find((c) => c.year === ym.year && c.m0 === ym.m0);
+  const pickedRow = picked ? rows.find((r) => r.date === picked) : undefined;
+
   return (
-    <div className="rounded-xl border border-border/60 px-2 py-2 text-center">
-      <div className={cn("text-lg font-bold leading-none", tone)}>{value}</div>
-      <div className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+    <div className="att-cal space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-xl font-bold tracking-tight">Attendance</h2>
+        <Select
+          value={current?.value ?? `${ym.year}-${ym.m0}`}
+          onValueChange={(v) => {
+            const c = choices.find((x) => x.value === v);
+            if (c) onMonth({ year: c.year, m0: c.m0 });
+          }}
+        >
+          <SelectTrigger className="h-10 w-[150px] rounded-xl bg-card" aria-label="Month">
+            <SelectValue>{current?.label ?? monthLabel(ym.year, ym.m0)}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {choices.map((c) => (
+              <SelectItem key={c.value} value={c.value}>
+                {c.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {top}
+
+      <div className="rounded-2xl border border-border bg-card p-3 shadow-[var(--shadow-soft)]">
+        <div className="mb-2 grid grid-cols-7 gap-1.5 text-center text-[10px] font-semibold text-muted-foreground">
+          {WEEK_SUN.map((w, i) => (
+            <div key={i} className={i === 0 ? "text-rose-500" : undefined}>
+              {w}
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-1.5">
+          {Array.from({ length: sundayLead(ym.year, ym.m0) }).map((_, i) => (
+            <div key={`b${i}`} />
+          ))}
+          {days.map((d) => {
+            const st = states[d.date] ?? "none";
+            const future = d.date > today;
+            return (
+              <button
+                key={d.date}
+                type="button"
+                onClick={() => onPick(picked === d.date ? null : d.date)}
+                aria-label={`${dayLabel(d.date)}: ${future ? "not yet" : STATE_WORD[st]}`}
+                className={cn(
+                  "att-cal-cell",
+                  `att-cal-cell--${st}`,
+                  future && "att-cal-cell--future",
+                  d.date === today && "att-cal-cell--today",
+                  picked === d.date && "att-cal-cell--picked",
+                )}
+              >
+                {d.day}
+              </button>
+            );
+          })}
+        </div>
+        <div className="att-cal-key mt-3">
+          <span><i className="k-present" />Present</span>
+          <span><i className="k-late" />Late</span>
+          <span><i className="k-absent" />Absent</span>
+          <span><i className="k-none" />No practice</span>
+        </div>
+      </div>
+
+      {picked ? (
+        <div className="rounded-2xl border border-border bg-card p-3">
+          <div className="text-sm font-semibold">
+            {new Date(picked + "T00:00:00").toLocaleDateString("en-IN", {
+              weekday: "long",
+              day: "numeric",
+              month: "short",
+            })}
+            <span className="ml-2 font-normal text-muted-foreground">
+              {picked > today ? "Not yet" : STATE_WORD[states[picked] ?? "none"]}
+            </span>
+          </div>
+          <div className="mt-2 grid grid-cols-3 gap-2">
+            <TimeBox label="In" value={time(pickedRow?.inAt ?? null)} />
+            <TimeBox label="Out" value={pickedRow?.open ? "Still in" : time(pickedRow?.outAt ?? null)} />
+            <TimeBox label="Practice" value={pickedRow?.minutes ? formatDuration(pickedRow.minutes) : null} />
+          </div>
+        </div>
+      ) : null}
+
+      <div className="att-cal-sum">
+        <div><span className="n text-emerald-600">{summary.present}</span><span className="l">Present</span></div>
+        <div><span className="n text-amber-600">{summary.late}</span><span className="l">Late</span></div>
+        <div><span className="n text-rose-600">{summary.absent}</span><span className="l">Absent</span></div>
+        <div>
+          <span className="n">{summary.pct == null ? "—" : `${summary.pct}%`}</span>
+          <span className="l">Attendance</span>
+        </div>
+        <div><span className="n">{formatDuration(practice)}</span><span className="l">Practice</span></div>
+      </div>
+
+      <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+        <table className="att-cal-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>In</th>
+              <th>Out</th>
+              <th>Remark</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="muted py-6 text-center">No practice days yet this month.</td>
+              </tr>
+            ) : (
+              rows.map((r) => (
+                <tr key={r.date} onClick={() => onPick(picked === r.date ? null : r.date)} className="cursor-pointer">
+                  <td className="num">{dayLabel(r.date)}</td>
+                  <td className={cn("num", !r.inAt && "muted")}>{time(r.inAt) ?? "—"}</td>
+                  <td className={cn("num", !r.outAt && "muted")}>{r.open ? "Still in" : (time(r.outAt) ?? "—")}</td>
+                  <td>
+                    <span className={cn("att-chip", `att-chip--${r.state}`)}>{STATE_WORD[r.state]}</span>
+                  </td>
+                  <td className={cn("num", !r.minutes && "muted")}>{r.minutes ? formatDuration(r.minutes) : "—"}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function TimeBox({ label, value }: { label: string; value: string | null }) {
+  return (
+    <div className="rounded-xl border border-border px-3 py-2">
+      <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="mt-0.5 text-[15px] font-bold tabular-nums">{value ?? "—"}</div>
     </div>
   );
 }
@@ -84,11 +278,14 @@ export function PlayerAttendanceCalendar({
   tenantId,
   studentId,
   batchId,
+  top,
 }: {
   tenantId: string;
   studentId: string;
   /** Leave out to look it up from the player's own record. */
   batchId?: string | null;
+  /** Shown between the title and the calendar. */
+  top?: ReactNode;
 }) {
   const now = new Date();
   const [ym, setYm] = useState({ year: now.getFullYear(), m0: now.getMonth() });
@@ -115,114 +312,41 @@ export function PlayerAttendanceCalendar({
     },
   });
 
-  const { states, byDate, summary } = useMemo(() => {
+  const view = useMemo(() => {
     const map = new Map<string, Visit[]>();
     for (const v of q.data?.visits ?? []) {
       const arr = map.get(v.session_date) ?? [];
       arr.push(v);
       map.set(v.session_date, arr);
     }
-    const st = playerStates(days, map, q.data?.sessions ?? new Set());
-    return { states: st, byDate: map, summary: summarize(st, today) };
+    const states = playerStates(days, map, q.data?.sessions ?? new Set());
+    return {
+      states,
+      rows: dayRows(days, states, map, today),
+      summary: summarize(states, today),
+      practice: practiceMinutes(q.data?.visits ?? []),
+    };
   }, [q.data, days, today]);
 
-  const lead = days[0].weekday;
-  const pickedVisits = picked ? (byDate.get(picked) ?? []) : [];
+  if (q.isLoading) return <Skeleton className="h-96 w-full rounded-2xl" />;
 
   return (
-    <div className="space-y-3">
-      <MonthNav year={ym.year} m0={ym.m0} onChange={(n) => { setYm(n); setPicked(null); }} />
-      {q.isLoading ? (
-        <Skeleton className="h-56 w-full rounded-2xl" />
-      ) : (
-        <>
-          <div className="grid grid-cols-4 gap-2">
-            <Chip label="Present" value={summary.present} tone="text-emerald-600" />
-            <Chip label="Late" value={summary.late} tone="text-amber-600" />
-            <Chip label="Absent" value={summary.absent} tone="text-rose-600" />
-            <Chip label="Overall" value={summary.pct == null ? "—" : `${summary.pct}%`} tone="text-foreground" />
-          </div>
-          <div className="grid grid-cols-7 gap-1.5 text-center text-[10px] font-medium text-muted-foreground">
-            {WEEK.map((w, i) => (
-              <div key={i}>{w}</div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-1.5">
-            {Array.from({ length: lead }).map((_, i) => (
-              <div key={`b${i}`} />
-            ))}
-            {days.map((d) => {
-              const s = states[d.date];
-              const future = d.date > today;
-              return (
-                <button
-                  key={d.date}
-                  type="button"
-                  onClick={() => setPicked(picked === d.date ? null : d.date)}
-                  aria-label={`${d.date} ${s}`}
-                  className={cn(
-                    "grid aspect-square place-items-center rounded-lg text-[12px] font-semibold transition active:scale-95",
-                    DOT[s],
-                    future && "opacity-40",
-                    d.date === today && "ring-2 ring-primary ring-offset-1 ring-offset-background",
-                    picked === d.date && "outline outline-2 outline-foreground/60",
-                  )}
-                >
-                  {d.day}
-                </button>
-              );
-            })}
-          </div>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
-            <Legend color="bg-emerald-500" label="Present" />
-            <Legend color="bg-amber-400" label="Late" />
-            <Legend color="bg-rose-500" label="Absent" />
-            <Legend color="bg-muted" label="No session" />
-          </div>
-          {picked && (
-            <div className="rounded-xl border border-border/60 bg-muted/30 p-3 text-sm">
-              <div className="font-semibold">
-                {new Date(picked + "T00:00:00").toLocaleDateString("en-IN", {
-                  weekday: "long",
-                  day: "numeric",
-                  month: "short",
-                })}
-              </div>
-              {pickedVisits.filter((v) => v.check_in_at).length === 0 ? (
-                <div className="mt-1 text-muted-foreground">
-                  {states[picked] === "absent"
-                    ? "Did not attend."
-                    : states[picked] === "none"
-                      ? "No session that day."
-                      : "Marked present."}
-                </div>
-              ) : (
-                <ul className="mt-1 space-y-0.5 text-muted-foreground">
-                  {pickedVisits
-                    .filter((v) => v.check_in_at)
-                    .map((v, i) => (
-                      <li key={i}>
-                        In {time(v.check_in_at)}
-                        {v.check_out_at ? ` · Out ${time(v.check_out_at)}` : " · still in"}
-                        {v.duration_minutes ? ` · ${v.duration_minutes} min` : ""}
-                      </li>
-                    ))}
-                </ul>
-              )}
-            </div>
-          )}
-        </>
-      )}
-    </div>
-  );
-}
-
-function Legend({ color, label }: { color: string; label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <span className={cn("size-2.5 rounded-sm", color)} />
-      {label}
-    </span>
+    <AttendanceMonthView
+      top={top}
+      ym={ym}
+      onMonth={(n) => {
+        setYm(n);
+        setPicked(null);
+      }}
+      days={days}
+      states={view.states}
+      rows={view.rows}
+      summary={view.summary}
+      practice={view.practice}
+      today={today}
+      picked={picked}
+      onPick={setPicked}
+    />
   );
 }
 

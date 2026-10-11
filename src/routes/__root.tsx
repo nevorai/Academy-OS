@@ -8,7 +8,7 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { Toaster } from "sonner";
 
@@ -114,7 +114,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { name: "author", content: "Nevorai" },
       // PWA / standalone app hints so installed app launches without browser chrome.
-      { name: "theme-color", content: "#0a0a0a" },
+      { name: "theme-color", content: "#f5f5f5" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
@@ -161,7 +161,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Inter:wght@300;400;500;600;700;900&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Inter:wght@300;400;500;600;700;900&family=IBM+Plex+Sans:wght@400;500;600;700&family=Archivo:wght@500;600;700;800&display=swap",
       },
     ],
   }),
@@ -205,8 +205,8 @@ function AppSplash() {
 }
 
 function RootShell({ children }: { children: ReactNode }) {
-  // Pre-hydration theme boot — supports "light" | "dark" | "system" (default: system).
-  const themeBoot = `try{var t=localStorage.getItem('acadaos.theme');if(t!=='light'&&t!=='dark'&&t!=='system'){t='system';}var d=t==='dark'||(t==='system'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d){document.documentElement.classList.add('dark');}else{document.documentElement.classList.remove('dark');}}catch(e){document.documentElement.classList.add('dark');}`;
+  // Pre-hydration theme boot — supports "light" | "dark" | "system" (default: light).
+  const themeBoot = `try{var t=localStorage.getItem('acadaos.theme');if(t!=='light'&&t!=='dark'&&t!=='system'){t='light';}var d=t==='dark'||(t==='system'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d){document.documentElement.classList.add('dark');}else{document.documentElement.classList.remove('dark');}}catch(e){document.documentElement.classList.remove('dark');}`;
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -221,6 +221,20 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+/** Toasts follow the page theme (the `dark` class on <html>), not the phone's setting. */
+function useToastTheme(): "light" | "dark" {
+  const [t, setT] = useState<"light" | "dark">("light");
+  useEffect(() => {
+    const el = document.documentElement;
+    const sync = () => setT(el.classList.contains("dark") ? "dark" : "light");
+    sync();
+    const mo = new MutationObserver(sync);
+    mo.observe(el, { attributes: true, attributeFilter: ["class"] });
+    return () => mo.disconnect();
+  }, []);
+  return t;
+}
+
 function ThemeSystemListener() {
   // Keeps the resolved theme in sync with the OS when the user's stored mode is "system".
   useEffect(() => {
@@ -232,8 +246,8 @@ function ThemeSystemListener() {
       } catch {
         /* ignore */
       }
-      if (mode !== "system" && mode !== null) return;
-      const dark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? true;
+      if (mode !== "system") return;
+      const dark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
       const el = document.documentElement;
       if (dark) el.classList.add("dark");
       else el.classList.remove("dark");
@@ -265,6 +279,7 @@ function PwaBootstrap() {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const toastTheme = useToastTheme();
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -279,7 +294,7 @@ function RootComponent() {
         <Toaster
           richColors
           position="top-center"
-          theme="dark"
+          theme={toastTheme}
           offset="calc(var(--app-safe-top) + 3.25rem)"
           toastOptions={{ className: "scorer-safe-toast" }}
         />

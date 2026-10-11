@@ -19,6 +19,8 @@ import {
   periodKey,
   periodLabel,
   reminderMessage,
+  receiptMessage,
+  whatsappLink,
   studentDue,
   tenantFeeCycle,
   type DueStatus,
@@ -519,7 +521,33 @@ function FeeRow({
   onReceipt: () => void;
 }) {
   const due = row.due;
-  const remindPhone = (row.guardianPhone || row.phone || "").replace(/\D/g, "");
+  const contactPhone = row.guardianPhone || row.phone || "";
+  const remindHref =
+    due.state === "pending"
+      ? whatsappLink(
+          contactPhone,
+          reminderMessage({
+            tenantName,
+            studentName: row.name,
+            guardianName: row.guardianName,
+            amount: row.amount,
+            period: due.period,
+          }),
+        )
+      : null;
+  const receiptHref = row.paidPayment
+    ? whatsappLink(
+        contactPhone,
+        receiptMessage({
+          tenantName,
+          studentName: row.name,
+          guardianName: row.guardianName,
+          amount: Number(row.paidPayment.amount),
+          period: row.paidPayment.period ?? periodKey(new Date()),
+          method: row.paidPayment.method,
+        }),
+      )
+    : null;
   const isPending = due.state === "pending";
   const isOverdue = isPending && due.overdueDays > 0;
 
@@ -567,27 +595,15 @@ function FeeRow({
         <div className="flex items-center gap-1 shrink-0">
           {isPending ? (
             <>
-              {whatsappEnabled && remindPhone && (
+              {whatsappEnabled && remindHref && (
                 <Button
                   asChild
                   size="icon"
                   variant="ghost"
-                  className="rounded-full h-9 w-9 text-[#25D366] hover:bg-[#25D366]/10 hidden sm:inline-flex"
+                  className="rounded-full h-9 w-9 text-[#25D366] hover:bg-[#25D366]/10"
                   aria-label="Remind on WhatsApp"
                 >
-                  <a
-                    href={`https://wa.me/${remindPhone}?text=${encodeURIComponent(
-                      reminderMessage({
-                        tenantName,
-                        studentName: row.name,
-                        guardianName: row.guardianName,
-                        amount: row.amount,
-                        period: due.period,
-                      }),
-                    )}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
+                  <a href={remindHref} target="_blank" rel="noreferrer">
                     <MessageCircle className="size-5" />
                   </a>
                 </Button>
@@ -601,15 +617,30 @@ function FeeRow({
               </Button>
             </>
           ) : (
-            <Button
-              size="icon"
-              variant="ghost"
-              className="rounded-full h-9 w-9"
-              aria-label="Download receipt"
-              onClick={onReceipt}
-            >
-              <Download className="size-4" />
-            </Button>
+            <>
+              {receiptHref && (
+                <Button
+                  asChild
+                  size="icon"
+                  variant="ghost"
+                  className="rounded-full h-9 w-9 text-[#25D366] hover:bg-[#25D366]/10"
+                  aria-label="Send receipt on WhatsApp"
+                >
+                  <a href={receiptHref} target="_blank" rel="noreferrer">
+                    <MessageCircle className="size-5" />
+                  </a>
+                </Button>
+              )}
+              <Button
+                size="icon"
+                variant="ghost"
+                className="rounded-full h-9 w-9"
+                aria-label="Download receipt"
+                onClick={onReceipt}
+              >
+                <Download className="size-4" />
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -764,12 +795,12 @@ function CollectForm({
   const due = row.due;
   const period = due.state === "pending" ? due.period : periodKey(new Date());
   const [amount, setAmount] = useState(String(row.amount || ""));
-  const [method, setMethod] = useState<"cash" | "upi" | null>(null);
   const [note, setNote] = useState("");
   const [idempotencyKey] = useState(() => newIdempotencyKey());
 
 
   const qc = useQueryClient();
+  const { tenant } = useDashboard();
 
   // Phase 14 hot-path: close the sheet + toast success in the same frame the
   // user taps "Confirm payment". The write still runs in the background; on
@@ -779,8 +810,7 @@ function CollectForm({
   // trigger mirrors it into the legacy `payments` read model, so no client
   // dual-write is needed (and duplicates are impossible).
   const save = useMutation({
-    mutationFn: async () => {
-      if (!method) throw new Error("Choose a payment method");
+    mutationFn: async (method: "cash" | "upi") => {
       const amt = Number(amount);
       await recordPayment({
         tenant_id: tenantId,
@@ -805,7 +835,32 @@ function CollectForm({
   });
 
   const numeric = Number(amount);
-  const disabled = !method || !numeric || numeric <= 0;
+  const disabled = !numeric || numeric <= 0;
+
+  // Two taps from the list: "Collect", then how it was paid. The amount is
+  // pre-filled with the fee; change it first for a part payment.
+  const submit = (method: "cash" | "upi") => {
+    if (disabled) return;
+    save.mutate(method);
+    const href = whatsappLink(
+      row.guardianPhone || row.phone,
+      receiptMessage({
+        tenantName: tenant.name,
+        studentName: row.name,
+        guardianName: row.guardianName,
+        amount: numeric,
+        period,
+        method,
+      }),
+    );
+    toast.success(`${row.name} marked paid ✓`, {
+      duration: 9000,
+      action: href
+        ? { label: "Send receipt", onClick: () => window.open(href, "_blank", "noopener") }
+        : undefined,
+    });
+    onDone();
+  };
 
   return (
     <div className="space-y-5 pt-2">
@@ -835,24 +890,6 @@ function CollectForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label className="text-sm">Payment method</Label>
-        <div className="grid grid-cols-2 gap-3">
-          <MethodButton
-            label="Cash"
-            icon={<Banknote className="size-5" />}
-            active={method === "cash"}
-            onClick={() => setMethod("cash")}
-          />
-          <MethodButton
-            label="UPI"
-            icon={<Smartphone className="size-5" />}
-            active={method === "upi"}
-            onClick={() => setMethod("upi")}
-          />
-        </div>
-      </div>
-
-      <div className="space-y-1.5">
         <Label className="text-sm text-muted-foreground">Note (optional)</Label>
         <Input
           value={note}
@@ -862,58 +899,31 @@ function CollectForm({
         />
       </div>
 
-      <Button
-        onClick={() => {
-          if (disabled) return;
-          // Fire the write in the background and close the sheet in the same
-          // frame. Error rollback + toast is handled inside the mutation.
-          save.mutate();
-          toast.success(`${row.name} marked paid ✓`);
-          onDone();
-        }}
-        disabled={disabled}
-        className="w-full h-14 text-base font-semibold rounded-xl"
-        style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
-      >
-        Confirm payment
-      </Button>
+      <div className="grid grid-cols-2 gap-3">
+        <Button
+          onClick={() => submit("cash")}
+          disabled={disabled}
+          className="h-14 flex-col gap-0 rounded-xl text-base font-semibold"
+          style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
+        >
+          <span className="inline-flex items-center gap-1.5">
+            <Banknote className="size-5" /> Cash received
+          </span>
+        </Button>
+        <Button
+          onClick={() => submit("upi")}
+          disabled={disabled}
+          variant="outline"
+          className="h-14 rounded-xl border-2 text-base font-semibold"
+        >
+          <span className="inline-flex items-center gap-1.5">
+            <Smartphone className="size-5" /> UPI received
+          </span>
+        </Button>
+      </div>
+      <p className="text-center text-xs text-muted-foreground">
+        Tap how the fee was paid. A WhatsApp receipt button appears next.
+      </p>
     </div>
-  );
-}
-
-function MethodButton({
-  label,
-  icon,
-  active,
-  onClick,
-}: {
-  label: string;
-  icon: React.ReactNode;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "h-16 rounded-xl border-2 flex items-center justify-center gap-2 text-base font-semibold transition-all",
-        active
-          ? "shadow-sm text-background"
-          : "bg-card text-foreground border-border hover:border-foreground/30",
-      )}
-      style={
-        active
-          ? {
-              backgroundColor: "var(--brand)",
-              borderColor: "var(--brand)",
-              color: "var(--brand-ink)",
-            }
-          : undefined
-      }
-    >
-      {icon}
-      {label}
-    </button>
   );
 }

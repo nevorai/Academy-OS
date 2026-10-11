@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import type { Tenant } from "./tenant";
 import { resolveMonthlyFee } from "./gender";
+import { toE164 } from "./phone";
 
 
 export type FeeCycle = "calendar_month" | "joining_date";
@@ -132,5 +133,29 @@ export function reminderMessage(opts: {
     `${greeting}, ${opts.studentName} ki ${periodLabel(opts.period)} fees ` +
     `₹${opts.amount.toLocaleString("en-IN")} pending hai. Kripya jald payment kar dein. ` +
     `Dhanyavaad 🙏 — ${opts.tenantName}`
+  );
+}
+
+/** wa.me link with the country code added for 10-digit Indian numbers; null when there is no usable number. */
+export function whatsappLink(phone: string | null | undefined, text: string): string | null {
+  const e164 = toE164(phone ?? "");
+  return e164 ? `https://wa.me/${e164.slice(1)}?text=${encodeURIComponent(text)}` : null;
+}
+
+export function receiptMessage(opts: {
+  tenantName: string;
+  studentName: string;
+  guardianName?: string | null;
+  amount: number;
+  period: string;
+  method: string;
+}): string {
+  const greeting = opts.guardianName?.trim()
+    ? `Namaste ${opts.guardianName.trim()} ji`
+    : "Namaste ji";
+  const how = opts.method === "upi" ? "UPI" : opts.method === "cash" ? "cash" : opts.method;
+  return (
+    `${greeting}, ${opts.studentName} ki ${periodLabel(opts.period)} fees ` +
+    `₹${opts.amount.toLocaleString("en-IN")} (${how}) mil gayi. Dhanyavaad 🙏 — ${opts.tenantName}`
   );
 }

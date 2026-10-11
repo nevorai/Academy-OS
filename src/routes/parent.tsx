@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { ForcePasswordChange } from "@/components/auth/ForcePasswordChange";
 
 // The Parent Portal has been merged into the Student portal: one login
 // (the student's) now covers progress, matches, timeline and fee payments.
@@ -16,5 +17,10 @@ export const Route = createFileRoute("/parent")({
     const to = MAP[location.pathname.replace(/\/$/, "")] ?? "/student";
     throw redirect({ to, replace: true });
   },
-  component: () => <Outlet />,
+  component: () => (
+    <>
+      <ForcePasswordChange />
+      <Outlet />
+    </>
+  ),
 });

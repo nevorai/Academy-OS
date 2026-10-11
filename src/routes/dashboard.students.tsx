@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDashboard } from "@/lib/dashboard-context";
+import { CreateLoginsDialog } from "@/components/dashboard/CreateLoginsDialog";
 import {
   fetchBatches,
   fetchFeePlans,
@@ -329,6 +330,7 @@ function StudentsPage() {
           </DropdownMenu>
           <ShareRegistrationLink />
           <BulkImportStudents />
+          <CreateLoginsDialog />
           <Button
             asChild
             variant="outline"
@@ -1018,7 +1020,6 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
         status: "active",
         lifecycle_status: "imported",
         activation_token: crypto.randomUUID(),
-        password: f.phone, // Default password is phone number for magic link/login
 
 
       };

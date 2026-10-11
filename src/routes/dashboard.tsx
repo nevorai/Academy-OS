@@ -10,6 +10,7 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { LanguageProvider } from "@/lib/i18n";
 import { isCoach } from "@/lib/roles";
 import { PushDeviceRegistrar } from "@/components/notifications/PushDeviceRegistrar";
+import { ForcePasswordChange } from "@/components/auth/ForcePasswordChange";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -45,6 +46,7 @@ function DashboardLayout() {
     <LanguageProvider>
       <DashboardProvider>
         <PushDeviceRegistrar />
+        <ForcePasswordChange />
         <CoachIndexRedirect>
           <DashboardShell>
             <Outlet />

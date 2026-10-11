@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { ForcePasswordChange } from "@/components/auth/ForcePasswordChange";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { LogOut, Info, Share, Plus, X, Smartphone } from "lucide-react";
@@ -194,6 +195,7 @@ function StudentLayout() {
         </div>
       ) : null}
 
+      <ForcePasswordChange />
       <div className="max-w-3xl mx-auto px-4 pt-6">
         <Outlet />
       </div>

@@ -255,7 +255,7 @@ function AuthPage() {
             <AuthError message={formError} />
             <AuthInput
               id="identifier"
-              label="Email, phone or username"
+              label="Email, phone or Player ID"
               type="text"
               inputMode="text"
               autoComplete="username"
@@ -263,7 +263,7 @@ function AuthPage() {
               spellCheck={false}
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              placeholder="Enter email, phone or username"
+              placeholder="Email, phone or Player ID"
               icon={<AtSign className="size-4" aria-hidden />}
             />
             <PasswordInput

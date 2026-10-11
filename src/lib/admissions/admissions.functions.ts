@@ -72,7 +72,6 @@ export const approveRegistration = createServerFn({ method: "POST" })
       approved_by: context.userId,
       status: "active",
       activation_token: activationToken,
-      password: reg.phone,
     };
 
 
@@ -252,7 +251,6 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
       status: "active",
       import_batch_id: batch.id,
       activation_token: crypto.randomUUID(),
-      password: r.password ?? r.phone ?? null,
     }));
 
 

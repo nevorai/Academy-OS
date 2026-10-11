@@ -322,7 +322,6 @@ export function BulkImportStudents() {
           batch_id: batchFor(r),
           fee_plan_id: planFor(r),
           roll_number: null,
-          password: r.phone || null, // Import phone as password for magic login
         }));
 
         const res: any = await bulkImport({

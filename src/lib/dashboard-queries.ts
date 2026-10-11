@@ -431,7 +431,7 @@ export async function fetchDashboardActivity(
 
   const attendanceP = supabase
     .from("attendance_marks")
-    .select("id, student_id, check_in_at, check_out_at, created_at, students!inner(name)")
+    .select("id, student_id, check_in_at, check_out_at, check_out_meta, created_at, students!inner(name)")
     .eq("tenant_id", tenantId)
     .is("superseded_by", null)
     .gte("created_at", sinceISO)
@@ -471,7 +471,10 @@ export async function fetchDashboardActivity(
         at: m.check_out_at,
         kind: "check_out",
         actorName: name,
-        detail: "Checked out",
+        detail:
+          (m as { check_out_meta?: { auto_checkout?: unknown } | null }).check_out_meta?.auto_checkout === true
+            ? "Checked out automatically at close"
+            : "Checked out",
         href: studentHref,
       });
     }

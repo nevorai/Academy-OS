@@ -14,7 +14,7 @@ import { Copy, MessageCircle, QrCode } from "lucide-react";
 import { ScanStudentCardDialog } from "@/components/attendance/ScanStudentCardDialog";
 import { tenantSiteUrl } from "@/lib/tenant";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { format, isToday, isYesterday } from "date-fns";
 import {
   ClipboardCheck,
   IndianRupee,
@@ -339,7 +339,7 @@ function DashboardHome() {
       {/* ─── Section 4 · Today's activity (compact, scrollable) ───────── */}
       <section aria-label="Today's activity">
         <SectionLabel action={<HeaderLink to="/dashboard/attendance">Open</HeaderLink>}>
-          Today's activity
+          Recent activity
         </SectionLabel>
         <ActivityFeed query={activityQ} canViewFees={canViewFees} />
       </section>
@@ -765,7 +765,7 @@ function ActivityFeed({
         <div className="mx-auto grid size-9 place-items-center rounded-full bg-muted text-muted-foreground">
           <Activity className="size-4" />
         </div>
-        <div className="mt-2 text-sm font-semibold">Nothing yet today</div>
+        <div className="mt-2 text-sm font-semibold">Nothing in the last day</div>
         <div className="text-[11px] text-muted-foreground">
           Check-ins, registrations and fees appear here as they happen.
         </div>
@@ -785,6 +785,15 @@ function ActivityFeed({
       </ul>
     </div>
   );
+}
+
+/** Clock time for today; "Yesterday 9:15 AM" or "9 Oct, 9:15 AM" for older entries (the feed keeps 36 hours). */
+function activityWhen(iso: string): string {
+  const d = new Date(iso);
+  const time = format(d, "h:mm a");
+  if (isToday(d)) return time;
+  if (isYesterday(d)) return `Yesterday ${time}`;
+  return `${format(d, "d MMM")}, ${time}`;
 }
 
 function ActivityRow({ event }: { event: ActivityEvent }) {
@@ -809,7 +818,7 @@ function ActivityRow({ event }: { event: ActivityEvent }) {
         </div>
       </div>
       <time className="text-[10.5px] text-muted-foreground tabular-nums shrink-0">
-        {format(new Date(event.at), "h:mm a")}
+        {activityWhen(event.at)}
       </time>
     </>
   );

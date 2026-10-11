@@ -9,7 +9,7 @@ import {
   qk,
 } from "@/lib/dashboard-queries";
 import { useServerFn } from "@tanstack/react-start";
-import { deleteStudentPermanently, resetStudentPassword } from "@/lib/students-manage.functions";
+import { deleteStudentPermanently } from "@/lib/students-manage.functions";
 import { normalizeGender, resolveMonthlyFee } from "@/lib/gender";
 import { INDIAN_STATES } from "@/lib/location";
 import { athleteProfileQuery } from "@/lib/dashboard-queries";
@@ -20,6 +20,7 @@ import { uploadTenantFile } from "@/lib/storage";
 import { generateReportCardPdf } from "@/lib/report-card-pdf";
 import { generateIdCardPdf } from "@/lib/id-card-pdf";
 import { StudentIDCard } from "@/components/portal/StudentIDCard";
+import { PlayerAttendanceCalendar } from "@/components/attendance/AttendanceCalendar";
 import { StudentLoginRow } from "@/components/dashboard/StudentLoginRow";
 import { candidatePeriods, periodKey, tenantFeeCycle } from "@/lib/fees";
 
@@ -60,7 +61,6 @@ import {
   Eye,
   EyeOff,
   Loader2,
-  Lock,
   KeyRound,
 } from "lucide-react";
 
@@ -130,8 +130,6 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteStep, setDeleteStep] = useState(1);
   const [side, setSide] = useState<"front" | "back">("front");
-  const [resetPassOpen, setResetPassOpen] = useState(false);
-  const resetPass = useServerFn(resetStudentPassword);
 
 
 
@@ -308,6 +306,14 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
         />
       )}
 
+      {/* Attendance */}
+      <div className="rounded-2xl border border-border shadow-sm bg-card overflow-hidden">
+        <div className="px-4 py-3 border-b border-border text-sm font-semibold">Attendance</div>
+        <div className="p-4">
+          <PlayerAttendanceCalendar tenantId={tenant.id} studentId={s.id} batchId={s.batch_id ?? null} />
+        </div>
+      </div>
+
       {/* Details */}
       <div className="rounded-2xl border border-border shadow-sm bg-card overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
@@ -342,20 +348,6 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
         ) : (
           <dl className="divide-y divide-border text-sm">
             <Row label="Email" value={s.email || "—"} />
-            <Row 
-              label="Password" 
-              value="********" 
-              action={
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-7 text-[10px] px-2 text-amber-700"
-                  onClick={() => setResetPassOpen(true)}
-                >
-                  <Lock className="size-3 mr-1" /> Reset
-                </Button>
-              }
-            />
             <Row label="Guardian" value={s.guardian_name || "—"} />
 
             <Row
@@ -470,13 +462,6 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
           }}
         >
           <Eye className="size-4 mr-2" /> View & Download ID
-        </Button>
-        <Button
-          variant="outline"
-          className="rounded-xl h-12 justify-start border-amber-200 text-amber-700 hover:bg-amber-50"
-          onClick={() => setResetPassOpen(true)}
-        >
-          <Lock className="size-4 mr-2" /> Reset Password
         </Button>
 
 
@@ -698,65 +683,6 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Password Reset Dialog */}
-      <AlertDialog open={resetPassOpen} onOpenChange={setResetPassOpen}>
-        <AlertDialogContent className="rounded-2xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Reset Student Password</AlertDialogTitle>
-            <AlertDialogDescription>
-              Set a new password for <strong>{s.name}</strong>. They will need this to sign in.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="py-4">
-            <Label htmlFor="new-password">New Password</Label>
-            <Input 
-              id="new-password"
-              type="text" 
-              placeholder="Enter new password"
-              className="mt-2"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  const val = (e.target as HTMLInputElement).value;
-                  if (val.length >= 6) {
-                    (document.getElementById('confirm-reset-btn') as HTMLElement).click();
-                  } else {
-                    toast.error("Password must be at least 6 characters");
-                  }
-                }
-              }}
-            />
-            <p className="text-[11px] text-muted-foreground mt-2">
-              Make sure to share this password with the student.
-            </p>
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              id="confirm-reset-btn"
-              onClick={async (e) => {
-                e.preventDefault();
-                const input = document.getElementById('new-password') as HTMLInputElement;
-                const newPassword = input.value;
-                if (newPassword.length < 6) {
-                  toast.error("Password must be at least 6 characters");
-                  return;
-                }
-                const tid = toast.loading("Updating password...");
-                try {
-                  await resetPass({ data: { tenantId: tenant.id, studentId, newPassword } });
-                  toast.success("Password updated successfully", { id: tid });
-                  setResetPassOpen(false);
-                } catch (err: any) {
-                  toast.error(err.message || "Failed to reset password", { id: tid });
-                }
-              }}
-            >
-              Reset Password
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
 
 

@@ -26,6 +26,7 @@ import {
   ArrowLeft,
   QrCode,
   IdCard,
+  CalendarDays,
 } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchBatches, fetchStudents, qk } from "@/lib/dashboard-queries";
@@ -690,6 +691,13 @@ function AttendancePage() {
                   <IdCard className="size-3" /> Cards
                 </button>
               ) : null}
+              <Link
+                to="/dashboard/attendance-calendar"
+                aria-label="Attendance calendar"
+                className="inline-flex items-center gap-1 rounded-full border border-border/60 px-2.5 py-2 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground min-h-[44px] shrink-0 active:scale-95"
+              >
+                <CalendarDays className="size-3" /> Calendar
+              </Link>
               {canMark ? (
                 <Link
                   to="/dashboard/attendance-qr"

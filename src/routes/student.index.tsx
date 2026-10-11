@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchMyPortalContext, fetchStudentHome, studentKeys } from "@/lib/student-app";
 import { ScanAttendanceDialog } from "@/components/attendance/ScanAttendanceDialog";
+import { PlayerAttendanceCalendar } from "@/components/attendance/AttendanceCalendar";
 
 export const Route = createFileRoute("/student/")({
   component: StudentHomePage,
@@ -265,6 +266,12 @@ function StudentHomePage() {
           tone="blue"
         />
       </div>
+
+      {/* Attendance calendar */}
+      <Card className="p-4 space-y-2">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">My attendance</p>
+        <PlayerAttendanceCalendar tenantId={ctx.tenant_id} studentId={ctx.student_id} />
+      </Card>
 
       {/* Upcoming match */}
       {home.upcomingMatch?.match && (

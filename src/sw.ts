@@ -4,16 +4,20 @@
  * Custom service worker for Nevorai Academy.
  *
  * Two responsibilities:
- *  1. Precache the built app shell so it survives refresh + offline nav.
+ *  1. Cache the hashed build files under /assets/ (they never change per URL).
  *  2. Handle Web Push (`push` + `notificationclick`) so notifications rendered
  *     by the browser deep-link into the correct Nevorai Academy page.
+ *
+ * It never caches HTML. Pages are server-rendered and every deploy ships new
+ * hashed /assets/ names; a cached page from an older deploy points at files
+ * that no longer exist and opens blank (seen on Safari, 2026-10-11).
  *
  * Registered only from `src/lib/pwa/register.ts` in production, non-iframe,
  * non-lovable-preview contexts.
  */
 
 import { precacheAndRoute, cleanupOutdatedCaches } from "workbox-precaching";
-import { NetworkFirst, CacheFirst } from "workbox-strategies";
+import { CacheFirst } from "workbox-strategies";
 import { registerRoute } from "workbox-routing";
 
 declare const self: ServiceWorkerGlobalScope & {
@@ -24,15 +28,8 @@ declare const self: ServiceWorkerGlobalScope & {
 precacheAndRoute(self.__WB_MANIFEST ?? []);
 cleanupOutdatedCaches();
 
-// HTML navigations: network-first (never serve a stale shell after a deploy).
-// Skip the OAuth callback so Supabase can complete its redirect uninterrupted.
-registerRoute(
-  ({ request, url }) =>
-    request.mode === "navigate" &&
-    !url.pathname.startsWith("/~oauth") &&
-    !url.pathname.startsWith("/api/"),
-  new NetworkFirst({ cacheName: "html-shell", networkTimeoutSeconds: 4 }),
-);
+// HTML navigations are NOT handled here: they always go to the network, so a
+// reload after a deploy always gets the page that matches the deployed files.
 
 // Same-origin hashed build files only (/assets/*): cache-first, they never change per URL.
 // Logos, tenant icons and other un-hashed images must always come from the network.
@@ -118,5 +115,19 @@ self.addEventListener("notificationclick", (event) => {
 // Immediate activation after update.
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event) =>
-  event.waitUntil(self.clients.claim()),
+  event.waitUntil(
+    (async () => {
+      await self.clients.claim();
+      // Earlier workers kept a copy of the page in "html-shell" and served it whenever the
+      // network took more than 4 s. After a deploy that copy named build files that were gone,
+      // so the tab opened blank. Drop that cache; when it existed, tabs in this browser may be
+      // showing the blank page right now, so load each of them again once.
+      const hadStaleShell = await caches.delete("html-shell");
+      if (!hadStaleShell) return;
+      const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      await Promise.allSettled(
+        windows.map((client) => (client as WindowClient).navigate(client.url).catch(() => null)),
+      );
+    })(),
+  ),
 );

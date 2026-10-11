@@ -206,10 +206,15 @@ function AppSplash() {
 
 function RootShell({ children }: { children: ReactNode }) {
   // Pre-hydration theme boot — supports "light" | "dark" | "system" (default: light).
+  // Self-heal for a stale page: if a /assets/ script or stylesheet of this page fails to load
+  // (the page came from a cache made before a deploy), clear every cache, unregister the
+  // service worker and load the page again, once per tab session. Runs before anything else.
+  const shellHeal = `(function(){var K='acad.shell-heal',f=false;function heal(){if(f)return;f=true;try{if(sessionStorage.getItem(K))return;sessionStorage.setItem(K,'1')}catch(e){return}var p=[];try{if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}))}catch(e){}try{if(navigator.serviceWorker)p.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}))}catch(e){}function go(){location.reload()}Promise.all(p).then(go,go)}window.addEventListener('error',function(e){var t=e&&e.target;if(!t||t===window)return;var u=(t.tagName==='SCRIPT'&&t.src)||(t.tagName==='LINK'&&t.href)||'';if(typeof u==='string'&&u.indexOf('/assets/')!==-1&&u.indexOf(location.host)!==-1)heal()},true);window.addEventListener('load',function(){if(!f)try{sessionStorage.removeItem(K)}catch(e){}})})();`;
   const themeBoot = `try{var t=localStorage.getItem('acadaos.theme');if(t!=='light'&&t!=='dark'&&t!=='system'){t='light';}var d=t==='dark'||(t==='system'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d){document.documentElement.classList.add('dark');}else{document.documentElement.classList.remove('dark');}}catch(e){document.documentElement.classList.remove('dark');}`;
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: shellHeal }} />
         <HeadContent />
         <script dangerouslySetInnerHTML={{ __html: themeBoot }} />
       </head>

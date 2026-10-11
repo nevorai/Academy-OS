@@ -25,6 +25,7 @@ import {
   CircleDot,
   FileText,
   Flag,
+  History,
   Redo2,
   StopCircle,
   Undo2,
@@ -107,6 +108,10 @@ export interface MobileScorerProps {
   dismissedBatterNames?: string[];
 
   onUndo: () => void;
+  /** Opens the "fix an earlier ball" list. */
+  onFixBall?: () => void;
+  /** Bar shown above the scoring buttons while a fix is in progress. */
+  fixBar?: ReactNode;
   onRedo?: () => void;
   canRedo?: boolean;
   onSwapStrike: () => void;
@@ -123,6 +128,8 @@ export interface MobileScorerProps {
 }
 
 type PickerKind = "striker" | "nonStriker" | "bowler";
+
+const FOOTER_COLS: Record<number, string> = { 4: "grid-cols-4", 5: "grid-cols-5", 6: "grid-cols-6" };
 
 export function MobileScorer(props: MobileScorerProps) {
   const [pickerOpen, setPickerOpen] = useState<PickerKind | null>(null);
@@ -415,6 +422,7 @@ export function MobileScorer(props: MobileScorerProps) {
       </main>
 
       <div className="z-20 shrink-0 border-t bg-background/95 backdrop-blur-xl">
+        {props.fixBar ? <div className="pt-2">{props.fixBar}</div> : null}
         <div className="px-3 pt-2">
           <ScoringDock
             disabled={props.disabled}
@@ -426,7 +434,7 @@ export function MobileScorer(props: MobileScorerProps) {
         <div
         className={cn(
           "grid gap-1 px-2 pb-1.5 pt-1",
-          props.showFinishInnings && props.onFinishInnings ? "grid-cols-5" : "grid-cols-4",
+          FOOTER_COLS[4 + (props.showFinishInnings && props.onFinishInnings ? 1 : 0) + (props.onFixBall ? 1 : 0)],
         )}
         >
           <FooterAction
@@ -440,6 +448,14 @@ export function MobileScorer(props: MobileScorerProps) {
             onClick={props.onRedo ?? (() => {})}
             disabled={!props.onRedo || !props.canRedo}
           />
+          {props.onFixBall && (
+            <FooterAction
+              icon={<History className="size-[18px]" />}
+              label="Fix ball"
+              onClick={props.onFixBall}
+              disabled={props.disabled}
+            />
+          )}
           <FooterAction
             icon={<UserPlus className="size-[18px]" />}
             label="Bowler"

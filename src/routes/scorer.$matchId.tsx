@@ -32,6 +32,8 @@ import {
 } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useScoringSession, ballHelpers } from "@/hooks/use-scoring-session";
+import { useBallFix } from "@/hooks/use-ball-fix";
+import { BallFixBar, BallFixSheet } from "@/components/match-center/ball-fix-ui";
 import { useScoringLock } from "@/hooks/use-scoring-lock";
 import {
   completedLegalBallsFromEvents,
@@ -201,6 +203,10 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   const [dismissOpen, setDismissOpen] = useState(false);
   const [wicketKind, setWicketKind] = useState<DismissalType | null>(null);
   const swapAfterBatterRef = useRef(false);
+  const ballFix = useBallFix(session, () => {
+    swapAfterBatterRef.current = false;
+  });
+  const [fixOpen, setFixOpen] = useState(false);
   const [newBatterOpen, setNewBatterOpen] = useState(false);
   const [newBowlerOpen, setNewBowlerOpen] = useState(false);
   const [pickStrikerOpen, setPickStrikerOpen] = useState(false);
@@ -831,6 +837,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
             onExtra={(kind) => setExtraKind(kind)}
             onOut={() => { setWicketKind(null); setDismissOpen(true); }}
             onUndo={() => { swapAfterBatterRef.current = false; void session.undo(); }}
+            onFixBall={() => setFixOpen(true)}
+            fixBar={ballFix.fix ? <BallFixBar fix={ballFix} /> : null}
             onEndMatch={() => setFinalizeDialogOpen(true)}
             onOpenStrikerPicker={() => { setPickerRole("striker"); setPlayerPickerOpen(true); }}
             onOpenNonStrikerPicker={() => { setPickerRole("nonStriker"); setPlayerPickerOpen(true); }}
@@ -872,6 +880,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
 
       {/* ---------- modals ---------- */}
+      <BallFixSheet open={fixOpen} onOpenChange={setFixOpen} fix={ballFix} />
       <WicketSheet
         open={dismissOpen}
         onOpenChange={setDismissOpen}
@@ -1269,6 +1278,10 @@ function DemoScorerBody({
   const [dismissOpen, setDismissOpen] = useState(false);
   const [wicketKind, setWicketKind] = useState<DismissalType | null>(null);
   const swapAfterBatterRef = useRef(false);
+  const ballFix = useBallFix(session, () => {
+    swapAfterBatterRef.current = false;
+  });
+  const [fixOpen, setFixOpen] = useState(false);
   const [newBatterOpen, setNewBatterOpen] = useState(false);
   const [newBowlerOpen, setNewBowlerOpen] = useState(false);
   const [pickStrikerOpen, setPickStrikerOpen] = useState(false);
@@ -1762,6 +1775,8 @@ function DemoScorerBody({
             onExtra={(kind) => setExtraKind(kind)}
             onOut={() => { setWicketKind(null); setDismissOpen(true); }}
             onUndo={() => { swapAfterBatterRef.current = false; void session.undo(); }}
+            onFixBall={() => setFixOpen(true)}
+            fixBar={ballFix.fix ? <BallFixBar fix={ballFix} /> : null}
             onSwapStrike={() => {
               const s = { ...session.striker };
               session.setStriker({ ...session.nonStriker, onStrike: true });
@@ -1798,6 +1813,7 @@ function DemoScorerBody({
 
 
       {/* ---------- modals ---------- */}
+      <BallFixSheet open={fixOpen} onOpenChange={setFixOpen} fix={ballFix} />
       <WicketSheet
         open={dismissOpen}
         onOpenChange={setDismissOpen}

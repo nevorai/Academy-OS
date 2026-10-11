@@ -212,6 +212,14 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
     bowlerRef.current = b;
     setBowlerOverride(b);
   }, []);
+  const getLive = useCallback(
+    () => ({
+      striker: strikerRef.current,
+      nonStriker: nonStrikerRef.current,
+      bowler: bowlerRef.current,
+    }),
+    [],
+  );
 
   const samePlayerRef = (
     a: { athleteId?: string | null; name?: string | null },
@@ -533,6 +541,7 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
     setStriker: setStrikerImmediate,
     setNonStriker: setNonStrikerImmediate,
     setBowler: setBowlerImmediate,
+    getLive,
     startInnings,
     submitBall,
     undo,

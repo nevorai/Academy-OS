@@ -83,6 +83,8 @@ export interface ScoringSession {
   setStriker: (b: CurrentBatterState) => void;
   setNonStriker: (b: CurrentBatterState) => void;
   setBowler: (b: CurrentBowlerState) => void;
+  /** Who is at the crease and bowling right now, read from the latest values (not a render snapshot). */
+  getLive: () => { striker: CurrentBatterState; nonStriker: CurrentBatterState; bowler: CurrentBowlerState };
 
   /* --- mutations --- */
   startInnings: (input: Omit<CreateInningsInput, "tenantId" | "matchId">) => Promise<MCInnings>;
@@ -258,6 +260,14 @@ export function useScoringSession(
     bowlerRef.current = b;
     setBowlerState(b);
   }, []);
+  const getLive = useCallback(
+    () => ({
+      striker: strikerRef.current,
+      nonStriker: nonStrikerRef.current,
+      bowler: bowlerRef.current,
+    }),
+    [],
+  );
 
   /* ---------- initial load ---------- */
 
@@ -591,6 +601,8 @@ export function useScoringSession(
 
   const undo = useCallback(async () => {
     if (!activeInnings) throw new BallEventError("INVALID_INNINGS", "No active innings.");
+    // Let balls that are still being saved land first, so undo removes the ball the scorer sees last.
+    await netQueueRef.current.catch(() => {});
     const removed = await undoLastBallEvent(activeInnings.id);
     if (removed) {
       const filtered = eventsRef.current.filter((e) => e.id !== removed.id);
@@ -640,6 +652,7 @@ export function useScoringSession(
     setStriker,
     setNonStriker,
     setBowler,
+    getLive,
     startInnings,
     submitBall,
     undo,

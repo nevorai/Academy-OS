@@ -32,18 +32,17 @@ export function NumberRoll({
       Number.isFinite(nextNum) && Number.isFinite(prevNum) && nextNum < prevNum ? "down" : "up";
 
     setPhase("out");
+    let t2: number | undefined;
     const t1 = window.setTimeout(() => {
       setDisplay(strValue);
       prev.current = strValue;
       setPhase("in");
-      const t2 = window.setTimeout(() => setPhase("idle"), duration);
-      (t1 as unknown as { next?: number }).next = t2;
+      t2 = window.setTimeout(() => setPhase("idle"), duration);
     }, duration / 2);
 
     return () => {
       window.clearTimeout(t1);
-      const nested = (t1 as unknown as { next?: number }).next;
-      if (nested) window.clearTimeout(nested);
+      if (t2 !== undefined) window.clearTimeout(t2);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [strValue]);

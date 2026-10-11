@@ -10,6 +10,7 @@ import { buildCommentary } from "@/lib/mc-commentary";
 import type { MCBallEvent, MCInnings } from "@/lib/mc-ball-events";
 import { ArrowLeft, Radio, RefreshCw } from "lucide-react";
 import { playerKey, calculateInningsStatistics } from "@/lib/mc-statistics-engine";
+import { totalRunsForBall } from "@/lib/mc-rules-engine";
 
 
 export const Route = createFileRoute("/matches/$matchId")({
@@ -285,7 +286,7 @@ function PublicMatchDetail() {
     }
   }
   const recentBallsRunSum = recentOverGroups.reduce(
-    (sum, g) => sum + g.balls.reduce((n, b) => n + (b.runs_off_bat ?? 0) + (b.extra_runs ?? 0), 0),
+    (sum, g) => sum + g.balls.reduce((n, b) => n + totalRunsForBall(b), 0),
     0,
   );
 

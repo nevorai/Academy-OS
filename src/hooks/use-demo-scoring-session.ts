@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { Database } from "@/integrations/supabase/types";
 import {
-  isLegalDelivery,
+  countsAsBall,
   nextPosition,
   type AppendBallInput,
   type CreateInningsInput,
@@ -15,6 +15,7 @@ import {
   type MatchState,
 } from "@/lib/mc-rules-engine";
 import { formatLiveOver } from "@/lib/mc-statistics-engine";
+import { wicketLimitForTeam } from "@/lib/mc-match-rules";
 import { updateDemoData, findDemoDatasetByMatchId, useDemoRevision } from "@/lib/mc-demo/store";
 import type {
   ScoringSession,
@@ -27,7 +28,7 @@ type MCMatch = Database["public"]["Tables"]["mc_matches"]["Row"];
 type MCMatchSquad = Database["public"]["Tables"]["mc_match_squads"]["Row"];
 
 function countCompletedLegalDeliveries(events: MCBallEvent[]) {
-  return events.filter((e) => isLegalDelivery(e.extra_type as AppendBallInput["extraType"])).length;
+  return events.filter((e) => countsAsBall(e)).length;
 }
 
 function logScoringOverCheckpoint(
@@ -119,14 +120,19 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
     [playingXI, activeInnings],
   );
 
+  const wicketLimit = useMemo(
+    () => wicketLimitForTeam(playingXI, activeInnings?.batting_team_id ?? null),
+    [playingXI, activeInnings?.batting_team_id],
+  );
+
   const matchState = useMemo<MatchState>(
     () =>
       replayInnings(events, {
         totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
-        maxWickets: 10,
+        maxWickets: wicketLimit,
         target: activeInnings?.target ?? null,
       }),
-    [events, match, activeInnings?.target],
+    [events, match, activeInnings?.target, wicketLimit],
   );
 
   // Reconstruct current striker/non-striker/bowler from the event tail so
@@ -270,7 +276,7 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
     const lastOver = events[events.length - 1].over_number;
     const overEvents = events.filter((e) => e.over_number === lastOver);
     const legal = overEvents.filter((e) =>
-      isLegalDelivery(e.extra_type as AppendBallInput["extraType"]),
+      countsAsBall(e),
     ).length;
     return { overNumber: lastOver, ballsBowled: legal, events: overEvents };
   }, [events]);
@@ -329,7 +335,7 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
       logScoringOverCheckpoint("before recording", completedLegalBallsBefore);
       const latestMatchState = replayInnings(priorEvents, {
         totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
-        maxWickets: 10,
+        maxWickets: wicketLimit,
         target: activeInnings.target ?? null,
       });
 
@@ -353,7 +359,10 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
       );
 
       const pos = nextPosition(priorEvents);
-      const legal = isLegalDelivery(partial.extraType ?? null);
+      const legal = countsAsBall({
+        extra_type: partial.extraType ?? null,
+        dismissal_type: partial.dismissalType ?? null,
+      });
 
       const created = {
         id: `demo-ev-${matchId}-${activeInnings.innings_number}-${pos.sequenceNumber}`,
@@ -424,7 +433,7 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
       const legalBefore = priorEvents.filter(
         (e) =>
           e.over_number === created.over_number &&
-          isLegalDelivery(e.extra_type as AppendBallInput["extraType"]),
+          countsAsBall(e),
       ).length;
       const overCompleted = created.is_legal_delivery && legalBefore + 1 >= 6;
       const rotated = applyStrikeAfterBall(
@@ -520,6 +529,7 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
     bowler,
     currentOver,
     matchState,
+    wicketLimit,
     setStriker: setStrikerImmediate,
     setNonStriker: setNonStrikerImmediate,
     setBowler: setBowlerImmediate,

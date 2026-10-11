@@ -16,7 +16,7 @@
  * ================================================================ */
 
 import type { DismissalType, ExtraType, MCBallEvent, MCInnings } from "@/lib/mc-ball-events";
-import { BallEventError, isLegalDelivery } from "@/lib/mc-ball-events-core";
+import { BallEventError, countsAsBall } from "@/lib/mc-ball-events-core";
 
 /* ---------------- Modern dismissal set (MCC Laws) ---------------- */
 
@@ -367,7 +367,7 @@ export function replayInnings(events: MCBallEvent[], opts: ReplayOptions = {}): 
     curOverRuns += total;
     curOverCharged += bowlerRunsForBall(e);
 
-    const legal = isLegalDelivery(e.extra_type as ExtraType | null);
+    const legal = countsAsBall(e);
     if (legal) {
       legalBalls += 1;
       curOverLegal += 1;
@@ -652,9 +652,9 @@ export function validateBallDraft(
       if (state.innings.dismissedNames.has(draft.dismissedName))
         throw new BallEventError("DUPLICATE_WICKET", "This batter is already dismissed.");
     }
-    // Caught / run-out / stumped need a fielder
+    // Caught and stumped need a fielder; a run out may not know who made the throw.
     if (
-      (dt === "caught" || dt === "run_out" || dt === "stumped") &&
+      (dt === "caught" || dt === "stumped") &&
       !draft.fielderAthleteId &&
       !draft.fielderName
     )

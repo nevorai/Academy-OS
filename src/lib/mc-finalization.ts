@@ -94,7 +94,13 @@ export interface POMSuggestion {
  */
 export function detectMatchResult(
   innings: InningsRow[],
-  opts: { matchStatus?: string; teamAId: string; teamBId: string } = {
+  opts: {
+    matchStatus?: string;
+    teamAId: string;
+    teamBId: string;
+    /** Wickets that bowl each side out (team id -> limit). Missing = 10. */
+    wicketLimits?: Record<string, number>;
+  } = {
     teamAId: "",
     teamBId: "",
   },
@@ -147,9 +153,9 @@ export function detectMatchResult(
   const chasingTeamId = second.batting_team_id;
   const defendingTeamId = first.batting_team_id;
 
-  // Chase successful — batting side wins by (10 - wickets) wickets
+  // Chase successful — batting side wins by (wicket limit - wickets lost) wickets
   if (secondRuns > firstRuns) {
-    const wicketsLeft = 10 - second.wickets;
+    const wicketsLeft = Math.max(0, (opts.wicketLimits?.[chasingTeamId] ?? 10) - second.wickets);
     return {
       victoryType: "won",
       winnerTeamId: chasingTeamId,
@@ -400,6 +406,9 @@ export function validateFinalization(input: {
 
 export async function finalizeMatch(input: FinalizeMatchInput) {
   const now = new Date().toISOString();
+  // make the saved innings totals true before the result, standings and records are built from them
+  const { syncMatchInningsTotals } = await import("@/lib/mc-innings-totals");
+  await syncMatchInningsTotals(input.matchId);
 
   const victoryType = input.overrides?.victoryType ?? input.result.victoryType;
   const winnerTeamId =

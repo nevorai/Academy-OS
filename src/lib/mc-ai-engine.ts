@@ -8,6 +8,7 @@
  * change.
  * ================================================================ */
 
+import { withDerivedTotals } from "@/lib/mc-innings-totals";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import {
@@ -513,10 +514,10 @@ export async function generateTeamReport(
   if (matchIds.length > 0) {
     const { data: innings } = await supabase
       .from("mc_innings")
-      .select("runs, batting_team_id, match_id")
+      .select("id, runs, wickets, overs, balls, batting_team_id, match_id")
       .in("match_id", matchIds)
       .eq("batting_team_id", teamId);
-    for (const i of innings ?? []) if (i.runs > highestScore) highestScore = i.runs;
+    for (const i of await withDerivedTotals(innings ?? [])) if (i.runs > highestScore) highestScore = i.runs;
   }
 
   const keyFindings: AIFinding[] = played

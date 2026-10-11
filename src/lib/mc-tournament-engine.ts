@@ -18,6 +18,8 @@
  *     the same Statistics Engine outputs.
  * ================================================================ */
 
+import { withDerivedTotals } from "@/lib/mc-innings-totals";
+import { wicketLimitForTeam } from "@/lib/mc-match-rules";
 import { supabase } from "@/integrations/supabase/client";
 import { listMatchBallEvents, type MCBallEvent } from "@/lib/mc-ball-events";
 import {
@@ -34,6 +36,7 @@ import type { MCTournament } from "@/lib/mc-tournaments";
  * ================================================================ */
 
 interface InningsRow {
+  id: string;
   match_id: string;
   batting_team_id: string;
   bowling_team_id: string;
@@ -108,6 +111,8 @@ export function computeStandings(
   matches: MatchRow[],
   innings: InningsRow[],
   teamIds: string[],
+  /** Wickets that bowl a side out in a given match (default 10). */
+  wicketLimitFor: (matchId: string, teamId: string) => number = () => 10,
 ): TeamAgg[] {
   const teams = new Map<string, TeamAgg>();
   for (const id of teamIds) teams.set(id, emptyTeam(id));
@@ -158,7 +163,7 @@ export function computeStandings(
       const batter = teams.get(inn.batting_team_id);
       const bowler = teams.get(inn.bowling_team_id);
       if (!batter || !bowler) continue;
-      const allOut = inn.wickets >= 10;
+      const allOut = inn.wickets >= wicketLimitFor(m.id, inn.batting_team_id);
       const oversUsed = nrrOversForInnings(inn, quota, allOut);
       batter.runs_scored += inn.runs;
       batter.overs_faced += oversUsed;
@@ -207,12 +212,29 @@ export async function rebuildTournamentStandings(tournamentId: string): Promise<
   if (matchIds.length > 0) {
     const { data } = await supabase
       .from("mc_innings")
-      .select("match_id, batting_team_id, bowling_team_id, runs, wickets, overs, balls, status")
+      .select("id, match_id, batting_team_id, bowling_team_id, runs, wickets, overs, balls, status")
       .in("match_id", matchIds);
-    innings = (data ?? []) as InningsRow[];
+    // stored totals are zero until saved at completion: derive from the ball events so run rate is real
+    innings = await withDerivedTotals((data ?? []) as InningsRow[]);
   }
 
-  const aggs = computeStandings(t, matchList, innings, teamIds);
+  // 8 or 9 a side: "all out" is one fewer than the players who batted
+  let limitFor: (matchId: string, teamId: string) => number = () => 10;
+  if (matchIds.length > 0) {
+    const { data: squads } = await supabase
+      .from("mc_match_squads")
+      .select("match_id, team_id, is_playing, is_substitute")
+      .in("match_id", matchIds);
+    const byMatch = new Map<string, NonNullable<typeof squads>>();
+    for (const row of squads ?? []) {
+      const list = byMatch.get(row.match_id) ?? [];
+      list.push(row);
+      byMatch.set(row.match_id, list);
+    }
+    limitFor = (mid, teamId) => wicketLimitForTeam(byMatch.get(mid) ?? [], teamId);
+  }
+
+  const aggs = computeStandings(t, matchList, innings, teamIds, limitFor);
   // sort: points desc, NRR desc, wins desc
   const enriched = aggs
     .map((a) => ({ ...a, net_run_rate: netRunRate(a) }))
@@ -435,9 +457,9 @@ export async function computeTournamentRecords(tournamentId: string): Promise<To
   if (matchIds.length > 0) {
     const { data: innings } = await supabase
       .from("mc_innings")
-      .select("match_id, batting_team_id, runs, wickets")
+      .select("id, match_id, batting_team_id, runs, wickets, overs, balls")
       .in("match_id", matchIds);
-    for (const i of innings ?? []) {
+    for (const i of await withDerivedTotals(innings ?? [])) {
       if (!rec.highestTeamScore || i.runs > rec.highestTeamScore.runs) {
         rec.highestTeamScore = {
           matchId: i.match_id,

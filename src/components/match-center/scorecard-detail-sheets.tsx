@@ -1,5 +1,5 @@
 import type { MCBallEvent, DismissalType, ExtraType } from "@/lib/mc-ball-events";
-import { isLegalDelivery } from "@/lib/mc-ball-events-core";
+import { countsAsBall } from "@/lib/mc-ball-events-core";
 import { isBowlerCredited, isWicketDismissal, totalRunsForBall } from "@/lib/mc-rules-engine";
 import {
   playerKey,
@@ -124,7 +124,7 @@ function buildBatterSequence(
     // Skip wides — the batter did not face the ball for personal stats
     if (e.extra_type === "wide") continue;
     chips.push(ballChipLabel(e));
-    if (isLegalDelivery(e.extra_type as ExtraType | null)) balls += 1;
+    if (countsAsBall(e)) balls += 1;
   }
   return { chips, balls };
 }
@@ -275,7 +275,7 @@ function bowlerWickets(
   const out: { overDisplay: string; batter: string; dismissal: string }[] = [];
   let legalBalls = 0;
   for (const e of events) {
-    if (isLegalDelivery(e.extra_type as ExtraType | null)) legalBalls += 1;
+    if (countsAsBall(e)) legalBalls += 1;
     const dt = e.dismissal_type as DismissalType | null;
     if (!isWicketDismissal(dt)) continue;
     if (!isBowlerCredited(dt)) continue;

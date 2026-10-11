@@ -15,6 +15,7 @@
  *     multiple BracketTree instances stitched by a parent stage.
  * ================================================================ */
 
+import { withDerivedTotals } from "@/lib/mc-innings-totals";
 import { supabase } from "@/integrations/supabase/client";
 
 export type BracketStage =
@@ -138,6 +139,7 @@ interface RawMatch {
 }
 
 interface RawInnings {
+  id: string;
   match_id: string;
   batting_team_id: string;
   runs: number;
@@ -185,7 +187,7 @@ export async function fetchBracketTree(tournamentId: string): Promise<BracketTre
     matchIds.length > 0
       ? supabase
           .from("mc_innings")
-          .select("match_id, batting_team_id, runs, wickets, overs, balls")
+          .select("id, match_id, batting_team_id, runs, wickets, overs, balls")
           .in("match_id", matchIds)
       : Promise.resolve({ data: [] as RawInnings[], error: null }),
     teamIds.length > 0
@@ -202,7 +204,8 @@ export async function fetchBracketTree(tournamentId: string): Promise<BracketTre
   const matchMap = new Map<string, RawMatch>();
   for (const m of (matchesRes.data ?? []) as RawMatch[]) matchMap.set(m.id, m);
   const inningsByMatch = new Map<string, RawInnings[]>();
-  for (const i of (inningsRes.data ?? []) as RawInnings[]) {
+  // stored totals are zero until saved at completion: derive from the ball events for the scores shown
+  for (const i of await withDerivedTotals((inningsRes.data ?? []) as RawInnings[])) {
     const arr = inningsByMatch.get(i.match_id) ?? [];
     arr.push(i);
     inningsByMatch.set(i.match_id, arr);

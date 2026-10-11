@@ -7,6 +7,7 @@ import {
   appendBallEvent,
   BallEventError,
   createInnings,
+  countsAsBall,
   isLegalDelivery,
   listBallEvents,
   listInningsForMatch,
@@ -24,6 +25,7 @@ import {
   validateBallDraft,
   type MatchState,
 } from "@/lib/mc-rules-engine";
+import { wicketLimitForTeam } from "@/lib/mc-match-rules";
 
 
 type MCMatch = Database["public"]["Tables"]["mc_matches"]["Row"];
@@ -74,6 +76,8 @@ export interface ScoringSession {
 
   /** Reconstructed match state (pure replay of the event log). */
   matchState: MatchState;
+  /** Wickets that bowl the batting side out (players on the side minus one, max 10). */
+  wicketLimit: number;
 
   /* --- setters (UI-driven, no calculations) --- */
   setStriker: (b: CurrentBatterState) => void;
@@ -118,12 +122,12 @@ function buildCurrentOver(events: MCBallEvent[]): CurrentOverState {
   const overEvents = events.filter((e) => e.over_number === lastOver);
   // Derive legality from extra_type — the single source of truth. Never
   // rely on the stored flag (may be stale on optimistic / legacy rows).
-  const legal = overEvents.filter((e) => isLegalDelivery(e.extra_type as ExtraType | null)).length;
+  const legal = overEvents.filter((e) => countsAsBall(e)).length;
   return { overNumber: lastOver, ballsBowled: legal, events: overEvents };
 }
 
 function countCompletedLegalDeliveries(events: MCBallEvent[]) {
-  return events.filter((e) => isLegalDelivery(e.extra_type as ExtraType | null)).length;
+  return events.filter((e) => countsAsBall(e)).length;
 }
 
 function logScoringOverCheckpoint(
@@ -352,14 +356,19 @@ export function useScoringSession(
 
   /* ---------- reconstructed match state (pure replay) ---------- */
 
+  const wicketLimit = useMemo(
+    () => wicketLimitForTeam(playingXI, activeInnings?.batting_team_id ?? null),
+    [playingXI, activeInnings?.batting_team_id],
+  );
+
   const matchState = useMemo<MatchState>(
     () =>
       replayInnings(events, {
         totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
-        maxWickets: 10,
+        maxWickets: wicketLimit,
         target: activeInnings?.target ?? null,
       }),
-    [events, match, activeInnings?.target],
+    [events, match, activeInnings?.target, wicketLimit],
   );
 
   /* ---------- mutations ---------- */
@@ -397,7 +406,7 @@ export function useScoringSession(
       
       const latestMatchState = replayInnings(eventsRef.current, {
         totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
-        maxWickets: 10,
+        maxWickets: wicketLimit,
         target: activeInnings.target ?? null,
       });
 
@@ -447,7 +456,10 @@ export function useScoringSession(
         sequence_number: pos.sequenceNumber,
         over_number: pos.overNumber,
         ball_number: pos.ballNumber,
-        is_legal_delivery: isLegalDelivery(partial.extraType ?? null),
+        is_legal_delivery: countsAsBall({
+          extra_type: partial.extraType ?? null,
+          dismissal_type: partial.dismissalType ?? null,
+        }),
         striker_athlete_id: currentStriker.athleteId,
         striker_name: currentStriker.name,
         non_striker_athlete_id: currentNonStriker.athleteId,
@@ -479,7 +491,7 @@ export function useScoringSession(
       const legalBefore = priorEvents.filter(
         (e) =>
           e.over_number === optimistic.over_number &&
-          isLegalDelivery(e.extra_type as ExtraType | null),
+          countsAsBall(e),
       ).length;
       const overCompleted = optimistic.is_legal_delivery && legalBefore + 1 >= 6;
       const rotated = applyStrikeAfterBall(
@@ -572,6 +584,7 @@ export function useScoringSession(
       setStriker,
       setNonStriker,
       setBowler,
+      wicketLimit,
     ],
   );
 
@@ -623,6 +636,7 @@ export function useScoringSession(
     bowler,
     currentOver,
     matchState,
+    wicketLimit,
     setStriker,
     setNonStriker,
     setBowler,
@@ -687,4 +701,4 @@ export const ballHelpers = {
   }),
 };
 
-export { isLegalDelivery, nextPosition };
+export { countsAsBall, isLegalDelivery, nextPosition };

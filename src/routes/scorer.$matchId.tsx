@@ -1,19 +1,19 @@
+import { syncInningsTotals, withDerivedTotals } from "@/lib/mc-innings-totals";
+import { wicketLimitForTeam } from "@/lib/mc-match-rules";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  DismissalModal,
   PlayerPickerModal,
-  RunOutModal,
   ExtraRunsModal,
   SquadDrawer,
-  type DismissalKind,
   type PlayerOption,
   type BatterStats,
   type BowlerStats,
 } from "@/components/match-center/scoring-ui";
 import { MobileScorer } from "@/components/match-center/mobile-scorer";
+import { WicketSheet, type WicketSheetResult } from "@/components/match-center/wicket-sheet";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -64,17 +64,6 @@ export const Route = createFileRoute("/scorer/$matchId")({
 
 /* ---------------- helpers ---------------- */
 
-const DISMISSAL_MAP: Record<DismissalKind, DismissalType> = {
-  Bowled: "bowled",
-  Caught: "caught",
-  LBW: "lbw",
-  "Run Out": "run_out",
-  Stumped: "stumped",
-  "Hit Wicket": "hit_wicket",
-  "Retired Hurt": "retired_hurt",
-  "Retired Out": "retired_out",
-  "Timed Out": "timed_out",
-};
 
 function ScorerPage() {
   const { matchId } = Route.useParams();
@@ -175,6 +164,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           p.external_player_name ||
           "Player",
         role: p.role ?? undefined,
+        isKeeper: p.is_keeper ?? false,
       })),
     [session.bowlingSquad, nameMap],
   );
@@ -190,6 +180,18 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
       athleteId: squad?.athlete_profile_id ?? null,
       name: opt.name,
     };
+    if (swapAfterBatterRef.current && (slot === "striker" || slot === "nonStriker")) {
+      swapAfterBatterRef.current = false;
+      const survivor = slot === "striker" ? session.nonStriker : session.striker;
+      if (slot === "striker") {
+        session.setStriker({ athleteId: survivor.athleteId, name: survivor.name, onStrike: true });
+        session.setNonStriker({ ...payload, onStrike: false });
+      } else {
+        session.setStriker({ ...payload, onStrike: true });
+        session.setNonStriker({ athleteId: survivor.athleteId, name: survivor.name, onStrike: false });
+      }
+      return;
+    }
     if (slot === "striker") session.setStriker({ ...payload, onStrike: true });
     else if (slot === "nonStriker") session.setNonStriker({ ...payload, onStrike: false });
     else session.setBowler(payload);
@@ -197,8 +199,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   /* ---------- modal state ---------- */
   const [dismissOpen, setDismissOpen] = useState(false);
-  const [caughtOpen, setCaughtOpen] = useState(false);
-  const [runOutOpen, setRunOutOpen] = useState(false);
+  const [wicketKind, setWicketKind] = useState<DismissalType | null>(null);
+  const swapAfterBatterRef = useRef(false);
   const [newBatterOpen, setNewBatterOpen] = useState(false);
   const [newBowlerOpen, setNewBowlerOpen] = useState(false);
   const [pickStrikerOpen, setPickStrikerOpen] = useState(false);
@@ -448,12 +450,14 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   /* ---------- ball submission ---------- */
   const [redoStack, setRedoStack] = useState<Awaited<ReturnType<typeof session.undo>>[]>([]);
-  const submit = async (partial: Parameters<typeof session.submitBall>[0]) => {
+  const submit = async (partial: Parameters<typeof session.submitBall>[0]): Promise<boolean> => {
     try {
       await session.submitBall(partial);
       setRedoStack([]);
+      return true;
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to record ball");
+      return false;
     }
   };
   const requestSubmit = (partial: Parameters<typeof session.submitBall>[0]) => {
@@ -551,36 +555,21 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     setPendingNoBallRuns(null);
   };
 
-  const finalizeWicket = async (
-    kind: DismissalType,
-    opts?: {
-      fielder?: PlayerOption | null;
-      dismissed?: "striker" | "non-striker";
-    },
-  ) => {
+  const handleWicket = async (r: WicketSheetResult) => {
+    setDismissOpen(false);
     const dismissedRef =
-      opts?.dismissed === "non-striker"
+      r.dismissed === "non-striker"
         ? { id: nonStriker.athleteId, name: nonStriker.name }
         : { id: striker.athleteId, name: striker.name };
-    await submit(
-      ballHelpers.wicket(kind, {
-        fielderAthleteId: opts?.fielder?.id && !opts.fielder.id.startsWith("ext:") ? opts.fielder.id : null,
-        fielderName: opts?.fielder?.name ?? null,
-        dismissedAthleteId: dismissedRef.id,
-        dismissedName: dismissedRef.name,
-      }),
-    );
-  };
-
-  const handleDismissal = (kind: DismissalKind) => {
-    setDismissOpen(false);
-    if (kind === "Caught") {
-      setCaughtOpen(true);
-    } else if (kind === "Run Out") {
-      setRunOutOpen(true);
-    } else {
-      void finalizeWicket(DISMISSAL_MAP[kind]);
-    }
+    const ok = await submit({
+      ...r.partial,
+      fielderAthleteId: r.fielder?.id && !r.fielder.id.startsWith("ext:") ? r.fielder.id : null,
+      fielderName: r.fielder?.name ?? null,
+      dismissedAthleteId: dismissedRef.id,
+      dismissedName: dismissedRef.name,
+    });
+    // Run out after the batters crossed: the next batter picked takes the other end.
+    swapAfterBatterRef.current = ok && r.crossed;
   };
 
   /* ---------- start innings if needed ---------- */
@@ -645,6 +634,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         .eq("id", session.activeInnings.id);
       
       if (closeError) throw closeError;
+      await syncInningsTotals(session.activeInnings.id).catch((e) => console.error("[innings] could not save totals", e));
 
       // 2. Only if close succeeded, start next innings
       await session.startInnings({
@@ -681,7 +671,10 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         )
         .eq("match_id", session.match.id)
         .order("innings_number");
-      return (data ?? []) as InningsRow[];
+      // the saved totals are zero until an innings is closed: derive from the ball events so the
+      // suggested result (win / tie) is computed from real scores
+      const rows = ((data ?? []) as InningsRow[]).map((r) => ({ ...r, match_id: session.match!.id }));
+      return (await withDerivedTotals(rows)) as InningsRow[];
     },
     refetchInterval: 15000,
   });
@@ -692,8 +685,18 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         teamAId: session.match?.team_a_id ?? "",
         teamBId: session.match?.team_b_id ?? "",
         matchStatus: session.match?.status,
+        wicketLimits: {
+          [session.match?.team_a_id ?? ""]: wicketLimitForTeam(session.playingXI, session.match?.team_a_id ?? null),
+          [session.match?.team_b_id ?? ""]: wicketLimitForTeam(session.playingXI, session.match?.team_b_id ?? null),
+        },
       }),
-    [inningsRowsQ.data, session.match?.team_a_id, session.match?.team_b_id, session.match?.status],
+    [
+      inningsRowsQ.data,
+      session.match?.team_a_id,
+      session.match?.team_b_id,
+      session.match?.status,
+      session.playingXI,
+    ],
   );
 
   const matchLocked = Boolean((session.match as { match_locked?: boolean } | null)?.match_locked);
@@ -702,7 +705,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   const resultLine = (() => {
     const ms = session.matchState;
     if (ms.inningsShouldEnd === "target_achieved" && session.matchState.innings) {
-      const wicketsLeft = 10 - ms.innings.wickets;
+      const wicketsLeft = Math.max(0, session.wicketLimit - ms.innings.wickets);
       return `${homeName} won by ${wicketsLeft} wicket${wicketsLeft === 1 ? "" : "s"}`;
     }
     if (ms.inningsShouldEnd === "all_out" || ms.inningsShouldEnd === "overs_finished") {
@@ -723,7 +726,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         return;
       if (ev.key >= "0" && ev.key <= "6") {
         onRun(Number(ev.key) as 0 | 1 | 2 | 3 | 4 | 5 | 6);
-      } else if (ev.key.toLowerCase() === "w") setDismissOpen(true);
+      } else if (ev.key.toLowerCase() === "w") { setWicketKind(null); setDismissOpen(true); }
       else if (ev.key.toLowerCase() === "u") void session.undo();
       else if (ev.key.toLowerCase() === "d") setExtraKind("Wide");
       else if (ev.key.toLowerCase() === "n") setExtraKind("No Ball");
@@ -822,12 +825,12 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
               session.setStriker({ ...session.nonStriker, onStrike: true });
               session.setNonStriker({ ...s, onStrike: false });
             }}
-            onRetiredHurt={() => setDismissOpen(true)}
+            onRetiredHurt={() => { setWicketKind("retired_hurt"); setDismissOpen(true); }}
 
             onRun={onRun}
             onExtra={(kind) => setExtraKind(kind)}
-            onOut={() => setDismissOpen(true)}
-            onUndo={() => void session.undo()}
+            onOut={() => { setWicketKind(null); setDismissOpen(true); }}
+            onUndo={() => { swapAfterBatterRef.current = false; void session.undo(); }}
             onEndMatch={() => setFinalizeDialogOpen(true)}
             onOpenStrikerPicker={() => { setPickerRole("striker"); setPlayerPickerOpen(true); }}
             onOpenNonStrikerPicker={() => { setPickerRole("nonStriker"); setPlayerPickerOpen(true); }}
@@ -869,27 +872,15 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
 
       {/* ---------- modals ---------- */}
-      <DismissalModal open={dismissOpen} onOpenChange={setDismissOpen} onSelect={handleDismissal} />
-
-      <PlayerPickerModal
-        open={caughtOpen}
-        onOpenChange={setCaughtOpen}
-        title="Who took the catch?"
-        players={bowlingOptions}
-        recent={bowlingOptions.slice(0, 3)}
-        onSelect={(p) => {
-          setCaughtOpen(false);
-          void finalizeWicket("caught", { fielder: p });
-        }}
-      />
-
-      <RunOutModal
-        open={runOutOpen}
-        onOpenChange={setRunOutOpen}
-        onSelect={(who) => {
-          setRunOutOpen(false);
-          void finalizeWicket("run_out", { dismissed: who });
-        }}
+      <WicketSheet
+        open={dismissOpen}
+        onOpenChange={setDismissOpen}
+        initialKind={wicketKind}
+        strikerName={striker.name}
+        nonStrikerName={nonStriker.name}
+        fielders={bowlingOptions}
+        freeHit={session.matchState.innings.freeHit}
+        onConfirm={(r) => void handleWicket(r)}
       />
 
       <PlayerPickerModal
@@ -1276,8 +1267,8 @@ function DemoScorerBody({
 
   /* ---------- modal state ---------- */
   const [dismissOpen, setDismissOpen] = useState(false);
-  const [caughtOpen, setCaughtOpen] = useState(false);
-  const [runOutOpen, setRunOutOpen] = useState(false);
+  const [wicketKind, setWicketKind] = useState<DismissalType | null>(null);
+  const swapAfterBatterRef = useRef(false);
   const [newBatterOpen, setNewBatterOpen] = useState(false);
   const [newBowlerOpen, setNewBowlerOpen] = useState(false);
   const [pickStrikerOpen, setPickStrikerOpen] = useState(false);
@@ -1334,10 +1325,23 @@ function DemoScorerBody({
       p.external_player_name ??
       "Player",
     role: p.role ?? undefined,
+    isKeeper: p.is_keeper ?? false,
   }));
 
   const setPlayer = (slot: "striker" | "nonStriker" | "bowler", opt: PlayerOption) => {
     const payload = { athleteId: opt.id.startsWith("ext:") ? null : opt.id, name: opt.name };
+    if (swapAfterBatterRef.current && (slot === "striker" || slot === "nonStriker")) {
+      swapAfterBatterRef.current = false;
+      const survivor = slot === "striker" ? session.nonStriker : session.striker;
+      if (slot === "striker") {
+        session.setStriker({ athleteId: survivor.athleteId, name: survivor.name, onStrike: true });
+        session.setNonStriker({ ...payload, onStrike: false });
+      } else {
+        session.setStriker({ ...payload, onStrike: true });
+        session.setNonStriker({ athleteId: survivor.athleteId, name: survivor.name, onStrike: false });
+      }
+      return;
+    }
     if (slot === "striker") session.setStriker({ ...payload, onStrike: true });
     else if (slot === "nonStriker") session.setNonStriker({ ...payload, onStrike: false });
     else session.setBowler(payload);
@@ -1491,12 +1495,14 @@ function DemoScorerBody({
 
   /* ---------- ball submission ---------- */
   const [redoStack, setRedoStack] = useState<Awaited<ReturnType<typeof session.undo>>[]>([]);
-  const submit = async (partial: Parameters<typeof session.submitBall>[0]) => {
+  const submit = async (partial: Parameters<typeof session.submitBall>[0]): Promise<boolean> => {
     try {
       await session.submitBall(partial);
       setRedoStack([]);
+      return true;
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to record ball");
+      return false;
     }
   };
   const requestSubmit = (partial: Parameters<typeof session.submitBall>[0]) => {
@@ -1587,35 +1593,28 @@ function DemoScorerBody({
     setNbClassificationOpen(false);
     setPendingNoBallRuns(null);
   };
-  const finalizeWicket = async (
-    kind: DismissalType,
-    opts?: { fielder?: PlayerOption | null; dismissed?: "striker" | "non-striker" },
-  ) => {
+  const handleWicket = async (r: WicketSheetResult) => {
+    setDismissOpen(false);
     const dismissedRef =
-      opts?.dismissed === "non-striker"
+      r.dismissed === "non-striker"
         ? { id: nonStriker.athleteId, name: nonStriker.name }
         : { id: striker.athleteId, name: striker.name };
-    await submit(
-      ballHelpers.wicket(kind, {
-        fielderAthleteId: opts?.fielder?.id && !opts.fielder.id.startsWith("ext:") ? opts.fielder.id : null,
-        fielderName: opts?.fielder?.name ?? null,
-        dismissedAthleteId: dismissedRef.id,
-        dismissedName: dismissedRef.name,
-      }),
-    );
-  };
-  const handleDismissal = (kind: DismissalKind) => {
-    setDismissOpen(false);
-    if (kind === "Caught") setCaughtOpen(true);
-    else if (kind === "Run Out") setRunOutOpen(true);
-    else void finalizeWicket(DISMISSAL_MAP[kind]);
+    const ok = await submit({
+      ...r.partial,
+      fielderAthleteId: r.fielder?.id && !r.fielder.id.startsWith("ext:") ? r.fielder.id : null,
+      fielderName: r.fielder?.name ?? null,
+      dismissedAthleteId: dismissedRef.id,
+      dismissedName: dismissedRef.name,
+    });
+    // Run out after the batters crossed: the next batter picked takes the other end.
+    swapAfterBatterRef.current = ok && r.crossed;
   };
 
 
   const resultLine = (() => {
     const ms = session.matchState;
     if (ms.inningsShouldEnd === "target_achieved" && session.matchState.innings) {
-      const wicketsLeft = 10 - ms.innings.wickets;
+      const wicketsLeft = Math.max(0, session.wicketLimit - ms.innings.wickets);
       return `${homeName} won by ${wicketsLeft} wicket${wicketsLeft === 1 ? "" : "s"}`;
     }
     if (ms.inningsShouldEnd === "all_out" || ms.inningsShouldEnd === "overs_finished") {
@@ -1671,7 +1670,7 @@ function DemoScorerBody({
         return;
       if (ev.key >= "0" && ev.key <= "6") {
         onRun(Number(ev.key) as 0 | 1 | 2 | 3 | 4 | 5 | 6);
-      } else if (ev.key.toLowerCase() === "w") setDismissOpen(true);
+      } else if (ev.key.toLowerCase() === "w") { setWicketKind(null); setDismissOpen(true); }
       else if (ev.key.toLowerCase() === "u") void session.undo();
       else if (ev.key.toLowerCase() === "d") setExtraKind("Wide");
       else if (ev.key.toLowerCase() === "n") setExtraKind("No Ball");
@@ -1761,14 +1760,14 @@ function DemoScorerBody({
             onOpenBowlerPicker={() => setPickBowlerOpen(true)}
             onRun={onRun}
             onExtra={(kind) => setExtraKind(kind)}
-            onOut={() => setDismissOpen(true)}
-            onUndo={() => void session.undo()}
+            onOut={() => { setWicketKind(null); setDismissOpen(true); }}
+            onUndo={() => { swapAfterBatterRef.current = false; void session.undo(); }}
             onSwapStrike={() => {
               const s = { ...session.striker };
               session.setStriker({ ...session.nonStriker, onStrike: true });
               session.setNonStriker({ ...s, onStrike: false });
             }}
-            onRetiredHurt={() => void finalizeWicket("retired_hurt")}
+            onRetiredHurt={() => { setWicketKind("retired_hurt"); setDismissOpen(true); }}
           />
         </div>
       }
@@ -1799,25 +1798,15 @@ function DemoScorerBody({
 
 
       {/* ---------- modals ---------- */}
-      <DismissalModal open={dismissOpen} onOpenChange={setDismissOpen} onSelect={handleDismissal} />
-      <PlayerPickerModal
-        open={caughtOpen}
-        onOpenChange={setCaughtOpen}
-        title="Who took the catch?"
-        players={bowlingOptions}
-        recent={bowlingOptions.slice(0, 3)}
-        onSelect={(p) => {
-          setCaughtOpen(false);
-          void finalizeWicket("caught", { fielder: p });
-        }}
-      />
-      <RunOutModal
-        open={runOutOpen}
-        onOpenChange={setRunOutOpen}
-        onSelect={(who) => {
-          setRunOutOpen(false);
-          void finalizeWicket("run_out", { dismissed: who });
-        }}
+      <WicketSheet
+        open={dismissOpen}
+        onOpenChange={setDismissOpen}
+        initialKind={wicketKind}
+        strikerName={striker.name}
+        nonStrikerName={nonStriker.name}
+        fielders={bowlingOptions}
+        freeHit={session.matchState.innings.freeHit}
+        onConfirm={(r) => void handleWicket(r)}
       />
       <PlayerPickerModal
         open={newBatterOpen}

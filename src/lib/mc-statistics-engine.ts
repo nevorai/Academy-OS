@@ -18,7 +18,7 @@
  * ================================================================ */
 
 import type { DismissalType, ExtraType, MCBallEvent } from "@/lib/mc-ball-events";
-import { isLegalDelivery } from "@/lib/mc-ball-events-core";
+import { countsAsBall } from "@/lib/mc-ball-events-core";
 import {
   ballSwapsStrike,
   bowlerRunsForBall,
@@ -301,7 +301,7 @@ export function computeBowling(events: MCBallEvent[]): BowlingTable {
     const ref = refFrom(e.bowler_athlete_id, e.bowler_name);
     if (!ref) continue;
     const row = ensure(ref);
-    const legal = isLegalDelivery(e.extra_type as ExtraType | null);
+    const legal = countsAsBall(e);
     const conceded = bowlerRunsForBall(e);
     row.runsConceded += conceded;
 
@@ -551,7 +551,7 @@ export function computeOverSummaries(events: MCBallEvent[]): OverSummaryStat[] {
     const total = totalRunsForBall(e);
     row.runs += total;
     row.extras += e.extra_runs ?? 0;
-    const legal = isLegalDelivery(e.extra_type as ExtraType | null);
+    const legal = countsAsBall(e);
     if (legal) row.legalBalls += 1;
     else row.illegalBalls += 1;
     if ((e.runs_off_bat ?? 0) === 4 || (e.runs_off_bat ?? 0) === 6) row.boundaries += 1;
@@ -617,7 +617,7 @@ export function computeOverHistory(
     row.chips.push(chipLabel(e));
     row.runs += totalRunsForBall(e);
     if (isWicket) row.wickets += 1;
-    if (isLegalDelivery(e.extra_type as ExtraType | null)) row.legalBalls += 1;
+    if (countsAsBall(e)) row.legalBalls += 1;
     row._score = score;
     row._wkts = totalWickets;
     row.runningScore = `${score}/${totalWickets}`;
@@ -637,7 +637,7 @@ export function computeFallOfWickets(events: MCBallEvent[]): FallOfWicket[] {
   let wicketNumber = 0;
   for (const e of events) {
     score += totalRunsForBall(e);
-    if (isLegalDelivery(e.extra_type as ExtraType | null)) legalBalls += 1;
+    if (countsAsBall(e)) legalBalls += 1;
     const dt = e.dismissal_type as DismissalType | null;
     if (isWicketDismissal(dt)) {
       wicketNumber += 1;
@@ -694,7 +694,7 @@ export function computePartnerships(events: MCBallEvent[]): {
     }
 
     active.runs += totalRunsForBall(e);
-    if (isLegalDelivery(e.extra_type as ExtraType | null)) active.balls += 1;
+    if (countsAsBall(e)) active.balls += 1;
 
     const dt = e.dismissal_type as DismissalType | null;
     if (isWicketDismissal(dt)) {
@@ -736,7 +736,7 @@ export function computeTeamStats(events: MCBallEvent[], opts: TeamStatsOptions =
     // Single source of truth: derive legality from extra_type — wide / no_ball
     // never count toward the over budget, everything else does. Ignore the
     // stored flag so a stale row cannot double-increment the ball count.
-    const legal = isLegalDelivery(e.extra_type as ExtraType | null);
+    const legal = countsAsBall(e);
     runs += totalRunsForBall(e);
     if (legal) legalBalls += 1;
     else illegalBalls += 1;
@@ -984,7 +984,7 @@ export function completedLegalBallsFromEvents(events: MCBallEvent[]): number {
   // or 1-indexed over numbers, which would make the label +6 off.
   let count = 0;
   for (const event of events) {
-    if (isLegalDelivery(event.extra_type as ExtraType | null)) count += 1;
+    if (countsAsBall(event)) count += 1;
   }
   return count;
 }

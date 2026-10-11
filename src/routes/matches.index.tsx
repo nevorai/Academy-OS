@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { calculateInningsStatistics } from "@/lib/mc-statistics-engine";
+import { isLiveStale, lastBallTime } from "@/lib/mc-live";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { TenantGate } from "@/components/site/TenantGate";
@@ -39,6 +40,7 @@ type PublicMatchRow = {
   winner_team: string | null;
   team_a_id: string;
   team_b_id: string;
+  updated_at?: string | null;
 };
 
 type TeamNameMap = Record<string, { name: string; logo_url: string | null }>;
@@ -62,7 +64,7 @@ function MatchesPage() {
       const { data, error } = await supabase
         .from("mc_matches")
         .select(
-          "id,status,match_format,playing_rules,match_type,overs,scheduled_date,scheduled_time,ground_name,result,winner_team,team_a_id,team_b_id",
+          "id,status,match_format,playing_rules,match_type,overs,scheduled_date,scheduled_time,ground_name,result,winner_team,team_a_id,team_b_id,updated_at",
         )
         .eq("tenant_id", tenant.id)
         .eq("visibility", "public")
@@ -237,7 +239,9 @@ function LiveMatchCard({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("mc_ball_events")
-        .select("runs_off_bat,extra_runs,is_legal_delivery,dismissal_type")
+        // The score engine needs the whole ball (extra_type, over/ball numbers...). Selecting only a few
+        // columns made it count a no-ball as a legal ball and drop its penalty run: 16/0 (1.1) instead of 17/0 (1.0).
+        .select("*")
         .eq("innings_id", current!.id);
       if (error) throw error;
       return data ?? [];
@@ -268,6 +272,8 @@ function LiveMatchCard({
     };
   })();
 
+  const stale = isLiveStale(lastBallTime(ballsQ.data as { created_at?: string | null }[] | undefined) ?? match.updated_at ?? null);
+
   const score = derived ?? (current
     ? {
         runs: current.runs ?? 0,
@@ -287,11 +293,21 @@ function LiveMatchCard({
     <Link
       to="/matches/$matchId"
       params={{ matchId: match.id }}
-      className="block rounded-2xl border border-red-500/40 bg-gradient-to-br from-red-500/10 via-card to-card p-6 shadow-sm transition hover:border-red-500/70"
+      className={
+        stale
+          ? "block rounded-2xl border border-border bg-card p-6 shadow-sm transition hover:border-foreground/30"
+          : "block rounded-2xl border border-red-500/40 bg-gradient-to-br from-red-500/10 via-card to-card p-6 shadow-sm transition hover:border-red-500/70"
+      }
     >
-      <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-red-600 dark:text-red-400">
+      <div
+        className={
+          stale
+            ? "flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground"
+            : "flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-red-600 dark:text-red-400"
+        }
+      >
         <Radio className="size-3.5" />
-        Live
+        {stale ? "Not live · scoring paused" : "Live"}
         {match.match_format && (
           <span className="text-muted-foreground">· {match.match_format}</span>
         )}

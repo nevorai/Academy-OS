@@ -4,6 +4,7 @@ import { Radio } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/lib/tenant-context";
 import { useMatchLive } from "@/hooks/use-match-live";
+import { isLiveStale, lastBallTime } from "@/lib/mc-live";
 
 type LiveMatch = {
   id: string;
@@ -11,6 +12,7 @@ type LiveMatch = {
   team_b_id: string;
   overs: number;
   playing_rules: any;
+  updated_at?: string | null;
 };
 
 type Innings = {
@@ -40,7 +42,7 @@ export function LiveMatchBanner() {
   const load = () => {
     supabase
       .from("mc_matches")
-      .select("id,team_a_id,team_b_id,overs,playing_rules")
+      .select("id,team_a_id,team_b_id,overs,playing_rules,updated_at")
       .eq("tenant_id", tenant.id)
       .eq("visibility", "public")
       .in("status", ["live", "in_progress"])
@@ -85,6 +87,13 @@ export function LiveMatchBanner() {
               .select("*")
               .eq("innings_id", row.id)
               .then(async ({ data: balls }) => {
+                // A match left on "live" with no scoring for 12 h is not live: hide the banner.
+                if (isLiveStale(lastBallTime(balls as { created_at?: string | null }[] | null) ?? data.updated_at ?? null)) {
+                  setMatch(null);
+                  setInnings(null);
+                  setDerived(null);
+                  return;
+                }
                 if (!balls || balls.length === 0) {
                   setDerived(null);
                   return;

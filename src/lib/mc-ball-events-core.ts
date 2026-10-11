@@ -24,12 +24,37 @@ export type DismissalType =
   | "hit_ball_twice";
 
 /** Legal-extras count against the over's 6-ball budget. */
-export const LEGAL_EXTRAS: readonly ExtraType[] = ["bye", "leg_bye", "penalty"];
+export const LEGAL_EXTRAS: readonly ExtraType[] = ["bye", "leg_bye"];
 export const ILLEGAL_EXTRAS: readonly ExtraType[] = ["wide", "no_ball"];
+/** Penalty runs are awarded to the batting side but nobody bowls a ball. */
+export const NON_DELIVERY_EXTRAS: readonly ExtraType[] = ["penalty"];
+/** These end a batter's innings between balls: no delivery is bowled. */
+export const NON_DELIVERY_DISMISSALS: readonly DismissalType[] = [
+  "retired_hurt",
+  "retired_out",
+  "timed_out",
+];
 
 export function isLegalDelivery(extra: ExtraType | null | undefined): boolean {
   if (!extra) return true;
   return (LEGAL_EXTRAS as readonly string[]).includes(extra);
+}
+
+/**
+ * Does this event use up one of the over's six balls?
+ * Wides, no-balls and penalty runs do not. Neither does a batter retiring or
+ * being timed out: those happen between balls, so they are not a dot ball.
+ * Every ball counter in the app goes through this one function.
+ */
+export function countsAsBall(e: {
+  extra_type?: string | null;
+  dismissal_type?: string | null;
+}): boolean {
+  const extra = (e.extra_type ?? null) as ExtraType | null;
+  if (!extra && e.dismissal_type) {
+    if ((NON_DELIVERY_DISMISSALS as readonly string[]).includes(e.dismissal_type)) return false;
+  }
+  return isLegalDelivery(extra);
 }
 
 /**

@@ -4,6 +4,7 @@ import {
   BallEventError,
   ILLEGAL_EXTRAS,
   LEGAL_EXTRAS,
+  countsAsBall,
   isLegalDelivery,
   type DismissalType,
   type ExtraType,
@@ -27,7 +28,7 @@ export type MCInningsUpdate = Database["public"]["Tables"]["mc_innings"]["Update
 export type MCBallEvent = Database["public"]["Tables"]["mc_ball_events"]["Row"];
 export type MCBallEventInsert = Database["public"]["Tables"]["mc_ball_events"]["Insert"];
 
-export { BallEventError, ILLEGAL_EXTRAS, LEGAL_EXTRAS, isLegalDelivery };
+export { BallEventError, ILLEGAL_EXTRAS, LEGAL_EXTRAS, countsAsBall, isLegalDelivery };
 export type { DismissalType, ExtraType };
 
 /* ================================================================
@@ -86,6 +87,13 @@ export async function completeInnings(id: string): Promise<MCInnings> {
     .select("*")
     .single();
   if (error) throw error;
+  // save the true totals now that the innings is over (best effort: never block completing it)
+  try {
+    const { syncInningsTotals } = await import("@/lib/mc-innings-totals");
+    await syncInningsTotals(id);
+  } catch (e) {
+    console.error("[innings] could not save totals", id, e);
+  }
   return data;
 }
 
@@ -139,7 +147,7 @@ export function nextPosition(events: MCBallEvent[]): OverBallPosition {
   // extra_type — a stale `is_legal_delivery` flag must never influence the
   // position of the next ball.
   const legalInOver = events.filter(
-    (e) => e.over_number === last.over_number && isLegalDelivery(e.extra_type as ExtraType | null),
+    (e) => e.over_number === last.over_number && countsAsBall(e),
   ).length;
 
   if (legalInOver >= 6) {
@@ -212,7 +220,10 @@ export async function appendBallEvent(input: AppendBallInput): Promise<MCBallEve
   // ---- Position ----
   const events = input.priorEvents ?? (await listBallEvents(input.inningsId));
   const pos = nextPosition(events);
-  const legal = isLegalDelivery(input.extraType ?? null);
+  const legal = countsAsBall({
+    extra_type: input.extraType ?? null,
+    dismissal_type: input.dismissalType ?? null,
+  });
 
   const payload: MCBallEventInsert = {
     id: input.eventId,

@@ -47,6 +47,7 @@ import { Route as AcademySlugRouteImport } from './routes/academy.$slug'
 import { Route as ActivateTokenRouteImport } from './routes/activate.$token'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApplySlugRouteImport } from './routes/apply.$slug'
+import { Route as AssetsSplatRouteImport } from './routes/assets.$'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardAcademyRouteImport } from './routes/dashboard.academy'
 import { Route as DashboardActivationRouteImport } from './routes/dashboard.activation'
@@ -346,6 +347,11 @@ const ApiChatRoute = ApiChatRouteImport.update({
 const ApplySlugRoute = ApplySlugRouteImport.update({
   id: '/apply/$slug',
   path: '/apply/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AssetsSplatRoute = AssetsSplatRouteImport.update({
+  id: '/assets/$',
+  path: '/assets/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
@@ -962,6 +968,7 @@ export interface FileRoutesByFullPath {
   '/activate/$token': typeof ActivateTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/apply/$slug': typeof ApplySlugRoute
+  '/assets/$': typeof AssetsSplatRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/activation': typeof DashboardActivationRoute
   '/dashboard/admins': typeof DashboardAdminsRoute
@@ -1106,6 +1113,7 @@ export interface FileRoutesByTo {
   '/activate/$token': typeof ActivateTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/apply/$slug': typeof ApplySlugRoute
+  '/assets/$': typeof AssetsSplatRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/activation': typeof DashboardActivationRoute
   '/dashboard/admins': typeof DashboardAdminsRoute
@@ -1257,6 +1265,7 @@ export interface FileRoutesById {
   '/activate/$token': typeof ActivateTokenRoute
   '/api/chat': typeof ApiChatRoute
   '/apply/$slug': typeof ApplySlugRoute
+  '/assets/$': typeof AssetsSplatRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/activation': typeof DashboardActivationRoute
   '/dashboard/admins': typeof DashboardAdminsRoute
@@ -1409,6 +1418,7 @@ export interface FileRouteTypes {
     | '/activate/$token'
     | '/api/chat'
     | '/apply/$slug'
+    | '/assets/$'
     | '/dashboard/academy'
     | '/dashboard/activation'
     | '/dashboard/admins'
@@ -1553,6 +1563,7 @@ export interface FileRouteTypes {
     | '/activate/$token'
     | '/api/chat'
     | '/apply/$slug'
+    | '/assets/$'
     | '/dashboard/academy'
     | '/dashboard/activation'
     | '/dashboard/admins'
@@ -1703,6 +1714,7 @@ export interface FileRouteTypes {
     | '/activate/$token'
     | '/api/chat'
     | '/apply/$slug'
+    | '/assets/$'
     | '/dashboard/academy'
     | '/dashboard/activation'
     | '/dashboard/admins'
@@ -1854,6 +1866,7 @@ export interface RootRouteChildren {
   ActivateTokenRoute: typeof ActivateTokenRoute
   ApiChatRoute: typeof ApiChatRoute
   ApplySlugRoute: typeof ApplySlugRoute
+  AssetsSplatRoute: typeof AssetsSplatRoute
   InviteTokenRoute: typeof InviteTokenRoute
   MSlugRoute: typeof MSlugRoute
   MatchSlugRoute: typeof MatchSlugRoute
@@ -2137,6 +2150,13 @@ declare module '@tanstack/react-router' {
       path: '/apply/$slug'
       fullPath: '/apply/$slug'
       preLoaderRoute: typeof ApplySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/assets/$': {
+      id: '/assets/$'
+      path: '/assets/$'
+      fullPath: '/assets/$'
+      preLoaderRoute: typeof AssetsSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/': {
@@ -3242,6 +3262,7 @@ const rootRouteChildren: RootRouteChildren = {
   ActivateTokenRoute: ActivateTokenRoute,
   ApiChatRoute: ApiChatRoute,
   ApplySlugRoute: ApplySlugRoute,
+  AssetsSplatRoute: AssetsSplatRoute,
   InviteTokenRoute: InviteTokenRoute,
   MSlugRoute: MSlugRoute,
   MatchSlugRoute: MatchSlugRoute,

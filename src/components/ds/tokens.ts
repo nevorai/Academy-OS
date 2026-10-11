@@ -1,5 +1,5 @@
 /**
- * Cricket Academy OS V2 — Design Tokens
+ * Nevorai Academy V2 — Design Tokens
  *
  * Single source of truth for spacing, radius, elevation, and typography scales.
  * Colors live as CSS variables in src/styles.css (never hardcode).

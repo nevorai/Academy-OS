@@ -1,5 +1,5 @@
 /**
- * Cricket Academy OS V2 — Decision Dashboard (Phase 02.3).
+ * Nevorai Academy V2 — Decision Dashboard (Phase 02.3).
  *
  * Not a reporting dashboard. When the owner or admin opens the app, they
  * see immediately: what's happening now, what needs attention, what to do
@@ -66,7 +66,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/dashboard/")({
   head: () => ({
     meta: [
-      { title: "Home · Cricket Academy OS" },
+      { title: "Home · Nevorai Academy" },
       {
         name: "description",
         content:

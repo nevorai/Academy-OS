@@ -6,9 +6,9 @@ import { seo } from "@/lib/seo";
 export const Route = createFileRoute("/privacy")({
   head: () =>
     seo({
-      title: "Privacy Policy — Cricket Academy OS",
+      title: "Privacy Policy — Nevorai Academy",
       description:
-        "How Cricket Academy OS handles data for cricket academies, their students and guardians — what we collect, how it is isolated, and how to get it deleted.",
+        "How Nevorai Academy handles data for cricket academies, their students and guardians — what we collect, how it is isolated, and how to get it deleted.",
       path: "/privacy",
     }),
   component: Privacy,
@@ -19,7 +19,7 @@ function Privacy() {
     <LegalLayout
       current="/privacy"
       title="Privacy Policy"
-      intro="How Cricket Academy OS handles the data academies, students and guardians put into the platform."
+      intro="How Nevorai Academy handles the data academies, students and guardians put into the platform."
     >
       <h2>Who is responsible for what</h2>
       <p>
@@ -43,7 +43,7 @@ function Privacy() {
 
       <h2>How data is used</h2>
       <p>
-        Data is used solely to provide Cricket Academy OS to the academy the data belongs to — and,
+        Data is used solely to provide Nevorai Academy to the academy the data belongs to — and,
         where the academy has enabled it, to send that academy's own reminders and updates to its
         students and guardians. We do not sell or rent academy or student data, do not use it for
         advertising, and do not use it to train third-party AI models.

@@ -26,7 +26,7 @@ import {
 export const Route = createFileRoute("/dashboard/coach/onboarding")({
   head: () => ({
     meta: [
-      { title: "Coach onboarding · Cricket Academy OS" },
+      { title: "Coach onboarding · Nevorai Academy" },
       { name: "robots", content: "noindex" },
     ],
   }),

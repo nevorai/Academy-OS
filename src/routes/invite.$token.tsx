@@ -19,7 +19,7 @@ import { AUTOMATION_EVENTS } from "@/lib/automation/types";
 export const Route = createFileRoute("/invite/$token")({
   head: () => ({
     meta: [
-      { title: "Accept invitation · Cricket Academy OS" },
+      { title: "Accept invitation · Nevorai Academy" },
       { name: "robots", content: "noindex" },
     ],
   }),

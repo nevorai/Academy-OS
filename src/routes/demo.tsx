@@ -8,9 +8,9 @@ import { CheckCircle2 } from "lucide-react";
 export const Route = createFileRoute("/demo")({
   head: () =>
     seo({
-      title: "Book a Free Demo — Cricket Academy OS",
+      title: "Book a Free Demo — Nevorai Academy",
       description:
-        "See Cricket Academy OS run a real cricket academy end to end. A 20-minute live walkthrough with our team — admissions, fees, attendance and match centre.",
+        "See Nevorai Academy run a real cricket academy end to end. A 20-minute live walkthrough with our team — admissions, fees, attendance and match centre.",
       path: "/demo",
       keywords: "cricket academy software demo, academy management software demo India",
     }),
@@ -42,10 +42,10 @@ function DemoPage() {
     }
     // Post to a general demo webhook via WhatsApp deep-link fallback (no backend endpoint yet).
     const body = encodeURIComponent(
-      `New Cricket Academy OS demo request:\n\nName: ${parsed.data.name}\nEmail: ${parsed.data.email}\nPhone: ${parsed.data.phone}\nAcademy: ${parsed.data.academy ?? "-"}\nSport: ${parsed.data.sport ?? "-"}\nMessage: ${parsed.data.message ?? "-"}`,
+      `New Nevorai Academy demo request:\n\nName: ${parsed.data.name}\nEmail: ${parsed.data.email}\nPhone: ${parsed.data.phone}\nAcademy: ${parsed.data.academy ?? "-"}\nSport: ${parsed.data.sport ?? "-"}\nMessage: ${parsed.data.message ?? "-"}`,
     );
     // Open a mailto so the user's client sends it (no backend key needed for launch).
-    window.location.href = `mailto:hello@nevorai.com?subject=Cricket Academy OS%20demo%20request&body=${body}`;
+    window.location.href = `mailto:hello@nevorai.com?subject=Nevorai Academy%20demo%20request&body=${body}`;
     setSent(true);
     setBusy(false);
   }
@@ -55,7 +55,7 @@ function DemoPage() {
       <header className="border-b">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="font-semibold tracking-tight">
-            Cricket Academy OS
+            Nevorai Academy
           </Link>
           <nav className="flex items-center gap-4 text-sm">
             <Link to="/features" className="text-muted-foreground hover:text-foreground">
@@ -124,7 +124,7 @@ function DemoPage() {
       </section>
 
       <footer className="border-t py-8 text-center text-sm text-muted-foreground">
-        © {new Date().getFullYear()} Cricket Academy OS
+        © {new Date().getFullYear()} Nevorai Academy
       </footer>
     </div>
   );

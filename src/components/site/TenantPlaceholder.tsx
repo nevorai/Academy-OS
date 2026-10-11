@@ -9,7 +9,7 @@ import {
   waHref,
 } from "@/lib/platform-settings";
 
-const DEMO_MSG = "Hi, I'd like to know more about Cricket Academy OS for my academy.";
+const DEMO_MSG = "Hi, I'd like to know more about Nevorai Academy for my academy.";
 
 const INK = "#0A1628";
 const INK_SOFT = "#101F38";
@@ -38,7 +38,7 @@ export function TenantPlaceholder() {
     staleTime: 60_000,
   });
   const whatsappUrl = waHref(settings.contact_whatsapp, DEMO_MSG);
-  const emailUrl = `mailto:${settings.contact_email}?subject=${encodeURIComponent("Cricket Academy OS — enquiry")}`;
+  const emailUrl = `mailto:${settings.contact_email}?subject=${encodeURIComponent("Nevorai Academy — enquiry")}`;
 
   return (
     <div className="min-h-dvh w-full bg-white text-slate-900 antialiased">
@@ -594,7 +594,7 @@ function WhatItSaves() {
                   />
                 </svg>
               </span>
-              <h3 className="text-base font-semibold">With Cricket Academy OS</h3>
+              <h3 className="text-base font-semibold">With Nevorai Academy</h3>
             </div>
             <ul className="mt-6 space-y-3.5">
               {after.map((t) => (
@@ -1073,7 +1073,7 @@ const FAQ_GROUPS: FaqGroup[] = [
     items: [
       {
         q: "I already manage everything on WhatsApp and a register. Why change?",
-        a: "Because that works until it doesn't — a fee gets missed, a register goes missing, an enquiry at 6 AM never gets answered. Cricket Academy OS keeps the same simple habits (you still use WhatsApp) but nothing depends on you remembering it.",
+        a: "Because that works until it doesn't — a fee gets missed, a register goes missing, an enquiry at 6 AM never gets answered. Nevorai Academy keeps the same simple habits (you still use WhatsApp) but nothing depends on you remembering it.",
       },
       {
         q: "Who actually chases the parents who haven't paid?",
@@ -1324,7 +1324,7 @@ function Footer() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 sm:px-8 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-2.5">
           <BallMark size={26} />
-          <span className="text-sm font-semibold text-slate-900">Cricket Academy OS</span>
+          <span className="text-sm font-semibold text-slate-900">Nevorai Academy</span>
           <span className="text-sm text-slate-400">by Nevorai</span>
         </div>
         <div className="flex flex-wrap items-center gap-6 text-sm text-slate-500">

@@ -30,11 +30,11 @@ export function useAcademyBrand(): AcademyBrand {
   const state = useTenantState();
   const tenant = state.status === "ready" || state.status === "suspended" ? state.tenant : null;
   return useMemo(() => {
-    // Platform door (academy.nevorai.com / no tenant resolved): Cricket Academy OS's own identity.
+    // Platform door (academy.nevorai.com / no tenant resolved): Nevorai Academy's own identity.
     // Deliberate, not a fallback — never show a tenant's palette here.
     if (!tenant) {
       return {
-        name: "Cricket Academy OS",
+        name: "Nevorai Academy",
         initials: "AOS",
         accent: "#C8452F",
         ink: "#0A1628",
@@ -47,7 +47,7 @@ export function useAcademyBrand(): AcademyBrand {
       };
     }
 
-    const name = tenant.name ?? "Cricket Academy OS";
+    const name = tenant.name ?? "Nevorai Academy";
     const initials =
       (tenant.short_name?.trim() ||
         name.split(/\s+/).slice(0, 2).map((w) => w[0]).join("")) ?? "A";

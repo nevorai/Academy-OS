@@ -14,7 +14,7 @@ import { ForcePasswordChange } from "@/components/auth/ForcePasswordChange";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
-    meta: [{ title: "Dashboard · Cricket Academy OS" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Dashboard · Nevorai Academy" }, { name: "robots", content: "noindex" }],
   }),
   component: DashboardLayout,
 });

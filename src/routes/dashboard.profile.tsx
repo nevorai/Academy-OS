@@ -34,7 +34,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/profile")({
   head: () => ({
-    meta: [{ title: "Profile · Cricket Academy OS" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Profile · Nevorai Academy" }, { name: "robots", content: "noindex" }],
   }),
   component: ProfilePage,
 });
@@ -121,7 +121,7 @@ function ProfilePage() {
         {
           to: "/dashboard/subscription",
           label: "Subscription & Plan",
-          hint: "Your Cricket Academy OS plan",
+          hint: "Your Nevorai Academy plan",
           icon: CreditCard,
         },
       ],

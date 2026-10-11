@@ -1,5 +1,5 @@
 /**
- * Cricket Academy OS — staff-side player ID card scanner.
+ * Nevorai Academy — staff-side player ID card scanner.
  *
  * The owner / admin / coach points their phone at the QR printed on a player's
  * ID card. First scan of the day checks that player IN, the next scan checks

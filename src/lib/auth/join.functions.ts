@@ -15,7 +15,7 @@ export async function joinAcademy(userId: string, via: string): Promise<void> {
   if ((DB_SCHEMA as string) !== "academy") return;
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { error } = await supabaseAdmin.rpc("join_self" as never, { p_user: userId, p_via: via } as never);
-  if (error) throw new Error(`Could not join Academy OS: ${error.message}`);
+  if (error) throw new Error(`Could not join Nevorai Academy: ${error.message}`);
 }
 
 type AccountResult =

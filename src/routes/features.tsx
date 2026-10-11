@@ -18,7 +18,7 @@ import { sportsList } from "@/lib/sports";
 export const Route = createFileRoute("/features")({
   head: () =>
     seo({
-      title: "Features — Cricket Academy Management Software | Cricket Academy OS",
+      title: "Features — Cricket Academy Management Software | Nevorai Academy",
       description:
         "Admissions and enquiries, fee collection with automatic reminders, attendance, live match scoring, parent updates on WhatsApp and your own academy website — in one system.",
       path: "/features",
@@ -92,7 +92,7 @@ function FeaturesPage() {
       <header className="border-b">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="font-semibold tracking-tight">
-            Cricket Academy OS
+            Nevorai Academy
           </Link>
           <nav className="flex items-center gap-4 text-sm">
             <Link to="/features" className="font-medium">
@@ -120,7 +120,7 @@ function FeaturesPage() {
           Every module a sports academy needs. One platform.
         </h1>
         <p className="mt-4 text-lg text-muted-foreground max-w-2xl">
-          From the first enquiry to career records, Cricket Academy OS handles the whole lifecycle.
+          From the first enquiry to career records, Nevorai Academy handles the whole lifecycle.
           Pick a sport, we handle the rest.
         </p>
       </section>
@@ -184,7 +184,7 @@ function FeaturesPage() {
       </section>
 
       <footer className="border-t py-8 text-center text-sm text-muted-foreground">
-        © {new Date().getFullYear()} Cricket Academy OS
+        © {new Date().getFullYear()} Nevorai Academy
       </footer>
     </div>
   );

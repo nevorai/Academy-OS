@@ -6,7 +6,7 @@ import { MatchCenterLayout } from "@/components/match-center/MatchCenterLayout";
 export const Route = createFileRoute("/match-center")({
   head: () => ({
     meta: [
-      { title: "Match Center · Cricket Academy OS" },
+      { title: "Match Center · Nevorai Academy" },
       {
         name: "description",
         content: "Live matches, teams, players, tournaments and awards for your academy.",

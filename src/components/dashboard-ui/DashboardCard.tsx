@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * DashboardCard — the single card token used across Cricket Academy OS.
+ * DashboardCard — the single card token used across Nevorai Academy.
  * Same radius, same border, same shadow, everywhere.
  */
 export function DashboardCard({

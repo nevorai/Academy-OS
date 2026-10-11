@@ -13,14 +13,14 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/app-launch")({
   ssr: false,
   head: () => ({
-    meta: [{ title: "Cricket Academy OS" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Nevorai Academy" }, { name: "robots", content: "noindex" }],
   }),
   component: AppLaunch,
 });
 
 function AppLaunch() {
   const navigate = useNavigate();
-  const [message, setMessage] = useState("Cricket Academy OS");
+  const [message, setMessage] = useState("Nevorai Academy");
 
   useEffect(() => {
     let cancelled = false;

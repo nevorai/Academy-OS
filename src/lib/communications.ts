@@ -1,5 +1,5 @@
 /**
- * Cricket Academy OS V2 — Communications (Phase 03.4).
+ * Nevorai Academy V2 — Communications (Phase 03.4).
  *
  * Campaign layer on top of the existing notification pipeline. Every campaign
  * fans out through `publish_notification` (server-side RPC) and reuses

@@ -15,7 +15,7 @@ import { isReservedPlatformHost } from "./tenant";
  * patching is invisible to link unfurlers and weak for search.
  */
 
-export const PLATFORM_BRAND = "Cricket Academy OS";
+export const PLATFORM_BRAND = "Nevorai Academy";
 export const PLATFORM_COMPANY = "Nevorai";
 export const PLATFORM_DOMAIN = "academyos.nevorai.com";
 export const PLATFORM_URL = `https://${PLATFORM_DOMAIN}`;

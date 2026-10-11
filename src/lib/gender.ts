@@ -1,5 +1,5 @@
 /**
- * Canonical gender values for Cricket Academy OS.
+ * Canonical gender values for Nevorai Academy.
  * - 'male': UI label "Boy"
  * - 'female': UI label "Girl"
  */

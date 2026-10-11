@@ -102,7 +102,7 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
           iconType = "image/x-icon";
         }
 
-        const name = tenant?.name ?? "Academy OS";
+        const name = tenant?.name ?? "Nevorai Academy";
         const shortName =
           tenant?.short_name && tenant.short_name.trim()
             ? tenant.short_name.trim().slice(0, 12)

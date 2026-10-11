@@ -1,5 +1,5 @@
 /**
- * Cricket Academy OS V2 — Design System barrel.
+ * Nevorai Academy V2 — Design System barrel.
  *
  * Every new screen should import primitives from here:
  *   import { AppShell, TopBar, BottomNav, Card, StatCard, ... } from "@/components/ds";

@@ -16,7 +16,7 @@ import {
 export const Route = createFileRoute("/dashboard/automation-settings")({
   head: () => ({
     meta: [
-      { title: "Automation Settings · Cricket Academy OS" },
+      { title: "Automation Settings · Nevorai Academy" },
       { name: "robots", content: "noindex" },
     ],
   }),

@@ -104,7 +104,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       // Site-wide fallbacks. Every marketing route overrides these via `seo()`;
       // tenant sites get their academy's own title/description patched in by
       // TenantProvider. These only show on routes that set no head of their own.
-      { title: "Cricket Academy OS — Cricket Academy Management Software" },
+      { title: "Nevorai Academy — Cricket Academy Management Software" },
       {
         name: "description",
         content:
@@ -116,20 +116,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
-      { name: "apple-mobile-web-app-title", content: "Cricket Academy OS" },
-      { name: "application-name", content: "Cricket Academy OS" },
+      { name: "apple-mobile-web-app-title", content: "Nevorai Academy" },
+      { name: "application-name", content: "Nevorai Academy" },
       { name: "format-detection", content: "telephone=no" },
-      { property: "og:site_name", content: "Cricket Academy OS" },
+      { property: "og:site_name", content: "Nevorai Academy" },
       { property: "og:locale", content: "en_IN" },
       { property: "og:type", content: "website" },
-      { property: "og:title", content: "Cricket Academy OS" },
+      { property: "og:title", content: "Nevorai Academy" },
       {
         property: "og:description",
         content:
           "Cricket academy management software for Indian academies — admissions, fees, attendance, live match scoring and your own academy website.",
       },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Cricket Academy OS" },
+      { name: "twitter:title", content: "Nevorai Academy" },
       {
         name: "twitter:description",
         content:
@@ -194,7 +194,7 @@ function AppSplash() {
             <div className="h-full w-full origin-left animate-progress bg-primary" />
           </div>
           <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground font-semibold">
-            Cricket Academy OS
+            Nevorai Academy
           </p>
         </div>
       </div>
@@ -246,7 +246,7 @@ function ThemeSystemListener() {
 function PwaBootstrap() {
   // Registers the service worker (guarded — never runs in Lovable preview,
   // dev, iframes, or when `?sw=off` is present) and captures the browser's
-  // install prompt so the parent portal can offer a "Install Cricket Academy OS" CTA.
+  // install prompt so the parent portal can offer a "Install Nevorai Academy" CTA.
   useEffect(() => {
     if (typeof window === "undefined") return;
     void (async () => {

@@ -1,5 +1,5 @@
 /**
- * Cricket Academy OS — QR + GPS attendance data layer.
+ * Nevorai Academy — QR + GPS attendance data layer.
  *
  * Every read/write here goes through the canonical SECURITY DEFINER RPCs
  * (`qr_attendance_scan`, `get_attendance_qr_settings`,

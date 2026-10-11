@@ -36,7 +36,7 @@ export const Route = createFileRoute("/")({
   head: () =>
     isPlatformRequest()
       ? seo({
-          title: "Cricket Academy Software for Indian Academies | Cricket Academy OS",
+          title: "Cricket Academy Software for Indian Academies | Nevorai Academy",
           description:
             "Run your cricket academy on one system — admissions, fee collection and reminders, attendance, live match scoring and your own academy website. Built in India by Nevorai.",
           path: "/",

@@ -25,7 +25,7 @@ import { format } from "date-fns";
 export const Route = createFileRoute("/dashboard/automation-test")({
   head: () => ({
     meta: [
-      { title: "Automation Test · Cricket Academy OS" },
+      { title: "Automation Test · Nevorai Academy" },
       { name: "robots", content: "noindex" },
     ],
   }),

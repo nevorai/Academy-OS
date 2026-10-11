@@ -6,8 +6,8 @@ import { NotificationCenter } from "@/components/notifications/NotificationCente
 export const Route = createFileRoute("/notifications")({
   head: () => ({
     meta: [
-      { title: "Notifications · Cricket Academy OS" },
-      { name: "description", content: "Your Cricket Academy OS notification center." },
+      { title: "Notifications · Nevorai Academy" },
+      { name: "description", content: "Your Nevorai Academy notification center." },
       { name: "robots", content: "noindex" },
     ],
   }),

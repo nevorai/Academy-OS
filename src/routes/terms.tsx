@@ -6,9 +6,9 @@ import { seo } from "@/lib/seo";
 export const Route = createFileRoute("/terms")({
   head: () =>
     seo({
-      title: "Terms of Service — Cricket Academy OS",
+      title: "Terms of Service — Nevorai Academy",
       description:
-        "Terms governing use of Cricket Academy OS by cricket and sports academies in India.",
+        "Terms governing use of Nevorai Academy by cricket and sports academies in India.",
       path: "/terms",
     }),
   component: Terms,
@@ -19,7 +19,7 @@ function Terms() {
     <LegalLayout
       current="/terms"
       title="Terms of Service"
-      intro="These terms govern use of Cricket Academy OS. By creating an academy on Cricket Academy OS, you accept them."
+      intro="These terms govern use of Nevorai Academy. By creating an academy on Nevorai Academy, you accept them."
     >
       <h2>Account</h2>
       <p>
@@ -30,14 +30,14 @@ function Terms() {
 
       <h2>Acceptable use</h2>
       <p>
-        Do not use Cricket Academy OS to store data unrelated to running a sports academy, to send
+        Do not use Nevorai Academy to store data unrelated to running a sports academy, to send
         unsolicited communications to non-consenting recipients, or to attempt to access another
         academy's data.
       </p>
 
       <h2>Subscription and payments</h2>
       <p>
-        Cricket Academy OS is billed as part of your Nevorai subscription rather than as a separate
+        Nevorai Academy is billed as part of your Nevorai subscription rather than as a separate
         standalone product charge. Your plan, the amount and the billing cycle are confirmed in
         writing before the first payment. Subscriptions renew for the next period unless cancelled.
       </p>

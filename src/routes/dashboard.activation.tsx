@@ -27,7 +27,7 @@ import { LIFECYCLE_LABEL, LIFECYCLE_TONE, type LifecycleStatus } from "@/lib/adm
 export const Route = createFileRoute("/dashboard/activation")({
   head: () => ({
     meta: [
-      { title: "Activation Center · Cricket Academy OS" },
+      { title: "Activation Center · Nevorai Academy" },
       { name: "description", content: "Assign sessions and share activation links with imported students." },
     ],
   }),

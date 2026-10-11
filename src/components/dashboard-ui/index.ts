@@ -1,5 +1,5 @@
 /**
- * Cricket Academy OS Design System — the single dashboard UI library.
+ * Nevorai Academy Design System — the single dashboard UI library.
  *
  * Every dashboard route must compose its UI exclusively from the components
  * exported here. Do NOT hand-roll page-level headers, tabs, search bars,

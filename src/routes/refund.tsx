@@ -6,9 +6,9 @@ import { seo } from "@/lib/seo";
 export const Route = createFileRoute("/refund")({
   head: () =>
     seo({
-      title: "Refunds & Cancellation Policy — Cricket Academy OS",
+      title: "Refunds & Cancellation Policy — Nevorai Academy",
       description:
-        "How to cancel your Cricket Academy OS subscription, what happens to access after you cancel, and our no-refund policy on subscription fees.",
+        "How to cancel your Nevorai Academy subscription, what happens to access after you cancel, and our no-refund policy on subscription fees.",
       path: "/refund",
     }),
   component: Refund,
@@ -19,7 +19,7 @@ function Refund() {
     <LegalLayout
       current="/refund"
       title="Refunds & Cancellation Policy"
-      intro="This policy explains how to cancel your Cricket Academy OS subscription and how subscription fees are treated."
+      intro="This policy explains how to cancel your Nevorai Academy subscription and how subscription fees are treated."
     >
       <h2>Cancelling your subscription</h2>
       <p>

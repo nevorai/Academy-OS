@@ -70,31 +70,64 @@ const FIELD_OPTIONS: { key: FieldKey; label: string; required?: boolean }[] = [
 ];
 
 const HEADER_ALIASES: Record<string, FieldKey> = {
-  name: "name", "full name": "name", "player name": "name", "student name": "name",
-  phone: "phone", mobile: "phone", "phone number": "phone", "mobile number": "phone",
+  name: "name",
+  "full name": "name",
+  "player name": "name",
+  "student name": "name",
+  phone: "phone",
+  mobile: "phone",
+  "phone number": "phone",
+  "mobile number": "phone",
   email: "email",
-  guardian: "guardian_name", "guardian name": "guardian_name", "parent name": "guardian_name",
-  "guardian phone": "guardian_phone", "parent phone": "guardian_phone", "parent mobile": "guardian_phone",
-  "emergency contact": "emergency_contact_name", "emergency name": "emergency_contact_name",
+  guardian: "guardian_name",
+  "guardian name": "guardian_name",
+  "parent name": "guardian_name",
+  "guardian phone": "guardian_phone",
+  "parent phone": "guardian_phone",
+  "parent mobile": "guardian_phone",
+  "emergency contact": "emergency_contact_name",
+  "emergency name": "emergency_contact_name",
   "emergency phone": "emergency_contact_phone",
-  dob: "dob", "date of birth": "dob",
-  gender: "gender", role: "playing_role", "playing role": "playing_role",
-  batting: "batting_style", "batting style": "batting_style",
-  bowling: "bowling_style", "bowling style": "bowling_style",
-  city: "city", state: "state",
-  school: "school_college", college: "school_college", "school / college": "school_college", "school/college": "school_college",
-  "blood group": "blood_group", blood: "blood_group",
-  coach: "coach_name", "coach name": "coach_name",
-  batch: "batch", "batch name": "batch",
-  session: "batch", "session name": "batch", "batch / session": "batch", "session / batch": "batch",
-  "session type": "batch", sessions: "batch", "batch type": "batch", shift: "batch", "time slot": "batch",
-  slot: "batch", timing: "batch", program: "batch", "training session": "batch",
-  "fee plan": "fee_plan", plan: "fee_plan",
+  dob: "dob",
+  "date of birth": "dob",
+  gender: "gender",
+  role: "playing_role",
+  "playing role": "playing_role",
+  batting: "batting_style",
+  "batting style": "batting_style",
+  bowling: "bowling_style",
+  "bowling style": "bowling_style",
+  city: "city",
+  state: "state",
+  school: "school_college",
+  college: "school_college",
+  "school / college": "school_college",
+  "school/college": "school_college",
+  "blood group": "blood_group",
+  blood: "blood_group",
+  coach: "coach_name",
+  "coach name": "coach_name",
+  batch: "batch",
+  "batch name": "batch",
+  session: "batch",
+  "session name": "batch",
+  "batch / session": "batch",
+  "session / batch": "batch",
+  "session type": "batch",
+  sessions: "batch",
+  "batch type": "batch",
+  shift: "batch",
+  "time slot": "batch",
+  slot: "batch",
+  timing: "batch",
+  program: "batch",
+  "training session": "batch",
+  "fee plan": "fee_plan",
+  plan: "fee_plan",
   status: "status",
 };
 
-function autoDetect(headers: string[]): Record<string, FieldKey | "">
-{
+function autoDetect(headers: string[]): Record<string, FieldKey | ""> {
   const map: Record<string, FieldKey | ""> = {};
   for (const h of headers) {
     map[h] = HEADER_ALIASES[h.trim().toLowerCase()] ?? "";
@@ -112,7 +145,7 @@ function applyMapping(
       for (const [h, v] of Object.entries(r)) {
         const key = mapping[h];
         if (!key) continue;
-        (out as any)[key] = v == null ? "" : String(v).trim();
+        out[key] = v == null ? "" : String(v).trim();
       }
       return out;
     })
@@ -123,7 +156,6 @@ type ParsedRow = { row: Row; issues: string[]; dupe: boolean };
 type Step = "upload" | "map" | "assign" | "preview";
 
 const NO_SESSION = "__none__";
-
 
 export function BulkImportStudents() {
   const { tenant } = useDashboard();
@@ -141,7 +173,6 @@ export function BulkImportStudents() {
   // same key -> fee plan id | ""
   const [planMap, setPlanMap] = useState<Record<string, string>>({});
   const bulkImport = useServerFn(bulkImportStudents);
-
 
   const rows = useMemo(() => applyMapping(raw, mapping), [raw, mapping]);
 
@@ -163,7 +194,7 @@ export function BulkImportStudents() {
     () =>
       detectDuplicates(
         rows.map((r) => ({ name: r.name, phone: r.phone })),
-        (existing.data ?? []) as any[],
+        existing.data ?? [],
       ),
     [rows, existing.data],
   );
@@ -211,23 +242,19 @@ export function BulkImportStudents() {
         else {
           // Only ever link to sessions the academy already created — imports
           // must never invent batches.
-          const hit = (batches.data ?? []).find((b: any) => b.name.trim().toLowerCase() === s.key);
+          const hit = (batches.data ?? []).find((b) => b.name.trim().toLowerCase() === s.key);
           next[s.key] = hit ? hit.id : "";
         }
       }
       return next;
     });
-
   }, [open, sessionValues, batches.data]);
 
-  const sessionKeyFor = (r: Row) => ((r.batch ?? "").trim() ? (r.batch ?? "").trim().toLowerCase() : NO_SESSION);
+  const sessionKeyFor = (r: Row) =>
+    (r.batch ?? "").trim() ? (r.batch ?? "").trim().toLowerCase() : NO_SESSION;
 
-  const mappedFields = useMemo(
-    () => new Set(Object.values(mapping).filter(Boolean)),
-    [mapping],
-  );
+  const mappedFields = useMemo(() => new Set(Object.values(mapping).filter(Boolean)), [mapping]);
   const unmappedRequired = FIELD_OPTIONS.filter((f) => f.required && !mappedFields.has(f.key));
-
 
   const onFile = async (file: File) => {
     try {
@@ -255,7 +282,6 @@ export function BulkImportStudents() {
     setPlanMap({});
     setStep("upload");
   };
-
 
   const downloadErrors = async () => {
     const bad = parsed.filter((p) => p.issues.length > 0);
@@ -296,7 +322,7 @@ export function BulkImportStudents() {
       const batchFor = (r: Row) => resolved[sessionKeyFor(r)] ?? null;
       // Fee always follows the session by default; sheet/mapping overrides stay supported.
       const batchPlan = new Map(
-        ((batches.data ?? []) as any[]).map((b) => [b.id as string, (b.fee_plan_id as string | null) ?? null]),
+        (batches.data ?? []).map((b): [string, string | null] => [b.id, b.fee_plan_id ?? null]),
       );
       const planFor = (r: Row) => {
         const explicit =
@@ -304,9 +330,8 @@ export function BulkImportStudents() {
           (planMap[sessionKeyFor(r)] || null);
         if (explicit) return explicit;
         const b = batchFor(r);
-        return b ? batchPlan.get(b) ?? null : null;
+        return b ? (batchPlan.get(b) ?? null) : null;
       };
-
 
       if (markImported) {
         const rowsPayload = eligible.map(({ row: r }) => ({
@@ -333,12 +358,11 @@ export function BulkImportStudents() {
           roll_number: null,
         }));
 
-        const res: any = await bulkImport({
+        const res = await bulkImport({
           data: { tenantId: tenant.id, fileName, rows: rowsPayload },
         });
         return res.success ?? rowsPayload.length;
       }
-
 
       const payload = eligible.map(({ row: r }) => ({
         tenant_id: tenant.id,
@@ -364,7 +388,7 @@ export function BulkImportStudents() {
         status: (r.status || "active").toLowerCase(),
       }));
 
-      const { error } = await supabase.from("students").insert(payload as any);
+      const { error } = await supabase.from("students").insert(payload);
 
       if (error) throw error;
       return payload.length;
@@ -422,7 +446,6 @@ export function BulkImportStudents() {
     XLSX.writeFile(wb, "players-template.xlsx");
   };
 
-
   const importable = validCount + (skipDupes ? 0 : dupeCount);
 
   return (
@@ -449,13 +472,16 @@ export function BulkImportStudents() {
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <StepChip label="Upload" active={step === "upload"} done={step !== "upload"} />
           <div className="h-px flex-1 bg-border" />
-          <StepChip label="Columns" active={step === "map"} done={step === "assign" || step === "preview"} />
+          <StepChip
+            label="Columns"
+            active={step === "map"}
+            done={step === "assign" || step === "preview"}
+          />
           <div className="h-px flex-1 bg-border" />
           <StepChip label="Sessions & fees" active={step === "assign"} done={step === "preview"} />
           <div className="h-px flex-1 bg-border" />
           <StepChip label="Import" active={step === "preview"} done={false} />
         </div>
-
 
         <div className="space-y-3">
           {step === "upload" && (
@@ -463,10 +489,15 @@ export function BulkImportStudents() {
               <div className="flex items-center justify-between gap-2">
                 <p className="text-sm text-muted-foreground">
                   Upload an <span className="font-medium">.xlsx</span> or{" "}
-                  <span className="font-medium">.csv</span>. Column headers are matched loosely — see
-                  the template for supported fields.
+                  <span className="font-medium">.csv</span>. Column headers are matched loosely —
+                  see the template for supported fields.
                 </p>
-                <Button variant="ghost" size="sm" onClick={downloadTemplate} className="text-xs shrink-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={downloadTemplate}
+                  className="text-xs shrink-0"
+                >
                   <Download className="size-3.5 mr-1" /> Template
                 </Button>
               </div>
@@ -491,9 +522,15 @@ export function BulkImportStudents() {
             <div className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2 text-xs">
               <div className="flex items-center gap-3">
                 <span className="font-medium">{fileName}</span>
-                <span className="text-muted-foreground">{raw.length} rows · {headers.length} columns</span>
+                <span className="text-muted-foreground">
+                  {raw.length} rows · {headers.length} columns
+                </span>
               </div>
-              <button type="button" onClick={clear} className="text-muted-foreground hover:text-foreground">
+              <button
+                type="button"
+                onClick={clear}
+                className="text-muted-foreground hover:text-foreground"
+              >
                 <X className="size-4" />
               </button>
             </div>
@@ -502,7 +539,8 @@ export function BulkImportStudents() {
           {step === "map" && (
             <>
               <p className="text-xs text-muted-foreground">
-                Review the auto-detected mapping and adjust if needed. Unmapped columns will be ignored.
+                Review the auto-detected mapping and adjust if needed. Unmapped columns will be
+                ignored.
               </p>
               <div className="rounded-lg border max-h-72 overflow-auto">
                 <table className="w-full text-xs">
@@ -516,21 +554,30 @@ export function BulkImportStudents() {
                   <tbody>
                     {headers.map((h) => {
                       const key = mapping[h] ?? "";
-                      const sample = raw.slice(0, 3).map((r) => (r as any)[h]).filter(Boolean).join(", ");
+                      const sample = raw
+                        .slice(0, 3)
+                        .map((r) => r[h])
+                        .filter(Boolean)
+                        .join(", ");
                       return (
                         <tr key={h} className={cn("border-t", !key && "bg-amber-50/40")}>
                           <td className="px-3 py-1.5 font-medium">{h}</td>
-                          <td className="px-3 py-1.5 text-muted-foreground truncate max-w-[180px]">{sample || "—"}</td>
+                          <td className="px-3 py-1.5 text-muted-foreground truncate max-w-[180px]">
+                            {sample || "—"}
+                          </td>
                           <td className="px-3 py-1.5">
                             <select
                               className="w-full rounded border bg-background px-2 py-1 text-xs"
                               value={key}
-                              onChange={(e) => setMapping({ ...mapping, [h]: e.target.value as FieldKey | "" })}
+                              onChange={(e) =>
+                                setMapping({ ...mapping, [h]: e.target.value as FieldKey | "" })
+                              }
                             >
                               <option value="">— ignore —</option>
                               {FIELD_OPTIONS.map((f) => (
                                 <option key={f.key} value={f.key}>
-                                  {f.label}{f.required ? " *" : ""}
+                                  {f.label}
+                                  {f.required ? " *" : ""}
                                 </option>
                               ))}
                             </select>
@@ -553,8 +600,8 @@ export function BulkImportStudents() {
           {step === "assign" && (
             <>
               <p className="text-sm text-muted-foreground">
-                Pick the session and fee plan for each group. This is what drives attendance lists and
-                fee amounts — students without a session show ₹0.
+                Pick the session and fee plan for each group. This is what drives attendance lists
+                and fee amounts — students without a session show ₹0.
               </p>
               <div className="space-y-2">
                 {sessionValues.map((s) => (
@@ -573,9 +620,9 @@ export function BulkImportStudents() {
                         onChange={(e) => setSessionMap({ ...sessionMap, [s.key]: e.target.value })}
                       >
                         <option value="">— decide later —</option>
-                        {(batches.data ?? []).map((b: any) => {
+                        {(batches.data ?? []).map((b) => {
                           const amt = Number(
-                            (plans.data ?? []).find((p: any) => p.id === b.fee_plan_id)?.amount ?? 0,
+                            (plans.data ?? []).find((p) => p.id === b.fee_plan_id)?.amount ?? 0,
                           );
                           return (
                             <option key={b.id} value={b.id}>
@@ -590,11 +637,11 @@ export function BulkImportStudents() {
                 ))}
               </div>
               <p className="text-[11px] text-muted-foreground">
-                Fees follow the session automatically. You can change a player's session later from the Activation Center.
+                Fees follow the session automatically. You can change a player's session later from
+                the Activation Center.
               </p>
             </>
           )}
-
 
           {step === "preview" && (
             <>
@@ -646,9 +693,20 @@ export function BulkImportStudents() {
                     {parsed.slice(0, 20).map((p, i) => {
                       const bad = p.issues.some((x) => x.startsWith("Missing"));
                       return (
-                        <tr key={i} className={cn("border-t", bad && "bg-rose-50/60", !bad && p.dupe && "bg-amber-50/60")}>
-                          <td className="px-3 py-1.5">{p.row.name || <em className="text-rose-600">missing</em>}</td>
-                          <td className="px-3 py-1.5 tabular-nums">{p.row.phone || <em className="text-rose-600">missing</em>}</td>
+                        <tr
+                          key={i}
+                          className={cn(
+                            "border-t",
+                            bad && "bg-rose-50/60",
+                            !bad && p.dupe && "bg-amber-50/60",
+                          )}
+                        >
+                          <td className="px-3 py-1.5">
+                            {p.row.name || <em className="text-rose-600">missing</em>}
+                          </td>
+                          <td className="px-3 py-1.5 tabular-nums">
+                            {p.row.phone || <em className="text-rose-600">missing</em>}
+                          </td>
                           <td className="px-3 py-1.5 text-muted-foreground">{p.row.batch ?? ""}</td>
                           <td className="px-3 py-1.5 text-[11px]">
                             {p.issues.length === 0 ? (
@@ -677,24 +735,27 @@ export function BulkImportStudents() {
         </div>
 
         <DialogFooter className="gap-2">
-          <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="ghost" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
           {step === "map" && (
-            <Button
-              onClick={() => setStep("assign")}
-              disabled={unmappedRequired.length > 0}
-            >
+            <Button onClick={() => setStep("assign")} disabled={unmappedRequired.length > 0}>
               Continue
             </Button>
           )}
           {step === "assign" && (
             <>
-              <Button variant="outline" onClick={() => setStep("map")}>Back</Button>
+              <Button variant="outline" onClick={() => setStep("map")}>
+                Back
+              </Button>
               <Button onClick={() => setStep("preview")}>Continue to preview</Button>
             </>
           )}
           {step === "preview" && (
             <>
-              <Button variant="outline" onClick={() => setStep("assign")}>Back</Button>
+              <Button variant="outline" onClick={() => setStep("assign")}>
+                Back
+              </Button>
               <Button
                 onClick={() => importer.mutate()}
                 disabled={importer.isPending || importable === 0}
@@ -704,7 +765,6 @@ export function BulkImportStudents() {
               </Button>
             </>
           )}
-
         </DialogFooter>
       </DialogContent>
     </Dialog>

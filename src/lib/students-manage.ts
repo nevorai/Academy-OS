@@ -91,7 +91,7 @@ const EXPORT_COLUMNS = [
 ] as const;
 
 export async function exportStudents(
-  rows: Record<string, any>[],
+  rows: Record<string, unknown>[],
   batchNameById: Map<string, string>,
   format: "csv" | "xlsx",
 ) {
@@ -99,7 +99,8 @@ export async function exportStudents(
   const shaped = rows.map((r) => {
     const out: Record<string, string> = {};
     for (const [k, label] of EXPORT_COLUMNS) {
-      const v = k === "batch_name" ? (batchNameById.get(r.batch_id) ?? "") : (r[k] ?? "");
+      const v =
+        k === "batch_name" ? (batchNameById.get(String(r.batch_id ?? "")) ?? "") : (r[k] ?? "");
       out[label] = v == null ? "" : String(v);
     }
     return out;
@@ -121,7 +122,8 @@ export async function exportStudents(
 /* ------------------------------------------------------------------ */
 
 export async function archiveStudent(id: string, reason?: string) {
-  const { error } = await (supabase.from("students") as any)
+  const { error } = await supabase
+    .from("students")
     .update({
       status: "left",
       archived_at: new Date().toISOString(),
@@ -132,7 +134,8 @@ export async function archiveStudent(id: string, reason?: string) {
 }
 
 export async function reactivateStudent(id: string) {
-  const { error } = await (supabase.from("students") as any)
+  const { error } = await supabase
+    .from("students")
     .update({
       status: "active",
       archived_at: null,
@@ -143,14 +146,10 @@ export async function reactivateStudent(id: string) {
 }
 
 export async function setStudentStatus(id: string, status: PlayerStatus, reason?: string) {
-  const patch: Record<string, unknown> = { status };
-  if (status === "left") {
-    patch.archived_at = new Date().toISOString();
-    patch.archive_reason = reason ?? null;
-  } else {
-    patch.archived_at = null;
-    patch.archive_reason = null;
-  }
-  const { error } = await (supabase.from("students") as any).update(patch).eq("id", id);
+  const patch =
+    status === "left"
+      ? { status, archived_at: new Date().toISOString(), archive_reason: reason ?? null }
+      : { status, archived_at: null, archive_reason: null };
+  const { error } = await supabase.from("students").update(patch).eq("id", id);
   if (error) throw error;
 }

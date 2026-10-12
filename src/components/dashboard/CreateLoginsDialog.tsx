@@ -3,7 +3,15 @@ import { loadXlsx, warmXlsx } from "@/lib/xlsx-lazy";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Download, KeyRound, Loader2, MessageCircle, Check, AlertTriangle, Copy } from "lucide-react";
+import {
+  Download,
+  KeyRound,
+  Loader2,
+  MessageCircle,
+  Check,
+  AlertTriangle,
+  Copy,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
 import { qk } from "@/lib/dashboard-queries";
@@ -45,9 +53,11 @@ function CreateLoginsInner() {
   const [phase, setPhase] = useState<"intro" | "running" | "done">("intro");
   const [done, setDone] = useState(0);
   const [results, setResults] = useState<LoginResult[]>([]);
-  const [meta, setMeta] = useState<{ academy: string; url: string; emailConfigured: boolean } | null>(
-    null,
-  );
+  const [meta, setMeta] = useState<{
+    academy: string;
+    url: string;
+    emailConfigured: boolean;
+  } | null>(null);
 
   const pending = useQuery({
     enabled: open && phase === "intro",
@@ -82,7 +92,11 @@ function CreateLoginsInner() {
         setMeta({ academy: res.academy, url: res.loginUrl, emailConfigured: res.emailConfigured });
       }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Something went wrong. Already created logins are listed below.");
+      toast.error(
+        e instanceof Error
+          ? e.message
+          : "Something went wrong. Already created logins are listed below.",
+      );
     }
     void qc.invalidateQueries({ queryKey: qk.students(tenant.id) });
     setPhase("done");
@@ -105,7 +119,7 @@ function CreateLoginsInner() {
       Phone: r.phone ?? "",
       "Guardian phone": r.guardianPhone ?? "",
       Email: r.email ?? "",
-      "Emailed": r.emailSent ? "Yes" : "No",
+      Emailed: r.emailSent ? "Yes" : "No",
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
@@ -116,10 +130,7 @@ function CreateLoginsInner() {
   const copyAll = async () => {
     if (!meta) return;
     const text = created
-      .map(
-        (r) =>
-          `${r.name}: Player ID ${r.username} · Password ${r.password}`,
-      )
+      .map((r) => `${r.name}: Player ID ${r.username} · Password ${r.password}`)
       .join("\n");
     await navigator.clipboard.writeText(`${meta.academy} logins\nSign in: ${meta.url}\n\n${text}`);
     toast.success("Copied");
@@ -164,15 +175,18 @@ function CreateLoginsInner() {
               </div>
             ) : list.length === 0 ? (
               <p className="rounded-xl border bg-muted/40 p-4 text-sm">
-                Everyone already has a login. To give someone a new password, open the player and use
-                Reset login.
+                Everyone already has a login. To give someone a new password, open the player and
+                use Reset login.
               </p>
             ) : (
               <>
                 <div className="rounded-xl border bg-muted/40 p-4 text-sm">
                   <b>{list.length}</b> player{list.length === 1 ? "" : "s"} without a login:{" "}
                   <span className="text-muted-foreground">
-                    {list.slice(0, 5).map((s) => s.name).join(", ")}
+                    {list
+                      .slice(0, 5)
+                      .map((s) => s.name)
+                      .join(", ")}
                     {list.length > 5 ? ` and ${list.length - 5} more` : ""}
                   </span>
                 </div>
@@ -209,7 +223,9 @@ function CreateLoginsInner() {
                 style={{ width: `${list.length ? (done / list.length) * 100 : 0}%` }}
               />
             </div>
-            <p className="text-xs text-muted-foreground">Keep this window open until it finishes.</p>
+            <p className="text-xs text-muted-foreground">
+              Keep this window open until it finishes.
+            </p>
           </div>
         )}
 
@@ -237,10 +253,20 @@ function CreateLoginsInner() {
               window. If you download the file, delete it after sharing.
             </p>
             <div className="flex flex-wrap gap-2">
-              <Button size="sm" variant="outline" onClick={download} disabled={created.length === 0}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={download}
+                disabled={created.length === 0}
+              >
                 <Download className="mr-1.5 size-4" /> Download Excel
               </Button>
-              <Button size="sm" variant="outline" onClick={() => void copyAll()} disabled={created.length === 0}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => void copyAll()}
+                disabled={created.length === 0}
+              >
                 <Copy className="mr-1.5 size-4" /> Copy all
               </Button>
             </div>
@@ -257,7 +283,9 @@ function CreateLoginsInner() {
                           {r.emailSent ? " · emailed" : ""}
                         </div>
                       ) : (
-                        <div className="truncate text-[12px] text-destructive">{r.error ?? "Failed"}</div>
+                        <div className="truncate text-[12px] text-destructive">
+                          {r.error ?? "Failed"}
+                        </div>
                       )}
                     </div>
                     {wa ? (

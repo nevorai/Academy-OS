@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import * as XLSX from "xlsx";
+import { loadXlsx, warmXlsx } from "@/lib/xlsx-lazy";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -230,16 +230,20 @@ export function BulkImportStudents() {
 
 
   const onFile = async (file: File) => {
-    const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, { type: "array" });
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" });
-    const hdrs = json.length > 0 ? Object.keys(json[0]) : [];
-    setRaw(json);
-    setHeaders(hdrs);
-    setMapping(autoDetect(hdrs));
-    setFileName(file.name);
-    setStep("map");
+    try {
+      const [XLSX, buf] = await Promise.all([loadXlsx(), file.arrayBuffer()]);
+      const wb = XLSX.read(buf, { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" });
+      const hdrs = json.length > 0 ? Object.keys(json[0]) : [];
+      setRaw(json);
+      setHeaders(hdrs);
+      setMapping(autoDetect(hdrs));
+      setFileName(file.name);
+      setStep("map");
+    } catch {
+      toast.error("That file could not be read. Use an Excel (.xlsx) or CSV file.");
+    }
   };
 
   const clear = () => {
@@ -253,12 +257,17 @@ export function BulkImportStudents() {
   };
 
 
-  const downloadErrors = () => {
+  const downloadErrors = async () => {
     const bad = parsed.filter((p) => p.issues.length > 0);
     if (bad.length === 0) {
       toast.info("No errors to export");
       return;
     }
+    const XLSX = await loadXlsx().catch((e: Error) => {
+      toast.error(e.message);
+      return null;
+    });
+    if (!XLSX) return;
     const ws = XLSX.utils.json_to_sheet(
       bad.map((p) => ({ ...p.row, _issues: p.issues.join(" · ") })),
     );
@@ -371,7 +380,12 @@ export function BulkImportStudents() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const downloadTemplate = () => {
+  const downloadTemplate = async () => {
+    const XLSX = await loadXlsx().catch((e: Error) => {
+      toast.error(e.message);
+      return null;
+    });
+    if (!XLSX) return;
     // Keep the starter sheet tiny: name is the only must-have. Everything else
     // (session, fees, profile) can be set after import.
     const ws = XLSX.utils.json_to_sheet([
@@ -416,6 +430,7 @@ export function BulkImportStudents() {
       open={open}
       onOpenChange={(v) => {
         setOpen(v);
+        if (v) warmXlsx(); // fetch the spreadsheet reader while they pick a file
         if (!v) clear();
       }}
     >

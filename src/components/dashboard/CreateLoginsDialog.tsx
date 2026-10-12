@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import * as XLSX from "xlsx";
+import { loadXlsx, warmXlsx } from "@/lib/xlsx-lazy";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -92,7 +92,12 @@ function CreateLoginsInner() {
   const failed = results.filter((r) => r.status === "failed");
   const emailed = created.filter((r) => r.emailSent).length;
 
-  const download = () => {
+  const download = async () => {
+    const XLSX = await loadXlsx().catch((e: Error) => {
+      toast.error(e.message);
+      return null;
+    });
+    if (!XLSX) return;
     const rows = created.map((r) => ({
       Name: r.name,
       "Player ID": r.username,
@@ -129,6 +134,7 @@ function CreateLoginsInner() {
         // Never close mid-run: passwords are shown only once.
         if (phase === "running") return;
         setOpen(v);
+        if (v) warmXlsx(); // the Excel download at the end is then instant
         if (!v) {
           setPhase("intro");
           setResults([]);

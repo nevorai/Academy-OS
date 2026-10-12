@@ -6,7 +6,7 @@
  * `components/students`. Nothing here reads or writes the database directly.
  */
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useChildMatches } from "@tanstack/react-router";
 import { useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import { DashboardSearch } from "@/components/dashboard-ui";
@@ -29,8 +29,14 @@ export const Route = createFileRoute("/dashboard/students")({
     if (typeof s === "string") return { status: s };
     return {};
   },
-  component: StudentsPage,
+  component: StudentsRoute,
 });
+
+/** `/dashboard/students/<id>` is a child route: when it is open, show it instead of the list. */
+function StudentsRoute() {
+  const hasChild = useChildMatches({ select: (matches) => matches.length > 0 });
+  return hasChild ? <Outlet /> : <StudentsPage />;
+}
 
 function StudentsPage() {
   const p = useStudentsList(Route.useSearch().status ?? "active");

@@ -290,6 +290,21 @@ export const Route = createFileRoute("/api/chat")({
 
 
 
+        // ------------------ monthly allowance (plan cap per academy) ------------------
+        {
+          const { consumeUsage } = await import("@/lib/usage-cap.server");
+          const cap = await consumeUsage(profile.tenant_id, "ai");
+          if (!cap.ok) {
+            return jsonError(
+              cap.reason === "cap" ? "PLAN_LIMIT" : "UNAVAILABLE",
+              cap.reason === "cap"
+                ? "Your academy has used this month's Kaizen messages. They reset on the 1st, or upgrade in Billing for more."
+                : "Kaizen could not check your allowance just now. Please try again.",
+              cap.reason === "cap" ? 429 : 503,
+            );
+          }
+        }
+
         // ------------------ streaming ------------------
         bootstrapNevorAI();
         const provider = createNevorAIProvider(LOVABLE_API_KEY);

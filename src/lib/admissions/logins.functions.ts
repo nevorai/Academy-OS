@@ -69,6 +69,7 @@ function loginUrl(tenant: { slug: string; custom_domain?: string | null }): stri
 }
 
 async function sendCredentialsEmail(opts: {
+  tenantId: string;
   to: string;
   name: string;
   academy: string;
@@ -78,6 +79,9 @@ async function sendCredentialsEmail(opts: {
 }): Promise<boolean> {
   const key = process.env.RESEND_API_KEY;
   if (!key) return false;
+  // The academy's monthly e-mail allowance (plan cap): no allowance left = not sent, the login is still created.
+  const { consumeUsage } = await import("@/lib/usage-cap.server");
+  if (!(await consumeUsage(opts.tenantId, "email")).ok) return false;
   const from = process.env.RESEND_FROM || "Nevorai Academy <noreply@nevorai.com>";
   const esc = (v: string) => v.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
   const html = `<div style="font-family:system-ui,sans-serif;max-width:480px">
@@ -223,6 +227,7 @@ export const createStudentLogins = createServerFn({ method: "POST" })
         base.playerId = s.player_id ?? username.toUpperCase();
         if (data.sendEmail && contactEmail) {
           base.emailSent = await sendCredentialsEmail({
+            tenantId: data.tenantId,
             to: contactEmail,
             name: s.name,
             academy: tenant.name,
@@ -287,6 +292,7 @@ export const resetStudentLogin = createServerFn({ method: "POST" })
     let emailSent = false;
     if (data.sendEmail && s.email && tenant) {
       emailSent = await sendCredentialsEmail({
+        tenantId: data.tenantId,
         to: s.email,
         name: s.name,
         academy: tenant.name,

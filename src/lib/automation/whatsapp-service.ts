@@ -107,6 +107,32 @@ async function patchDelivery(
   }
 }
 
+/**
+ * The academy's monthly WhatsApp allowance (plan cap). Only real sends count: the mock adapter costs nothing.
+ * Returns a failed result when the allowance is used up (or cannot be checked), otherwise null.
+ */
+async function capBlock(
+  tenantId: string | null | undefined,
+  adapterKey: string,
+  requestId: string,
+): Promise<SendResult | null> {
+  if (!tenantId || adapterKey === DEFAULT_WHATSAPP_ADAPTER) return null;
+  const { consumeUsage } = await import("@/lib/usage-cap.server");
+  const cap = await consumeUsage(tenantId, "whatsapp");
+  if (cap.ok) return null;
+  return {
+    ok: false,
+    adapter: adapterKey,
+    status: "failed",
+    error:
+      cap.reason === "cap"
+        ? "This month's WhatsApp message allowance for the academy is used up."
+        : "WhatsApp allowance could not be checked; message not sent.",
+    retryable: false,
+    requestId,
+  };
+}
+
 export interface SendTextArgs {
   tenantId?: string | null;
   to: WhatsAppRecipient;
@@ -154,6 +180,12 @@ async function sendText(args: SendTextArgs): Promise<SendResult> {
       retryable: false,
       requestId,
     };
+  }
+
+  const blocked = await capBlock(args.tenantId, adapter.key, requestId);
+  if (blocked) {
+    await patchDelivery(deliveryId, { status: "failed", error: blocked.error });
+    return blocked;
   }
 
   const start = Date.now();
@@ -214,6 +246,11 @@ async function sendTemplate(args: SendTemplateArgs): Promise<SendResult> {
     args.fallbackText,
     args.tenantId ?? null,
   );
+  const blocked = await capBlock(args.tenantId, "meta", requestId);
+  if (blocked) {
+    await patchDelivery(deliveryId, { status: "failed", error: blocked.error });
+    return blocked;
+  }
 
   // Late import: keeps the Graph fetch out of client bundles.
   const { sendMetaMessage } = await import("./providers/whatsapp/adapters/meta");

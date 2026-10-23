@@ -50,6 +50,9 @@ export type LimitId =
   | "campaigns"
   | "website_pages"
   | "ai_credits"
+  | "whatsapp_messages"
+  | "emails"
+  | "ai_messages"
   | "push_notifications"
   | "api_calls";
 
@@ -114,6 +117,9 @@ export const PLAN_LIMITS: Record<PlanTier, Record<LimitId, number | null>> = {
     ai_credits: 0,
     push_notifications: 500,
     api_calls: 0,
+    whatsapp_messages: 300,
+    emails: 500,
+    ai_messages: 100,
   },
   professional: {
     students: 500,
@@ -130,6 +136,9 @@ export const PLAN_LIMITS: Record<PlanTier, Record<LimitId, number | null>> = {
     ai_credits: 500,
     push_notifications: 10000,
     api_calls: 5000,
+    whatsapp_messages: 3000,
+    emails: 5000,
+    ai_messages: 1000,
   },
   enterprise: {
     students: null,
@@ -146,6 +155,9 @@ export const PLAN_LIMITS: Record<PlanTier, Record<LimitId, number | null>> = {
     ai_credits: 5000,
     push_notifications: null,
     api_calls: null,
+    whatsapp_messages: 20000,
+    emails: 30000,
+    ai_messages: 5000,
   },
 };
 

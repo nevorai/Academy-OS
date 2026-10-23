@@ -8,6 +8,7 @@
  * `is_platform_admin` policies + `has_role('owner', tenant)`.
  */
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { emitEvent } from "@/lib/automation/emit-client";
@@ -98,10 +99,23 @@ export const getSubscriptionOverview = createServerFn({ method: "GET" })
       context.supabase.from("mc_matches").select("id", { count: "exact", head: true }).eq("tenant_id", data.tenantId),
     ]);
 
+    // This month's sends (Indian time), read through the owner's own row rule on academy.usage_counters.
+    const period = new Date(Date.now() + 5.5 * 3600_000).toISOString().slice(0, 7);
+    const { data: counters } = await (context.supabase as unknown as SupabaseClient)
+      .from("usage_counters")
+      .select("kind, used")
+      .eq("tenant_id", data.tenantId)
+      .eq("period", period);
+    const sent = (kind: string) =>
+      ((counters ?? []) as Array<{ kind: string; used: number }>).find((c) => c.kind === kind)?.used ?? 0;
+
     const usedMap: Partial<Record<LimitId, number>> = {
       students: studentCount ?? 0,
       coaches: coachCount ?? 0,
       matches: matchCount ?? 0,
+      whatsapp_messages: sent("whatsapp"),
+      emails: sent("email"),
+      ai_messages: sent("ai"),
     };
 
     const limits = limitIds.map((id) => ({

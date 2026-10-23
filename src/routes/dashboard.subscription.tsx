@@ -211,13 +211,14 @@ function UpgradePromo({ current, next }: { current: PlanTier; next: PlanTier }) 
               </li>
             ))}
           </ul>
-          <a
-            href="mailto:hello@nevorai.com?subject=Upgrade%20AcademyOS"
+          <Link
+            to="/dashboard/billing"
+            search={{ plan: next }}
             className="inline-flex mt-3 items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-white"
             style={{ backgroundColor: "var(--brand)" }}
           >
-            Talk to us
-          </a>
+            Upgrade in Billing
+          </Link>
         </div>
       </div>
     </div>

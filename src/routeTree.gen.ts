@@ -133,6 +133,10 @@ import { Route as StudentPendingRouteImport } from './routes/student.pending'
 import { Route as StudentProfileRouteImport } from './routes/student.profile'
 import { Route as StudentProgressRouteImport } from './routes/student.progress'
 import { Route as StudentTimelineRouteImport } from './routes/student.timeline'
+import { Route as ApiKaizenCancelRouteImport } from './routes/api/kaizen/cancel'
+import { Route as ApiKaizenProvisionRouteImport } from './routes/api/kaizen/provision'
+import { Route as ApiKaizenResumeRouteImport } from './routes/api/kaizen/resume'
+import { Route as ApiKaizenSuspendRouteImport } from './routes/api/kaizen/suspend'
 import { Route as ApiPublicTenantIconRouteImport } from './routes/api/public/tenant-icon'
 import { Route as DashboardCoachAnalyticsRouteImport } from './routes/dashboard.coach.analytics'
 import { Route as DashboardCoachApprovalsRouteImport } from './routes/dashboard.coach.approvals'
@@ -787,6 +791,26 @@ const StudentTimelineRoute = StudentTimelineRouteImport.update({
   path: '/timeline',
   getParentRoute: () => StudentRoute,
 } as any)
+const ApiKaizenCancelRoute = ApiKaizenCancelRouteImport.update({
+  id: '/api/kaizen/cancel',
+  path: '/api/kaizen/cancel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiKaizenProvisionRoute = ApiKaizenProvisionRouteImport.update({
+  id: '/api/kaizen/provision',
+  path: '/api/kaizen/provision',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiKaizenResumeRoute = ApiKaizenResumeRouteImport.update({
+  id: '/api/kaizen/resume',
+  path: '/api/kaizen/resume',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiKaizenSuspendRoute = ApiKaizenSuspendRouteImport.update({
+  id: '/api/kaizen/suspend',
+  path: '/api/kaizen/suspend',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTenantIconRoute = ApiPublicTenantIconRouteImport.update({
   id: '/api/public/tenant-icon',
   path: '/api/public/tenant-icon',
@@ -1054,6 +1078,10 @@ export interface FileRoutesByFullPath {
   '/parent/': typeof ParentIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/student/': typeof StudentIndexRoute
+  '/api/kaizen/cancel': typeof ApiKaizenCancelRoute
+  '/api/kaizen/provision': typeof ApiKaizenProvisionRoute
+  '/api/kaizen/resume': typeof ApiKaizenResumeRoute
+  '/api/kaizen/suspend': typeof ApiKaizenSuspendRoute
   '/api/public/tenant-icon': typeof ApiPublicTenantIconRoute
   '/dashboard/coach/analytics': typeof DashboardCoachAnalyticsRoute
   '/dashboard/coach/approvals': typeof DashboardCoachApprovalsRoute
@@ -1199,6 +1227,10 @@ export interface FileRoutesByTo {
   '/parent': typeof ParentIndexRoute
   '/platform-admin': typeof PlatformAdminIndexRoute
   '/student': typeof StudentIndexRoute
+  '/api/kaizen/cancel': typeof ApiKaizenCancelRoute
+  '/api/kaizen/provision': typeof ApiKaizenProvisionRoute
+  '/api/kaizen/resume': typeof ApiKaizenResumeRoute
+  '/api/kaizen/suspend': typeof ApiKaizenSuspendRoute
   '/api/public/tenant-icon': typeof ApiPublicTenantIconRoute
   '/dashboard/coach/analytics': typeof DashboardCoachAnalyticsRoute
   '/dashboard/coach/approvals': typeof DashboardCoachApprovalsRoute
@@ -1351,6 +1383,10 @@ export interface FileRoutesById {
   '/parent/': typeof ParentIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/student/': typeof StudentIndexRoute
+  '/api/kaizen/cancel': typeof ApiKaizenCancelRoute
+  '/api/kaizen/provision': typeof ApiKaizenProvisionRoute
+  '/api/kaizen/resume': typeof ApiKaizenResumeRoute
+  '/api/kaizen/suspend': typeof ApiKaizenSuspendRoute
   '/api/public/tenant-icon': typeof ApiPublicTenantIconRoute
   '/dashboard/coach/analytics': typeof DashboardCoachAnalyticsRoute
   '/dashboard/coach/approvals': typeof DashboardCoachApprovalsRoute
@@ -1504,6 +1540,10 @@ export interface FileRouteTypes {
     | '/parent/'
     | '/platform-admin/'
     | '/student/'
+    | '/api/kaizen/cancel'
+    | '/api/kaizen/provision'
+    | '/api/kaizen/resume'
+    | '/api/kaizen/suspend'
     | '/api/public/tenant-icon'
     | '/dashboard/coach/analytics'
     | '/dashboard/coach/approvals'
@@ -1649,6 +1689,10 @@ export interface FileRouteTypes {
     | '/parent'
     | '/platform-admin'
     | '/student'
+    | '/api/kaizen/cancel'
+    | '/api/kaizen/provision'
+    | '/api/kaizen/resume'
+    | '/api/kaizen/suspend'
     | '/api/public/tenant-icon'
     | '/dashboard/coach/analytics'
     | '/dashboard/coach/approvals'
@@ -1800,6 +1844,10 @@ export interface FileRouteTypes {
     | '/parent/'
     | '/platform-admin/'
     | '/student/'
+    | '/api/kaizen/cancel'
+    | '/api/kaizen/provision'
+    | '/api/kaizen/resume'
+    | '/api/kaizen/suspend'
     | '/api/public/tenant-icon'
     | '/dashboard/coach/analytics'
     | '/dashboard/coach/approvals'
@@ -1872,6 +1920,10 @@ export interface RootRouteChildren {
   MatchSlugRoute: typeof MatchSlugRoute
   PoliciesKindRoute: typeof PoliciesKindRoute
   ScorerMatchIdRoute: typeof ScorerMatchIdRoute
+  ApiKaizenCancelRoute: typeof ApiKaizenCancelRoute
+  ApiKaizenProvisionRoute: typeof ApiKaizenProvisionRoute
+  ApiKaizenResumeRoute: typeof ApiKaizenResumeRoute
+  ApiKaizenSuspendRoute: typeof ApiKaizenSuspendRoute
   ApiPublicTenantIconRoute: typeof ApiPublicTenantIconRoute
   AcademyAcademySlugTournamentsTournamentSlugRoute: typeof AcademyAcademySlugTournamentsTournamentSlugRoute
   ApiPublicHooksAutomationTickRoute: typeof ApiPublicHooksAutomationTickRoute
@@ -2754,6 +2806,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudentTimelineRouteImport
       parentRoute: typeof StudentRoute
     }
+    '/api/kaizen/cancel': {
+      id: '/api/kaizen/cancel'
+      path: '/api/kaizen/cancel'
+      fullPath: '/api/kaizen/cancel'
+      preLoaderRoute: typeof ApiKaizenCancelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/kaizen/provision': {
+      id: '/api/kaizen/provision'
+      path: '/api/kaizen/provision'
+      fullPath: '/api/kaizen/provision'
+      preLoaderRoute: typeof ApiKaizenProvisionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/kaizen/resume': {
+      id: '/api/kaizen/resume'
+      path: '/api/kaizen/resume'
+      fullPath: '/api/kaizen/resume'
+      preLoaderRoute: typeof ApiKaizenResumeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/kaizen/suspend': {
+      id: '/api/kaizen/suspend'
+      path: '/api/kaizen/suspend'
+      fullPath: '/api/kaizen/suspend'
+      preLoaderRoute: typeof ApiKaizenSuspendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/tenant-icon': {
       id: '/api/public/tenant-icon'
       path: '/api/public/tenant-icon'
@@ -3268,6 +3348,10 @@ const rootRouteChildren: RootRouteChildren = {
   MatchSlugRoute: MatchSlugRoute,
   PoliciesKindRoute: PoliciesKindRoute,
   ScorerMatchIdRoute: ScorerMatchIdRoute,
+  ApiKaizenCancelRoute: ApiKaizenCancelRoute,
+  ApiKaizenProvisionRoute: ApiKaizenProvisionRoute,
+  ApiKaizenResumeRoute: ApiKaizenResumeRoute,
+  ApiKaizenSuspendRoute: ApiKaizenSuspendRoute,
   ApiPublicTenantIconRoute: ApiPublicTenantIconRoute,
   AcademyAcademySlugTournamentsTournamentSlugRoute:
     AcademyAcademySlugTournamentsTournamentSlugRoute,

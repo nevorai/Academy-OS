@@ -30,6 +30,7 @@ import {
   ListChecks,
   Sparkles,
   LayoutGrid,
+  CreditCard,
   Activity,
   UserCheck,
   UserCog,
@@ -114,6 +115,7 @@ const navGroups: NavGroup[] = [
     items: [
       { to: "/dashboard/academy", label: "Manage", icon: LayoutGrid, ownerOnly: true },
       { to: "/dashboard/nevorai-health", label: "AI Health", icon: Activity, ownerOnly: true },
+      { to: "/dashboard/billing", label: "Billing", icon: CreditCard, ownerOnly: true },
       { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
     ],
   },

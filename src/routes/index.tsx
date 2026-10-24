@@ -36,18 +36,18 @@ export const Route = createFileRoute("/")({
   head: () =>
     isPlatformRequest()
       ? seo({
-          title: "Cricket Academy Software for Indian Academies | Nevorai Academy",
+          title: "Academy, Gym & Coaching Software for India | Nevorai Academy",
           description:
-            "Run your cricket academy on one system — admissions, fee collection and reminders, attendance, live match scoring and your own academy website. Built in India by Nevorai.",
+            "Run your academy, gym or coaching institute on one system — admissions, fee collection and reminders, attendance, batches and your own website. Cricket academies also get live match scoring. Built in India by Nevorai.",
           path: "/",
           keywords:
-            "cricket academy software, cricket academy management software, cricket academy management system, sports academy software India, cricket coaching management software, academy fee management software, cricket academy app",
+            "academy management software India, gym management software, coaching institute software, cricket academy software, cricket academy management software, cricket academy management system, sports academy software India, cricket coaching management software, academy fee management software, cricket academy app",
           jsonLd: platformJsonLd(),
         })
       : seo({
-          title: "Cricket Academy — Coaching, Batches, Fees & Live Match Centre",
+          title: "Academy — Coaching, Batches, Fees & Updates",
           description:
-            "Professional coaching, flexible batches, transparent fees and live match coverage. Register online in minutes.",
+            "Professional coaching, flexible batches and transparent fees. Register online in minutes.",
           path: "/",
         }),
   component: HomeRoute,

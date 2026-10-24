@@ -106,11 +106,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       // Site-wide fallbacks. Every marketing route overrides these via `seo()`;
       // tenant sites get their academy's own title/description patched in by
       // TenantProvider. These only show on routes that set no head of their own.
-      { title: "Nevorai Academy — Cricket Academy Management Software" },
+      { title: "Nevorai Academy — Academy, Gym & Coaching Software" },
       {
         name: "description",
         content:
-          "Cricket academy management software for Indian academies — admissions, fees, attendance, live match scoring and your own academy website.",
+          "Management software for Indian academies, gyms and coaching institutes — admissions, fees, attendance, batches and your own website.",
       },
       { name: "author", content: "Nevorai" },
       // PWA / standalone app hints so installed app launches without browser chrome.
@@ -128,14 +128,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         property: "og:description",
         content:
-          "Cricket academy management software for Indian academies — admissions, fees, attendance, live match scoring and your own academy website.",
+          "Management software for Indian academies, gyms and coaching institutes — admissions, fees, attendance, batches and your own website.",
       },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Nevorai Academy" },
       {
         name: "twitter:description",
         content:
-          "Cricket academy management software for Indian academies — admissions, fees, attendance, live match scoring and your own academy website.",
+          "Management software for Indian academies, gyms and coaching institutes — admissions, fees, attendance, batches and your own website.",
       },
       { property: "og:image", content: PLATFORM_OG_IMAGE },
       { name: "twitter:image", content: PLATFORM_OG_IMAGE },

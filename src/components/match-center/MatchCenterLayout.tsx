@@ -206,10 +206,10 @@ function ModuleSubTabs() {
               aria-selected={active}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "shrink-0 inline-flex items-center gap-1.5 h-9 px-3 rounded-full text-[13px] font-medium border transition-colors",
+                "shrink-0 inline-flex items-center gap-1.5 h-9 px-3.5 rounded-[7px] text-[13.5px] font-semibold border transition-colors",
                 active
-                  ? "bg-foreground text-background border-foreground shadow-sm"
-                  : "bg-card text-muted-foreground hover:text-foreground border-border",
+                  ? "border-[color:var(--brand)] bg-[color:var(--brand)] text-[color:var(--brand-ink)] shadow-sm"
+                  : "bg-card text-muted-foreground hover:border-foreground/30 hover:bg-accent hover:text-foreground border-border",
               )}
             >
               <span className="relative inline-flex">

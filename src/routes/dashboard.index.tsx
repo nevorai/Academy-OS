@@ -194,141 +194,111 @@ function DashboardHome() {
   const notArrived = Math.max(0, attTotal - attPresent);
   const pendingActions = newRegs + (notArrived > 0 ? 1 : 0);
 
+  const showMoney = role === "owner" && feeEnabled;
+  const pendingHint =
+    pendingFees > 0 ? `${pendingFees} student${pendingFees === 1 ? "" : "s"}` : "All caught up";
+
+  // Metrol's rule: tiles fill their row. Five tiles take 2 / 3 / 5 columns (5 only from 1280 px, where the labels fit) with the last one stretching.
+  const tiles: React.ReactNode[] = [];
+  if (showMoney) {
+    tiles.push(
+      <KpiTile
+        key="collected"
+        to="/dashboard/fees"
+        label="Collected"
+        value={kpisQ.isLoading ? null : money(collectedMonth)}
+        hint="This month"
+        tone="brand"
+      />,
+      <KpiTile
+        key="pending"
+        to="/dashboard/fees"
+        search={{ filter: "pending" }}
+        label="Pending fees"
+        value={kpisQ.isLoading ? null : money(pendingFees > 0 ? (kpis?.pendingFeeAmount ?? 0) : 0)}
+        hint={pendingHint}
+        tone={pendingFees > 0 ? "warn" : "muted"}
+      />,
+    );
+  }
+  tiles.push(
+    <KpiTile
+      key="in"
+      to="/dashboard/attendance"
+      label="In academy now"
+      value={attendanceLoading ? null : inAcademy}
+      hint="Live"
+      tone="live"
+      pulse={inAcademy > 0}
+    />,
+  );
+  if (!showMoney) {
+    tiles.push(
+      <KpiTile
+        key="present"
+        to="/dashboard/attendance"
+        label="Players present"
+        value={attendanceLoading ? null : playersPresent}
+        hint={`of ${attTotal}`}
+        tone="brand"
+      />,
+    );
+  }
+  tiles.push(
+    <KpiTile
+      key="att"
+      to="/dashboard/attendance"
+      label="Attendance"
+      value={attendanceLoading ? null : `${attPct}%`}
+      hint={attTotal > 0 ? `${attPresent}/${attTotal} today` : "No marks yet"}
+      tone={attPct >= 80 ? "success" : attPct >= 60 ? "warn" : "muted"}
+    />,
+    role === "owner" ? (
+      <KpiTile
+        key="regs"
+        to="/dashboard/registrations"
+        label="New registrations"
+        value={newRegs}
+        hint={newRegs > 0 ? "Needs review" : "Inbox clear"}
+        tone={newRegs > 0 ? "warn" : "muted"}
+      />
+    ) : (
+      <KpiTile
+        key="actions"
+        to="/dashboard/registrations"
+        label="Pending actions"
+        value={pendingActions}
+        hint={pendingActions > 0 ? "Review inbox" : "Nothing pending"}
+        tone={pendingActions > 0 ? "warn" : "muted"}
+      />
+    ),
+  );
+  const tileGrid =
+    tiles.length === 5
+      ? "grid-cols-2 md:grid-cols-3 xl:grid-cols-5 [&>*:last-child]:col-span-2 xl:[&>*:last-child]:col-span-1"
+      : "grid-cols-2 lg:grid-cols-4";
+
   return (
-    <div className="-mt-4 md:-mt-8 space-y-4 pb-2">
-      {/* ─── Header — uniform across dashboard tabs ────────────────────── */}
-      <div className="flex items-center justify-between gap-2 pt-2 pb-1">
-        <div className="min-w-0">
-          <h1 className="text-lg font-semibold tracking-tight leading-tight truncate">
-            {greeting}
-          </h1>
-          <p className="text-[11px] text-muted-foreground leading-tight truncate">
-            {format(now, "EEE, d MMM")} · {displayName}
-          </p>
+    <div className="space-y-4 pb-2">
+      {/* Title line: the greeting, the date and the page's own actions share one row. */}
+      <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-baseline gap-2.5">
+          <h1 className="truncate text-xl font-semibold tracking-tight">{greeting}</h1>
+          <span className="hidden text-xs text-muted-foreground sm:inline">{format(now, "EEE, d MMM")}</span>
         </div>
-      <LiveBadge state="live" />
+        <span className="hidden sm:block">
+          <LiveBadge state="live" />
+        </span>
+        <div className="ml-auto">
+          <HeaderActions canScoreMatch={canScoreMatch} tenant={tenant} />
+        </div>
       </div>
 
-      {/* ─── Live match jump-in · single most time-sensitive action ─── */}
-
-      {/* ─── Live match jump-in · single most time-sensitive action ─── */}
+      {/* Live match jump-in · single most time-sensitive action */}
       {canScoreMatch && liveMatch ? <LiveMatchBanner match={liveMatch} /> : null}
 
-      {/* ─── Money-in headline · the number owners check first each morning ── */}
-      {role === "owner" && feeEnabled ? (
-        <Link
-          to="/dashboard/fees"
-          className={cn(
-            "flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3",
-            "shadow-[var(--shadow-soft)] transition-all hover:border-[color:var(--brand)]/40 active:scale-[0.99]",
-          )}
-        >
-          <div className="min-w-0">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Collected this month
-            </div>
-            <div className="mt-0.5 text-2xl font-bold tabular-nums tracking-tight truncate">
-              {kpisQ.isLoading ? <Skeleton className="h-6 w-24" /> : money(collectedMonth)}
-            </div>
-          </div>
-          <span
-            className="grid size-9 shrink-0 place-items-center rounded-xl"
-            style={{
-              backgroundColor: "color-mix(in oklab, var(--brand) 14%, transparent)",
-              color: "var(--brand)",
-            }}
-          >
-            <IndianRupee className="size-4" />
-          </span>
-        </Link>
-      ) : null}
-
-      {/* ─── Section 1 · Primary KPIs ─────────────────────────────────── */}
       <section aria-label="Today at a glance">
-
-        <div className="grid grid-cols-2 gap-2.5">
-          <KpiTile
-            to="/dashboard/attendance"
-            label="In Academy Now"
-            value={attendanceLoading ? null : inAcademy}
-            hint="Live"
-            icon={<ClipboardCheck className="size-4" />}
-            tone="live"
-            pulse={inAcademy > 0}
-          />
-          {role === "owner" && feeEnabled ? (
-            <KpiTile
-              to="/dashboard/fees"
-              search={{ filter: "pending" }}
-              label="Pending Fees"
-              value={
-                kpisQ.isLoading
-                  ? null
-                  : pendingFees > 0
-                    ? money(kpis?.pendingFeeAmount ?? 0)
-                    : "₹0"
-              }
-              hint={
-                pendingFees > 0
-                  ? `${pendingFees} student${pendingFees === 1 ? "" : "s"} · Genuine`
-                  : "All caught up"
-              }
-              icon={<IndianRupee className="size-4" />}
-              tone={pendingFees > 0 ? "warn" : "muted"}
-              emphasize={pendingFees > 0}
-            />
-
-          ) : (
-            <KpiTile
-              to="/dashboard/attendance"
-              label="Players Present"
-              value={attendanceLoading ? null : playersPresent}
-              hint={`of ${attTotal}`}
-              icon={<Users className="size-4" />}
-              tone="brand"
-            />
-          )}
-          <KpiTile
-            to="/dashboard/attendance"
-            label="Attendance"
-            value={attendanceLoading ? null : `${attPct}%`}
-            hint={attTotal > 0 ? `${attPresent}/${attTotal} today` : "No marks yet"}
-            icon={<Sparkles className="size-4" />}
-            tone={attPct >= 80 ? "success" : attPct >= 60 ? "warn" : "muted"}
-          />
-
-          {role === "owner" ? (
-            <KpiTile
-              to="/dashboard/registrations"
-              label="New Registrations"
-              value={newRegs}
-              hint={newRegs > 0 ? "Needs review" : "Inbox clear"}
-              icon={<Inbox className="size-4" />}
-              tone={newRegs > 0 ? "warn" : "muted"}
-              emphasize={newRegs > 0}
-            />
-          ) : (
-            <KpiTile
-              to="/dashboard/registrations"
-              label="Pending Actions"
-              value={pendingActions}
-              hint={pendingActions > 0 ? "Review inbox" : "Nothing pending"}
-              icon={<AlertCircle className="size-4" />}
-              tone={pendingActions > 0 ? "warn" : "muted"}
-              emphasize={pendingActions > 0}
-            />
-          )}
-        </div>
-      </section>
-
-      {/* ─── Section 2 · Quick actions ─────────── */}
-      <section aria-label="Quick actions">
-        <SectionLabel>Quick actions</SectionLabel>
-        <QuickActionsGrid
-          role={role}
-          canScoreMatch={canScoreMatch}
-          tenant={tenant}
-        />
+        <div className={cn("grid gap-2.5", tileGrid)}>{tiles}</div>
       </section>
 
       {/* ─── Section 3 · Cricket today (moved below Quick actions) ────── */}
@@ -374,10 +344,9 @@ function LiveMatchBanner({ match }: { match: MatchWithTeams }) {
       to="/scorer/$matchId"
       params={{ matchId: match.id }}
       className={cn(
-        "flex items-center justify-between gap-3 rounded-2xl px-4 py-3",
-        "border border-red-500/30 bg-gradient-to-r from-red-500/10 via-red-500/5 to-transparent",
-        "shadow-[var(--shadow-soft)] transition-all active:scale-[0.99]",
-        "hover:border-red-500/60",
+        "flex items-center justify-between gap-3 rounded-[7px] px-4 py-3",
+        "border border-t-2 border-border border-t-red-500 bg-card",
+        "transition-colors hover:border-red-500/60",
       )}
       aria-label={`Live match ${a} versus ${b} — open scoring`}
     >
@@ -435,7 +404,7 @@ function SectionLabel({
 }) {
   return (
     <div className="flex items-center justify-between gap-2 px-0.5 mb-2">
-      <h2 className="text-[11px] uppercase tracking-[0.18em] font-semibold text-muted-foreground">
+      <h2 className="text-[11px] uppercase tracking-[0.07em] font-semibold text-muted-foreground">
         {children}
       </h2>
       {action}
@@ -460,9 +429,7 @@ function KpiTile({
   label,
   value,
   hint,
-  icon,
   tone = "brand",
-  emphasize,
   pulse,
 }: {
   to: string;
@@ -470,9 +437,7 @@ function KpiTile({
   label: string;
   value: number | string | null;
   hint?: string;
-  icon: React.ReactNode;
   tone?: Tone;
-  emphasize?: boolean;
   pulse?: boolean;
 }) {
   const color = toneColor(tone);
@@ -480,169 +445,74 @@ function KpiTile({
     <Link
       to={to}
       search={search as never}
+      style={{ borderTopColor: tone === "muted" ? "var(--foreground)" : color }}
       className={cn(
-        "group relative flex flex-col justify-between",
-        "rounded-2xl border border-border bg-card p-3.5 min-h-[96px]",
-        "shadow-[var(--shadow-soft)] transition-all",
-        "hover:border-[color:var(--brand)]/40 hover:-translate-y-[1px] active:scale-[0.99]",
+        "flex min-h-[92px] flex-col gap-2 rounded-[7px] border border-t-2 border-border bg-card px-3.5 pb-3.5 pt-3",
+        "outline-none transition-colors hover:border-foreground/40 focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]",
       )}
     >
-      <div className="flex items-center justify-between">
-        <span
-          className="grid size-7 place-items-center rounded-lg"
-          style={{
-            backgroundColor: `color-mix(in oklab, ${color} 14%, transparent)`,
-            color,
-          }}
-        >
-          {icon}
+      <div className="flex items-center justify-between gap-2">
+        <span className="truncate text-[11px] font-semibold uppercase tracking-[0.07em] text-muted-foreground">
+          {label}
         </span>
         {pulse ? (
-          <span className="relative inline-flex size-2">
+          <span className="relative inline-flex size-2 shrink-0">
             <span
-              className="absolute inline-flex size-full rounded-full opacity-70 animate-ping"
+              className="absolute inline-flex size-full animate-ping rounded-full opacity-70"
               style={{ backgroundColor: color }}
             />
-            <span
-              className="relative inline-flex size-2 rounded-full"
-              style={{ backgroundColor: color }}
-            />
+            <span className="relative inline-flex size-2 rounded-full" style={{ backgroundColor: color }} />
           </span>
         ) : null}
       </div>
-      <div className="mt-3">
-        <div
-          className="text-[26px] leading-none font-bold tabular-nums tracking-tight"
-          style={emphasize ? { color } : undefined}
-        >
-          {value === null ? <Skeleton className="h-6 w-14" /> : value}
-        </div>
-        <div className="mt-1 flex items-baseline justify-between gap-1.5">
-          <div className="text-[11px] font-semibold text-muted-foreground truncate">{label}</div>
-          {hint ? (
-            <div className="text-[10px] text-muted-foreground/80 truncate">{hint}</div>
-          ) : null}
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function QuickAction({
-  to,
-  onClick,
-  label,
-  icon,
-}: {
-  to?: string;
-  onClick?: () => void;
-  label: string;
-  icon: React.ReactNode;
-}) {
-  const cls = cn(
-    "flex flex-col items-center justify-center gap-1.5",
-    "rounded-2xl border border-border bg-card px-2 py-3",
-    "hover:border-[color:var(--brand)]/50 hover:bg-accent/40 active:scale-[0.97] transition-all",
-  );
-  const inner = (
-    <>
-      <span
-        className="grid size-9 place-items-center rounded-xl"
-        style={{
-          backgroundColor: "color-mix(in oklab, var(--brand) 14%, transparent)",
-          color: "var(--brand)",
-        }}
+      <div
+        className="text-[26px] font-semibold leading-none tracking-tight tabular-nums"
+        style={{ fontFamily: "var(--font-display)" }}
       >
-        {icon}
-      </span>
-      <span className="text-[11px] font-semibold leading-none text-center">{label}</span>
-    </>
-  );
-  if (onClick) {
-    return (
-      <button type="button" onClick={onClick} className={cls}>
-        {inner}
-      </button>
-    );
-  }
-  return (
-    <Link to={to!} className={cls}>
-      {inner}
+        {value === null ? <Skeleton className="h-6 w-14" /> : value}
+      </div>
+      {hint ? <div className="truncate text-[11.5px] text-muted-foreground">{hint}</div> : null}
     </Link>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Role-based Quick Actions — trimmed to 5 (Phase 31).
+// The page's own actions sit on the title line (Metrol's layout law), not in a row of their own.
+// Players and Reports are already in the sidebar, so only what the sidebar cannot do is here.
 // ---------------------------------------------------------------------------
 
-type QAItem = {
-  key: string;
-  to?: string;
-  onClick?: () => void;
-  label: string;
-  icon: React.ReactNode;
-};
+const HEADER_BTN = cn(
+  "inline-flex h-10 min-w-10 items-center justify-center gap-1.5 rounded-[7px] border border-border bg-card px-2.5 text-[12.5px] font-semibold md:h-8 md:min-w-0",
+  "outline-none transition-colors hover:border-foreground/40 hover:bg-accent focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]",
+);
 
-function QuickActionsGrid({
-  role,
+function HeaderActions({
   canScoreMatch,
   tenant,
 }: {
-  role: "owner" | "admin" | "student";
   canScoreMatch: boolean;
   tenant: { slug: string; name: string; custom_domain: string | null };
 }) {
   const [shareOpen, setShareOpen] = useState(false);
   const [scanOpen, setScanOpen] = useState(false);
 
-  const shareAction: QAItem = {
-    key: "share",
-    onClick: () => setShareOpen(true),
-    label: "Share Website",
-    icon: <Share2 className="size-5" />,
-  };
-
-  const scanAction: QAItem = {
-    key: "scan",
-    onClick: () => setScanOpen(true),
-    label: "Scan QR",
-    icon: <QrCode className="size-5" />,
-  };
-
-  const createMatch: QAItem[] = canScoreMatch
-    ? [
-        {
-          key: "create-match",
-          to: "/match-center/create",
-          label: "Create Match",
-          icon: <Swords className="size-5" />,
-        },
-      ]
-    : [];
-
-  const ownerActions: QAItem[] = [
-    scanAction,
-    { key: "students", to: "/dashboard/students", label: "Students", icon: <Users className="size-5" /> },
-    ...createMatch,
-    { key: "reports", to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
-  ];
-
-  const adminActions: QAItem[] = [
-    scanAction,
-    { key: "students", to: "/dashboard/students", label: "Students", icon: <Users className="size-5" /> },
-    ...createMatch,
-    { key: "reports", to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
-  ];
-
-  const items = (role === "owner" ? ownerActions : adminActions).slice(0, 4);
-
   return (
     <>
-      <div className="grid grid-cols-4 gap-2">
-        {items.map((a) => (
-          <QuickAction key={a.key} to={a.to} onClick={a.onClick} label={a.label} icon={a.icon} />
-        ))}
+      <div className="flex items-center gap-1.5">
+        {/* Phones have the Scan button in the bottom bar already. */}
+        <button type="button" className={cn(HEADER_BTN, "hidden md:inline-flex")} onClick={() => setScanOpen(true)}>
+          <QrCode className="size-3.5" /> Scan QR
+        </button>
+        {canScoreMatch ? (
+          <Link to="/match-center/create" className={HEADER_BTN} aria-label="Create match">
+            <Swords className="size-3.5" />
+            <span className="hidden sm:inline">Create match</span>
+          </Link>
+        ) : null}
+        <button type="button" className={HEADER_BTN} onClick={() => setShareOpen(true)} aria-label="Share website">
+          <Share2 className="size-3.5" />
+          <span className="hidden sm:inline">Share website</span>
+        </button>
       </div>
       <ShareWebsiteDialog open={shareOpen} onOpenChange={setShareOpen} tenant={tenant} />
       <ScanStudentCardDialog open={scanOpen} onOpenChange={setScanOpen} />

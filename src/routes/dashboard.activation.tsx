@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 import { Copy, QrCode, MessageCircle, Mail, Send, RefreshCw, CalendarClock, AlertTriangle } from "lucide-react";
 import { LIFECYCLE_LABEL, LIFECYCLE_TONE, type LifecycleStatus } from "@/lib/admissions/lifecycle";
+import { AdmissionsTabs } from "@/components/shared/RouteTabs";
 
 export const Route = createFileRoute("/dashboard/activation")({
   head: () => ({
@@ -246,11 +247,12 @@ function ActivationCenter() {
   return (
     <div className="space-y-5 pb-24">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Activation Center</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Admissions</h1>
         <p className="text-sm text-muted-foreground">
           Set each player's session, then share their personal activation link.
         </p>
       </div>
+      <AdmissionsTabs />
 
       {needsSession > 0 && (
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2.5 text-xs text-amber-900">

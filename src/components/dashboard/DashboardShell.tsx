@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
 import { usePermissions } from "@/hooks/use-permissions";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Inbox,
@@ -16,29 +16,20 @@ import {
   IndianRupee,
   BarChart3,
   ClipboardCheck,
-  UserCircle,
   Swords,
   Megaphone,
-  ChevronDown,
   Image as ImageIcon,
-  Trophy,
-  Radio,
-  ListOrdered,
-  GitBranch,
-  Award,
-  BarChart2,
-  ListChecks,
   Sparkles,
   LayoutGrid,
-  CreditCard,
-  Activity,
-  UserCheck,
-  UserCog,
+  Moon,
+  Sun,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { getFeatures, tenantSiteUrl } from "@/lib/tenant";
 import { useT } from "@/lib/i18n";
 import { StoragedImage } from "@/components/site/StoragedImage";
+import { Tip } from "@/components/ui/tip";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { setStoredThemeMode } from "@/components/dashboard/ThemeToggle";
 import { DashboardSidebar, type SideGroup } from "@/components/dashboard/DashboardSidebar";
 import { GlobalBottomNav } from "@/components/shared/GlobalBottomNav";
 import { useNewRegistrationsCount } from "@/hooks/use-new-registrations";
@@ -58,7 +49,9 @@ type NavItem = {
   tourId?: string;
 };
 
-// Six groups, daily things first. Low-frequency setup lives under "Settings".
+// Eleven items, daily things first. Everything else (batches, activation, automation, team, billing,
+// AI health) is one tap away in Manage; Match Center carries its own tabs (Live, Matches, Players,
+// Insights, More); Registrations and Activation share one Admissions page tab strip.
 type NavGroup = { title: string | null; items: NavItem[] };
 const navGroups: NavGroup[] = [
   {
@@ -86,21 +79,13 @@ const navGroups: NavGroup[] = [
   {
     title: "People",
     items: [
-      { to: "/dashboard/students", label: "Students", icon: Users },
-      { to: "/dashboard/registrations", label: "Registrations", icon: Inbox, tourId: "registrations" },
-      { to: "/dashboard/activation", label: "Activation", icon: UserCheck, ownerOnly: true },
-      { to: "/dashboard/staff", label: "Staff", icon: UserCog, tourId: "staff" },
+      { to: "/dashboard/students", label: "Players", icon: Users },
+      { to: "/dashboard/registrations", label: "Admissions", icon: Inbox, tourId: "registrations" },
     ],
   },
   {
     title: "Cricket",
-    items: [
-      { to: "/match-center/matches", label: "Matches", icon: Swords, tourId: "match-center" },
-      { to: "/match-center/tournaments", label: "Tournaments", icon: Trophy },
-      { to: "/match-center/live", label: "Live", icon: Radio },
-      { to: "/match-center/leaderboards", label: "Statistics", icon: BarChart2 },
-      { to: "/match-center/awards", label: "Awards", icon: Award },
-    ],
+    items: [{ to: "/match-center", label: "Match Center", icon: Swords, tourId: "match-center" }],
   },
   {
     title: "Grow",
@@ -111,18 +96,31 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    title: "Settings",
-    items: [
-      { to: "/dashboard/academy", label: "Manage", icon: LayoutGrid, ownerOnly: true },
-      { to: "/dashboard/nevorai-health", label: "AI Health", icon: Activity, ownerOnly: true },
-      { to: "/dashboard/billing", label: "Billing", icon: CreditCard, ownerOnly: true },
-      { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
-    ],
+    title: null,
+    items: [{ to: "/dashboard/academy", label: "Manage", icon: LayoutGrid, ownerOnly: true }],
   },
 ];
 
+/** Pages that belong to a sidebar item without being its own route: the item stays lit on all of them. */
+const LIT_ALSO: Record<string, string[]> = {
+  "/dashboard/registrations": ["/dashboard/activation"],
+  "/dashboard/students": ["/dashboard/batches"],
+  "/dashboard/academy": [
+    "/dashboard/staff",
+    "/dashboard/batches",
+    "/dashboard/automation",
+    "/dashboard/billing",
+    "/dashboard/nevorai-health",
+    "/dashboard/profile",
+    "/dashboard/settings",
+    "/dashboard/subscription",
+    "/dashboard/notifications",
+  ],
+  "/match-center": ["/scorer"],
+};
+
 export function DashboardShell({ children }: { children: ReactNode }) {
-  const { tenant, profile, signOut } = useDashboard();
+  const { tenant, profile, session, signOut } = useDashboard();
   const { t } = useT();
   // Phase 3 — role via has_role / current_role RPC (usePermissions).
   const { isOwner, isCoach: isCoachRole, isHeadCoach, isAssistantCoach } = usePermissions();
@@ -167,10 +165,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         const label = t(n.label);
         let badge: number | undefined;
         let live = false;
-        if (n.to === "/dashboard/students" && newRegCount) badge = newRegCount;
         if (n.to === "/dashboard/registrations" && newRegCount) badge = newRegCount;
-        if (n.to === "/match-center/live" && (liveMatchCount.data ?? 0) > 0) live = true;
-        return { ...n, label, badge, live };
+        if (n.to === "/match-center" && (liveMatchCount.data ?? 0) > 0) live = true;
+        return { ...n, label, badge, live, also: LIT_ALSO[n.to] };
       });
 
   const groups: SideGroup[] = navGroups
@@ -192,70 +189,56 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         style={{ height: "var(--app-safe-top)" }}
       />
       <header
-        className="sticky z-40 border-b border-border bg-background/95 backdrop-blur"
+        className="sticky z-40 border-b border-border bg-card"
         style={{ top: "var(--app-safe-top)" }}
       >
-        <div className="flex h-14 items-center gap-3 px-4 md:px-6">
-          <TenantMark tenant={tenant} />
-          <div className="ml-auto flex items-center gap-2">
-            <a
-              href={tenantSiteUrl(tenant)}
-              target="_blank"
-              rel="noreferrer"
-              className="hidden sm:inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mr-1"
-            >
-              {t("View site")} <ExternalLink className="size-3" />
-            </a>
-            <Link
-              to="/dashboard/registrations"
-              aria-label={newRegCount > 0 ? `Registrations, ${newRegCount} new` : "Registrations"}
-              className="relative inline-grid place-items-center size-9 rounded-full hover:bg-accent transition-colors"
-            >
-              <Inbox className="size-4" />
-              {newRegCount > 0 ? (
-                <span
-                  aria-hidden
-                  className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 grid place-items-center rounded-full text-[10px] font-bold text-white bg-rose-600 ring-2 ring-background"
-                >
-                  {newRegCount > 99 ? "99+" : newRegCount}
-                </span>
-              ) : null}
-            </Link>
-
-            <NotificationBell />
-
-            <NevorAIButton className="ml-1" />
-
-            {canSeeTour ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setTourOpen(true)}
-                className="hidden md:inline-flex"
-                title="Take the product tour"
+        <TooltipProvider delayDuration={0}>
+          <div className="flex h-14 items-center gap-3 px-4 md:px-5">
+            <TenantMark tenant={tenant} />
+            <div className="ml-auto flex items-center gap-1.5">
+              <a
+                href={tenantSiteUrl(tenant)}
+                target="_blank"
+                rel="noreferrer"
+                className="mr-1 hidden items-center gap-1 text-xs text-muted-foreground hover:text-foreground sm:inline-flex"
               >
-                <HelpCircle className="size-4 mr-1" /> {t("Take the tour")}
-              </Button>
-            ) : null}
+                {t("View site")} <ExternalLink className="size-3" />
+              </a>
 
-            <Button variant="ghost" size="sm" onClick={signOut} className="hidden md:inline-flex">
-              <LogOut className="size-4 mr-1" /> {t("Sign out")}
-            </Button>
+              <ThemeButton />
+              <NotificationBell />
+              <NevorAIButton />
+
+              {canSeeTour ? (
+                <Tip label={t("Take the tour")} side="bottom">
+                  <button
+                    type="button"
+                    onClick={() => setTourOpen(true)}
+                    aria-label={t("Take the tour")}
+                    className={cn(ICON_BTN, "hidden md:grid")}
+                  >
+                    <HelpCircle className="size-4" />
+                  </button>
+                </Tip>
+              ) : null}
+
+              <UserChip
+                name={userName(session.user)}
+                role={profile.role}
+                onSignOut={signOut}
+                signOutLabel={t("Sign out")}
+              />
+            </div>
           </div>
-        </div>
+        </TooltipProvider>
       </header>
 
 
       <div className="flex">
         {/* Desktop sidebar: resizable, folds to icons */}
-        <DashboardSidebar
-          groups={groups}
-          tenantName={tenant.name}
-          role={profile.role}
-          onSignOut={signOut}
-        />
+        <DashboardSidebar groups={groups} />
 
-        <main className="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full pb-32 md:pb-8">
+        <main className="mx-auto w-full min-w-0 max-w-[1320px] flex-1 px-4 pt-4 pb-32 md:px-[3%] md:pt-8 md:pb-8">
           <div className="mb-4">
             <TrialBanner />
           </div>
@@ -274,11 +257,10 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 }
 
 function TenantMark({ tenant }: { tenant: { name: string; logo_url: string | null } }) {
-  const { t } = useT();
   return (
-    <div className="flex items-center gap-2 min-w-0">
+    <div className="flex min-w-0 items-center gap-2.5">
       <div
-        className="size-8 rounded-md grid place-items-center text-white text-xs font-bold shrink-0"
+        className="grid size-8 shrink-0 place-items-center rounded-md text-xs font-bold text-white"
         style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
       >
         {tenant.logo_url ? (
@@ -292,12 +274,81 @@ function TenantMark({ tenant }: { tenant: { name: string; logo_url: string | nul
           tenant.name.slice(0, 2).toUpperCase()
         )}
       </div>
-      <div className="min-w-0">
-        <div className="text-sm font-semibold truncate">{tenant.name}</div>
-        <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-          {t("Dashboard")}
-        </div>
-      </div>
+      <div className="truncate text-[15px] font-semibold tracking-tight">{tenant.name}</div>
+    </div>
+  );
+}
+
+const ICON_BTN =
+  "grid size-8 place-items-center rounded-md text-muted-foreground outline-none transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]";
+
+function userName(user: { email?: string | null; user_metadata?: Record<string, unknown> }): string {
+  const meta = user.user_metadata ?? {};
+  const full = (meta.full_name ?? meta.name) as string | undefined;
+  return full?.trim() || user.email?.split("@")[0] || "You";
+}
+
+/** Light / dark in one tap; the full light-dark-system choice stays in Profile. */
+function ThemeButton() {
+  const [dark, setDark] = useState(false);
+  useEffect(() => {
+    setDark(document.documentElement.classList.contains("dark"));
+  }, []);
+  const label = dark ? "Light mode" : "Dark mode";
+  return (
+    <Tip label={label} side="bottom">
+      <button
+        type="button"
+        aria-label={label}
+        className={ICON_BTN}
+        onClick={() => {
+          setStoredThemeMode(dark ? "light" : "dark");
+          setDark(!dark);
+        }}
+      >
+        {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+      </button>
+    </Tip>
+  );
+}
+
+/** Who you are and the way out live up here (like Metrol), so the sidebar gets the whole height. */
+function UserChip({
+  name,
+  role,
+  onSignOut,
+  signOutLabel,
+}: {
+  name: string;
+  role: string;
+  onSignOut: () => void;
+  signOutLabel: string;
+}) {
+  return (
+    <div className="ml-1.5 flex items-center gap-2 border-l border-border pl-3">
+      <Link
+        to="/dashboard/profile"
+        aria-label="Your profile"
+        className="flex items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]"
+      >
+        <span className="grid size-7 place-items-center rounded-full bg-muted text-xs font-semibold uppercase text-foreground">
+          {name.slice(0, 1)}
+        </span>
+        <span className="hidden text-left leading-tight lg:block">
+          <span className="block max-w-[150px] truncate text-[13px] font-medium">{name}</span>
+          <span className="block text-[11px] capitalize text-muted-foreground">{role}</span>
+        </span>
+      </Link>
+      <Tip label={signOutLabel} side="bottom">
+        <button
+          type="button"
+          onClick={onSignOut}
+          aria-label={signOutLabel}
+          className={cn(ICON_BTN, "hidden md:grid")}
+        >
+          <LogOut className="size-4" />
+        </button>
+      </Tip>
     </div>
   );
 }

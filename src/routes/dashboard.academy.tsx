@@ -18,6 +18,7 @@ import {
   Zap,
   Link2 as LinkIcon,
   Sparkles,
+  CreditCard,
 } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { useCurrentRole } from "@/hooks/use-current-role";
@@ -49,14 +50,14 @@ type Group = { title: string; items: Item[] };
 /* Settings/config lives in Profile.                                  */
 /* ------------------------------------------------------------------ */
 
-const OWNER_GROUPS: Group[] = [
+const WORKSPACE_GROUPS: Group[] = [
   {
     title: "Students",
     items: [
       {
         to: "/dashboard/students",
-        label: "Students",
-        hint: "Roster, registrations, batches, documents, medical, performance, ID cards",
+        label: "Players",
+        hint: "Roster, batches, documents, medical, performance, ID cards",
         icon: Users,
         keywords: [
           "players",
@@ -195,8 +196,40 @@ const OWNER_GROUPS: Group[] = [
   },
 ];
 
-// Admin — same workspaces as Owner (Fees lives in bottom nav for owner only).
-const ADMIN_GROUPS: Group[] = OWNER_GROUPS;
+// The sidebar keeps only the daily workspaces, so the rest of an owner's tools are here: one place, searchable.
+const PROFILE_ITEM: Item = {
+  to: "/dashboard/profile",
+  label: "Profile & settings",
+  hint: "Your details, theme, notifications, payment setup and branding",
+  icon: UserCircle,
+  keywords: ["account", "password", "theme", "dark", "branding", "payments", "upi", "notifications", "tour"],
+};
+const OWNER_GROUPS: Group[] = [
+  ...WORKSPACE_GROUPS,
+  {
+    title: "Account",
+    items: [
+      PROFILE_ITEM,
+      {
+        to: "/dashboard/billing",
+        label: "Billing",
+        hint: "Your Nevorai Academy plan, invoices and usage",
+        icon: CreditCard,
+        keywords: ["plan", "subscription", "invoice", "gst", "pay", "renew"],
+      },
+      {
+        to: "/dashboard/nevorai-health",
+        label: "Kaizen health",
+        hint: "How the AI assistant is doing: answers, tools and errors",
+        icon: Activity,
+        keywords: ["ai", "assistant", "errors", "status"],
+      },
+    ],
+  },
+];
+
+// Admin — same workspaces as Owner, without the owner-only Account tools.
+const ADMIN_GROUPS: Group[] = [...WORKSPACE_GROUPS, { title: "Account", items: [PROFILE_ITEM] }];
 
 // Player / Parent — personal workspaces only.
 const PLAYER_GROUPS: Group[] = [

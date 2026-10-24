@@ -61,6 +61,7 @@ import {
 } from "lucide-react";
 import { generateFilledRegistrationPdf } from "@/lib/registration-pdf";
 import { ModuleHeader } from "@/components/shared/ModuleHeader";
+import { AdmissionsTabs } from "@/components/shared/RouteTabs";
 import { VirtualList } from "@/components/ds/VirtualList";
 
 export const Route = createFileRoute("/dashboard/registrations")({
@@ -339,10 +340,11 @@ function RegistrationsInbox() {
     <div className="space-y-4">
       <ModuleHeader
         overline="Academy"
-        title="Registrations / Admissions"
+        title="Admissions"
         backTo="/dashboard/academy"
         action={<ShareLinkButton tenant={tenant} />}
       />
+      <AdmissionsTabs newCount={newCount} />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <FilterTabs

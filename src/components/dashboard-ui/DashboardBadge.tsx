@@ -39,7 +39,7 @@ export function DashboardBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full font-medium whitespace-nowrap",
+        "inline-flex items-center gap-1 rounded-[5px] font-medium whitespace-nowrap",
         size === "sm" ? "h-5 px-2 text-[10px]" : "h-6 px-2.5 text-[11px]",
         toneClass[tone],
         className,

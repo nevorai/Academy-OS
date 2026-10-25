@@ -45,7 +45,7 @@ export function FilterTabs<T extends string = string>({
       aria-label={ariaLabel}
       className={cn(
         fullWidth ? "w-full" : "inline-flex",
-        "rounded-full bg-card border border-border shadow-sm p-1",
+        "rounded-[9px] bg-card border border-border p-1",
         fullWidth ? "grid gap-1" : "inline-grid gap-1",
         className,
       )}
@@ -61,11 +61,11 @@ export function FilterTabs<T extends string = string>({
             aria-selected={active}
             onClick={() => onChange(it.key)}
             className={cn(
-              "w-full min-w-0 rounded-full font-medium transition-colors whitespace-nowrap",
+              "w-full min-w-0 rounded-[7px] font-medium transition-colors whitespace-nowrap",
               "inline-flex items-center justify-center gap-1.5",
               size === "sm" ? "h-8 px-3 text-xs" : "h-9 px-3 text-sm",
               active
-                ? "bg-foreground text-background shadow-sm"
+                ? "bg-[color:var(--brand)] text-[color:var(--brand-ink)]"
                 : "text-muted-foreground hover:text-foreground hover:bg-accent/60",
             )}
           >

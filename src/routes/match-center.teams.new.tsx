@@ -51,7 +51,7 @@ function CreateTeamPage() {
     age_group_custom: "",
     coach_name: "",
     assistant_coach_name: "",
-    team_color: "#E8873C",
+    team_color: "#2A7A4B",
     season: new Date().getFullYear().toString(),
     description: "",
     status: "active" as (typeof TEAM_STATUSES)[number],

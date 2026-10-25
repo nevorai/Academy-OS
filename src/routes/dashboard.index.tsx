@@ -391,7 +391,7 @@ function toneColor(tone: Tone): string {
     case "muted":
       return "hsl(var(--muted-foreground))";
     default:
-      return "var(--brand, #E8873C)";
+      return "var(--brand, #2A7A4B)";
   }
 }
 
@@ -556,7 +556,7 @@ function ShareWebsiteDialog({
             onClick={copyLink}
             className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left hover:bg-accent/40 active:scale-[0.99] transition-all"
           >
-            <span className="grid size-9 place-items-center rounded-lg bg-[color-mix(in_oklab,var(--brand,#E8873C)_14%,transparent)] text-[color:var(--brand,#E8873C)]">
+            <span className="grid size-9 place-items-center rounded-lg bg-[color-mix(in_oklab,var(--brand,#2A7A4B)_14%,transparent)] text-[color:var(--brand,#2A7A4B)]">
               <Copy className="size-4" />
             </span>
             <div className="min-w-0">
@@ -720,7 +720,7 @@ function activityMeta(kind: ActivityEvent["kind"]): {
     case "payment":
       return { color: "#f59e0b", icon: <IndianRupee className="size-4" /> };
     case "registration":
-      return { color: "var(--brand, #E8873C)", icon: <UserPlus className="size-4" /> };
+      return { color: "var(--brand, #2A7A4B)", icon: <UserPlus className="size-4" /> };
   }
 }
 

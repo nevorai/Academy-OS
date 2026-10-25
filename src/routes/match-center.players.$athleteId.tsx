@@ -210,7 +210,7 @@ function AthleteProfilePage() {
           className="h-24 sm:h-28"
           style={{
             background:
-              "linear-gradient(120deg, var(--tenant-brand, var(--brand, #E8873C)) 0%, transparent 90%)",
+              "linear-gradient(120deg, var(--tenant-brand, var(--brand, #2A7A4B)) 0%, transparent 90%)",
           }}
         />
         <div className="-mt-12 px-6 pb-6 sm:px-8 sm:pb-8">
@@ -898,7 +898,7 @@ function TimelineTab({ athleteId, tenantId }: { athleteId: string; tenantId: str
               <span className="absolute -left-2.5 mt-1.5 grid size-5 place-items-center rounded-full border border-border bg-card">
                 <span
                   className="size-2 rounded-full"
-                  style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
+                  style={{ backgroundColor: "var(--tenant-brand, var(--brand, #2A7A4B))" }}
                 />
               </span>
               <div className="flex items-start justify-between gap-3 rounded-2xl border border-border bg-card p-4">

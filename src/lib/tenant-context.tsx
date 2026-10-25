@@ -71,8 +71,11 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       // Auto-pick a sport-appropriate palette from niche + slug.
       // Existing per-tenant primary_color still wins so owners keep control.
       const preset = pickPreset(t.niche, t.slug);
-      root.style.setProperty("--brand", t.primary_color || preset.primary);
-      root.style.setProperty("--brand-ink", t.secondary_color || preset.ink);
+      // The owner and player app wears one cricket-green brand (set by DashboardProvider); only the public site takes the academy's colour.
+      if (!/^\/(dashboard|match-center|coach)(\/|$)/.test(window.location.pathname)) {
+        root.style.setProperty("--brand", t.primary_color || preset.primary);
+        root.style.setProperty("--brand-ink", t.secondary_color || preset.ink);
+      }
       root.style.setProperty("--brand-accent", preset.accent);
       root.style.setProperty("--brand-surface", preset.surface);
       document.title = t.tagline ? `${t.name} — ${t.tagline}` : t.name;

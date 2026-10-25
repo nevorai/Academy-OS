@@ -11,7 +11,6 @@ import {
   Swords,
   Users,
   LineChart,
-  UserCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -153,17 +152,6 @@ const SUB_TABS: SubTab[] = [
     ],
     label: "Insights",
     icon: LineChart,
-  },
-  {
-    to: "/match-center/profile",
-    match: [
-      "/match-center/profile",
-      "/match-center/settings",
-      "/match-center/scorers",
-      "/match-center/website",
-    ],
-    label: "More",
-    icon: UserCircle,
   },
 ];
 

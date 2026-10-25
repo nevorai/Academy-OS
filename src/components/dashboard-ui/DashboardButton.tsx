@@ -75,7 +75,7 @@ export const DashboardButton = forwardRef<HTMLButtonElement, DashboardButtonProp
         disabled={disabled || loading}
         style={primaryStyle}
         className={cn(
-          "inline-flex items-center justify-center gap-1.5 rounded-full font-semibold transition-colors",
+          "inline-flex items-center justify-center gap-1.5 rounded-[9px] font-semibold transition-colors",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
           "disabled:opacity-50 disabled:pointer-events-none",
           sizeClass[size],
@@ -121,7 +121,7 @@ export function DashboardFloatingAction({
       aria-label={label}
       className={cn(
         "fixed bottom-20 right-4 md:hidden z-40 grid place-items-center",
-        "size-14 rounded-full text-[color:var(--brand-ink)] shadow-lg",
+        "size-14 rounded-2xl text-[color:var(--brand-ink)] shadow-lg",
         "transition-transform active:scale-95",
         className,
       )}

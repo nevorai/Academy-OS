@@ -306,7 +306,7 @@ function MatchCenterDashboard() {
                     <li key={t.id} className="relative pl-7">
                       <span
                         className="absolute left-1 top-1 size-[7px] rounded-full ring-4 ring-card"
-                        style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
+                        style={{ backgroundColor: "var(--tenant-brand, var(--brand, #2A7A4B))" }}
                       />
                       <div className="text-sm font-medium leading-tight truncate">{t.title}</div>
                       {t.description && (
@@ -559,7 +559,7 @@ function PrimaryStartMatchCard() {
       className="group md:col-span-3 relative overflow-hidden rounded-2xl border border-border p-6 flex flex-col justify-between min-h-[168px] text-white transition-all hover:-translate-y-[1px] hover:shadow-[var(--shadow-elev)]"
       style={{
         background:
-          "linear-gradient(135deg, var(--tenant-brand, var(--brand, #E8873C)) 0%, color-mix(in oklch, var(--tenant-brand, var(--brand, #E8873C)) 70%, black) 100%)",
+          "linear-gradient(135deg, var(--tenant-brand, var(--brand, #2A7A4B)) 0%, color-mix(in oklch, var(--tenant-brand, var(--brand, #2A7A4B)) 70%, black) 100%)",
       }}
     >
       <div
@@ -666,7 +666,7 @@ function OnboardingChecklist() {
       <div className="flex items-start gap-3 mb-6">
         <div
           className="size-10 rounded-2xl grid place-items-center text-white shrink-0"
-          style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
+          style={{ backgroundColor: "var(--tenant-brand, var(--brand, #2A7A4B))" }}
         >
           <Rocket className="size-5" />
         </div>

@@ -33,7 +33,7 @@ export function DashboardFilterSelect({
         {label}
       </Label>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="h-10 rounded-xl bg-background">
+        <SelectTrigger className="h-10 rounded-[9px] bg-background">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -72,7 +72,7 @@ export function DashboardFilters({
   return (
     <div
       className={cn(
-        "rounded-2xl bg-card border border-border shadow-sm p-3 space-y-3",
+        "rounded-[10px] bg-card border border-border p-3 space-y-3",
         className,
       )}
     >

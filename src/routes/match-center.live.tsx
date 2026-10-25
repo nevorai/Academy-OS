@@ -36,7 +36,7 @@ function LivePage() {
         <div className="flex w-full max-w-sm flex-col items-center gap-5">
           <div
             className="grid size-20 place-items-center rounded-3xl text-white"
-            style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
+            style={{ backgroundColor: "var(--tenant-brand, var(--brand, #2A7A4B))" }}
           >
             <Radio className="size-9" strokeWidth={1.8} />
           </div>

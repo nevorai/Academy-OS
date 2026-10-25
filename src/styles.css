@@ -35,10 +35,10 @@
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
+  --radius-xl: 0.625rem;
+  --radius-2xl: 0.75rem;
+  --radius-3xl: 0.875rem;
+  --radius-4xl: 1rem;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -91,41 +91,47 @@
   --app-safe-right: var(--app-safe-right);
 
   --radius: 0.625rem;
-  --background: oklch(0.97 0 0);
-  --foreground: oklch(0.16 0 0);
+  /* Cricket palette: ivory pitch dust ground, white-ball cards, turf green brand, willow gold and
+     cherry-ball red as small accents. Warm greys carry a trace of green so nothing reads cold. */
+  --background: oklch(0.966 0.009 105);
+  --foreground: oklch(0.2 0.025 160);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.16 0 0);
+  --card-foreground: oklch(0.2 0.025 160);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.16 0 0);
-  --primary: oklch(0.16 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.96 0 0);
-  --secondary-foreground: oklch(0.16 0 0);
-  --muted: oklch(0.96 0 0);
-  --muted-foreground: oklch(0.45 0 0);
-  --accent: oklch(0.96 0 0);
-  --accent-foreground: oklch(0.16 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
+  --popover-foreground: oklch(0.2 0.025 160);
+  --primary: oklch(0.3 0.058 158);
+  --primary-foreground: oklch(0.985 0.008 105);
+  --secondary: oklch(0.955 0.012 110);
+  --secondary-foreground: oklch(0.2 0.025 160);
+  --muted: oklch(0.955 0.012 110);
+  --muted-foreground: oklch(0.48 0.022 150);
+  --accent: oklch(0.945 0.025 150);
+  --accent-foreground: oklch(0.25 0.04 158);
+  --destructive: oklch(0.54 0.2 25);
   --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.91 0 0);
-  --input: oklch(0.91 0 0);
-  --ring: oklch(0.7 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+  --border: oklch(0.905 0.013 110);
+  --input: oklch(0.905 0.013 110);
+  --ring: oklch(0.55 0.1 155);
+  --chart-1: oklch(0.52 0.11 155);
+  --chart-2: oklch(0.74 0.1 85);
+  --chart-3: oklch(0.54 0.2 25);
+  --chart-4: oklch(0.68 0.07 70);
+  --chart-5: oklch(0.38 0.07 250);
   --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.16 0 0);
-  --sidebar-primary: oklch(0.16 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.96 0 0);
-  --sidebar-accent-foreground: oklch(0.16 0 0);
-  --sidebar-border: oklch(0.92 0 0);
-  --sidebar-ring: oklch(0.7 0 0);
-  /* Indian saffron — accent/highlight only, sparingly. */
-  --brand: #E8873C;
+  --sidebar-foreground: oklch(0.2 0.025 160);
+  --sidebar-primary: oklch(0.3 0.058 158);
+  --sidebar-primary-foreground: oklch(0.985 0.008 105);
+  --sidebar-accent: oklch(0.945 0.025 150);
+  --sidebar-accent-foreground: oklch(0.25 0.04 158);
+  --sidebar-border: oklch(0.905 0.013 110);
+  --sidebar-ring: oklch(0.55 0.1 155);
+  /* Turf green — the one brand colour of the owner and player apps. */
+  --brand: #2A7A4B;
   --brand-ink: #ffffff;
+  /* Small accents: willow (bat) gold and cherry (ball) red. */
+  --willow: #C9A25A;
+  --ball: #B3262D;
+  --ball-white: #FBF9F2;
 
   /* Semantic accents — used sparingly for meaning, not decoration. */
   --accent-live: oklch(0.65 0.19 250);
@@ -204,41 +210,44 @@
   --auth-border: oklch(1 0 0 / 16%);
   --auth-danger: oklch(0.7 0.17 25);
 
-  /* Premium glossy near-black + crisp white type. */
-  --background: oklch(0.115 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.165 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.165 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.14 0 0);
-  --secondary: oklch(0.23 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.21 0 0);
-  --muted-foreground: oklch(0.72 0 0);
-  --accent: oklch(0.25 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  /* Night turf: deep green-black ground, ivory type. */
+  --background: oklch(0.15 0.016 160);
+  --foreground: oklch(0.965 0.01 105);
+  --card: oklch(0.195 0.018 160);
+  --card-foreground: oklch(0.965 0.01 105);
+  --popover: oklch(0.195 0.018 160);
+  --popover-foreground: oklch(0.965 0.01 105);
+  --primary: oklch(0.955 0.015 105);
+  --primary-foreground: oklch(0.2 0.03 160);
+  --secondary: oklch(0.245 0.02 160);
+  --secondary-foreground: oklch(0.965 0.01 105);
+  --muted: oklch(0.235 0.02 160);
+  --muted-foreground: oklch(0.72 0.022 150);
+  --accent: oklch(0.27 0.03 155);
+  --accent-foreground: oklch(0.965 0.01 105);
   --destructive: oklch(0.68 0.2 22);
   --destructive-foreground: oklch(0.985 0 0);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.985 0 0 / 40%);
-  --chart-1: oklch(0.85 0 0);
-  --chart-2: oklch(0.7 0 0);
-  --chart-3: oklch(0.55 0 0);
-  --chart-4: oklch(0.4 0 0);
-  --chart-5: oklch(0.9 0 0);
-  --sidebar: oklch(0.145 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.985 0 0);
-  --sidebar-primary-foreground: oklch(0.14 0 0);
-  --sidebar-accent: oklch(0.23 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.7 0.1 155 / 60%);
+  --chart-1: oklch(0.72 0.12 155);
+  --chart-2: oklch(0.8 0.1 85);
+  --chart-3: oklch(0.68 0.19 25);
+  --chart-4: oklch(0.72 0.07 70);
+  --chart-5: oklch(0.7 0.08 250);
+  --sidebar: oklch(0.175 0.017 160);
+  --sidebar-foreground: oklch(0.965 0.01 105);
+  --sidebar-primary: oklch(0.955 0.015 105);
+  --sidebar-primary-foreground: oklch(0.2 0.03 160);
+  --sidebar-accent: oklch(0.27 0.03 155);
+  --sidebar-accent-foreground: oklch(0.965 0.01 105);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.985 0 0 / 40%);
-  --brand: #F0932B;
-  --brand-ink: #0f0f0f;
+  --sidebar-ring: oklch(0.7 0.1 155 / 60%);
+  --brand: #5DB886;
+  --brand-ink: #06130b;
+  --willow: #D8B672;
+  --ball: #E0585F;
+  --ball-white: #F3F1E8;
 
   --accent-live: oklch(0.72 0.18 250);
   --accent-success: oklch(0.75 0.17 155);
@@ -755,7 +764,7 @@ body {
   outline: none;
   box-shadow:
     0 0 0 2px var(--background),
-    0 0 0 4px color-mix(in oklch, var(--tenant-brand, var(--brand, #E8873C)) 65%, transparent);
+    0 0 0 4px color-mix(in oklch, var(--tenant-brand, var(--brand, #2A7A4B)) 65%, transparent);
   border-radius: 6px;
 }
 
@@ -894,3 +903,14 @@ body {
 .att-chip--present { background: color-mix(in srgb, var(--cal-present) 14%, transparent); color: var(--cal-present-2); border-color: color-mix(in srgb, var(--cal-present) 35%, transparent); }
 .att-chip--late { background: color-mix(in srgb, var(--cal-late) 14%, transparent); color: var(--cal-late-2); border-color: color-mix(in srgb, var(--cal-late) 35%, transparent); }
 .att-chip--absent { background: color-mix(in srgb, var(--cal-absent) 12%, transparent); color: var(--cal-absent-2); border-color: color-mix(in srgb, var(--cal-absent) 35%, transparent); }
+
+
+/* Owner and coach app: buttons, links, fields and chips are 8 px rounded rectangles (the Metrol CRM look), never capsules.
+   Avatars, status dots and switches stay round. Unlayered on purpose, so it beats Tailwind's rounded-full wherever a page used it. */
+.owner-app :is(button, a, input, select, textarea, [role="tab"], [role="combobox"]).rounded-full:not([role="switch"]):not([role="radio"]):not([role="checkbox"]) {
+  border-radius: 8px;
+}
+.owner-app span.rounded-full[class*="px-"],
+.owner-app div.rounded-full[class*="px-"] {
+  border-radius: 6px;
+}

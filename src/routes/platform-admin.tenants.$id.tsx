@@ -33,6 +33,12 @@ import {
 } from "lucide-react";
 import { uploadTenantFile, signedUrl } from "@/lib/storage";
 import { SiteContentTabs } from "@/components/dashboard/SiteContentTabs";
+import { PageHeadersEditor } from "@/components/dashboard/PageHeadersEditor";
+import { PoliciesEditor } from "@/components/dashboard/PoliciesEditor";
+import { ContactEditor } from "@/components/dashboard/ContactEditor";
+import { MatchWebsiteEditor } from "@/components/dashboard/MatchWebsiteEditor";
+import { FilterTabs } from "@/components/shared/FilterTabs";
+import { showFeesTab } from "@/lib/page-hero-images";
 import { AuditFeed } from "@/components/platform/AuditFeed";
 import { startImpersonation } from "@/lib/platform-impersonation";
 import { setTenantStatus } from "@/lib/platform-support";
@@ -123,47 +129,6 @@ function TenantDetail() {
       </div>
 
       <div className="flex gap-6 h-[calc(100vh-12rem)]">
-        {/* Tenant Sub-navigation Sidebar */}
-        <aside className="w-56 shrink-0 flex flex-col gap-1 border-r border-white/10 pr-4 overflow-y-auto">
-          <div className="mb-4">
-            <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-widest px-3 py-2">
-              Academy Settings
-            </h2>
-          </div>
-          {[
-            { id: "basics", label: "Business details", icon: Info },
-            { id: "branding", label: "Branding & assets", icon: Play },
-            { id: "content", label: "Site content", icon: Globe },
-            { id: "features", label: "Features", icon: ShieldAlert },
-            { id: "domain", label: "Academy URL & DNS", icon: ExternalLink },
-            { id: "subscription", label: "Your subscription", icon: UserCog },
-            { id: "access", label: "Access control", icon: Pause },
-            { id: "danger", label: "Danger zone", icon: ShieldAlert },
-          ].map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  const el = document.getElementById(item.id);
-                  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
-                className="flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all text-neutral-400 hover:text-white hover:bg-white/5 group"
-              >
-                <Icon className="h-4 w-4 text-neutral-500 group-hover:text-neutral-300" />
-                {item.label}
-              </button>
-            );
-          })}
-          <div className="mt-8 pt-4 border-t border-white/5">
-            <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-widest px-3 py-2">
-              Recent Activity
-            </h2>
-            <div className="max-h-64 overflow-y-auto px-1">
-              <AuditFeed tenantId={tenant.id} limit={10} />
-            </div>
-          </div>
-        </aside>
 
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto pr-2 space-y-8 scroll-smooth">
@@ -182,12 +147,18 @@ function TenantDetail() {
           </section>
 
           <section id="content" className="scroll-mt-6">
-            <Panel title="Site content — landing page">
+            <Panel title="Site content — public website">
               <p className="text-xs text-neutral-400 mb-3">
-                Hero background image/video, founder photo, coaches, gallery, star players, CTA
-                banner, Google Map — everything that shows on the public site.
+                Everything that shows on the academy's public site: hero, founder, coaches, gallery, star players,
+                page headers, policies, contact details and the printable registration form. The academy owner does not edit these.
               </p>
-              <SiteContentTabs tenantId={tenant.id} />
+              <SiteContentPanel tenant={tenant} onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })} />
+            </Panel>
+          </section>
+
+          <section id="matchsite" className="scroll-mt-6">
+            <Panel title="Match centre site — widgets and theme">
+              <MatchWebsiteEditor tenantId={tenant.id} slug={tenant.slug} />
             </Panel>
           </section>
 
@@ -243,7 +214,88 @@ function TenantDetail() {
             <TenantDangerZone tenant={tenant} />
           </section>
         </div>
+
+        {/* Settings menu: always on the right, the same for every academy */}
+        <aside className="hidden w-56 shrink-0 flex-col gap-1 overflow-y-auto border-l border-white/10 pl-4 md:flex">
+          <div className="mb-4">
+            <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-widest px-3 py-2">
+              Academy Settings
+            </h2>
+          </div>
+          {[
+            { id: "basics", label: "Business details", icon: Info },
+            { id: "branding", label: "Branding & assets", icon: Play },
+            { id: "content", label: "Site content", icon: Globe },
+            { id: "matchsite", label: "Match centre site", icon: Play },
+            { id: "features", label: "Features", icon: ShieldAlert },
+            { id: "domain", label: "Academy URL & DNS", icon: ExternalLink },
+            { id: "subscription", label: "Your subscription", icon: UserCog },
+            { id: "access", label: "Access control", icon: Pause },
+            { id: "danger", label: "Danger zone", icon: ShieldAlert },
+          ].map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  const el = document.getElementById(item.id);
+                  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                className="flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all text-neutral-400 hover:text-white hover:bg-white/5 group"
+              >
+                <Icon className="h-4 w-4 text-neutral-500 group-hover:text-neutral-300" />
+                {item.label}
+              </button>
+            );
+          })}
+          <div className="mt-8 pt-4 border-t border-white/5">
+            <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-widest px-3 py-2">
+              Recent Activity
+            </h2>
+            <div className="max-h-64 overflow-y-auto px-1">
+              <AuditFeed tenantId={tenant.id} limit={10} />
+            </div>
+          </div>
+        </aside>
       </div>
+    </div>
+  );
+}
+
+type SitePart = "site" | "headers" | "policies" | "contact";
+
+function SiteContentPanel({ tenant, onSaved }: { tenant: Tenant; onSaved: () => void }) {
+  const [part, setPart] = useState<SitePart>("site");
+  const t = tenant as Tenant & { page_hero_images?: unknown };
+  return (
+    <div className="space-y-4">
+      <FilterTabs<SitePart>
+        value={part}
+        onChange={setPart}
+        ariaLabel="Site content part"
+        items={[
+          { key: "site", label: "Sections" },
+          { key: "headers", label: "Page headers" },
+          { key: "policies", label: "Policies" },
+          { key: "contact", label: "Contact & forms" },
+        ]}
+      />
+      {part === "site" && <SiteContentTabs tenantId={tenant.id} />}
+      {part === "headers" && (
+        <PageHeadersEditor
+          tenantId={tenant.id}
+          initial={(t.page_hero_images as never) ?? null}
+          initialShowFees={showFeesTab(tenant as never)}
+        />
+      )}
+      {part === "policies" && <PoliciesEditor tenantId={tenant.id} />}
+      {part === "contact" && (
+        <ContactEditor
+          key={[tenant.phone, tenant.whatsapp, tenant.email, tenant.address, tenant.upi_id, tenant.tagline].join("|")}
+          tenant={tenant}
+          onSaved={onSaved}
+        />
+      )}
     </div>
   );
 }

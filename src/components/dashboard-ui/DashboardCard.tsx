@@ -21,7 +21,7 @@ export function DashboardCard({
   return (
     <Tag
       className={cn(
-        "rounded-2xl bg-card border border-border shadow-sm",
+        "rounded-[10px] bg-card border border-border",
         padded && "p-3 md:p-4",
         interactive && "transition-colors hover:bg-accent/40",
         className,

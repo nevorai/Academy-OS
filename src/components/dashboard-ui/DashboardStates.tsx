@@ -108,7 +108,7 @@ export function DashboardErrorState({
         <button
           type="button"
           onClick={onRetry}
-          className="h-9 px-4 rounded-full bg-foreground text-background text-sm font-medium hover:opacity-90 transition-opacity"
+          className="h-9 px-4 rounded-[9px] bg-foreground text-background text-sm font-medium hover:opacity-90 transition-opacity"
         >
           Try again
         </button>

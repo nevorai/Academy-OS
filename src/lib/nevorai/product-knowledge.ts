@@ -228,7 +228,7 @@ export const PRODUCT_KNOWLEDGE: ProductKnowledgeTopic[] = [
   {
     id: "website-gallery",
     title: "Website & Photo Gallery",
-    screens: ["/dashboard/site"],
+    screens: [],
     keywords: [
       "website",
       "site",
@@ -244,16 +244,15 @@ export const PRODUCT_KNOWLEDGE: ProductKnowledgeTopic[] = [
       "public page",
     ],
     summary:
-      "Your public academy site is edited from Dashboard → Website. Gallery photos, hero images, testimonials, program cards — all live under the Site content tabs. Logo, colours and favicon are on the same Website page.",
+      "The Nevorai team manages your public academy site: hero images, gallery photos, coaches, testimonials, programs, logo, colours and contact details. Send what you want changed (photos, wording) to Nevorai support and it is updated for you.",
     steps: [
-      "Open Dashboard → Website (or /dashboard/site).",
-      "Stay on the Site content tab.",
-      "Scroll to the Gallery section, tap Upload and pick your image files. They appear on the public /gallery page immediately.",
+      "Send your photos or new wording to Nevorai support (Profile → Help & Support).",
+      "The Nevorai team uploads them; they appear on your public site and /gallery page.",
     ],
     faq: [
       {
         q: "Where does the logo change?",
-        a: "Dashboard → Website (/dashboard/site) — logo, favicon and brand colour all live there.",
+        a: "The Nevorai team changes your logo, favicon and colours. Send the new logo to Nevorai support.",
       },
     ],
     troubleshooting: [
@@ -450,7 +449,7 @@ export const PAGE_SUGGESTIONS: Array<{
     ],
   },
   {
-    match: (p) => p.startsWith("/dashboard/site") || p.startsWith("/dashboard/branding"),
+    match: (p) => p.startsWith("/dashboard/branding"),
     label: "Website",
     suggestions: [
       "How do I upload photos to my gallery?",

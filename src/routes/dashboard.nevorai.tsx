@@ -158,7 +158,7 @@ function NevorAIPage() {
               className="grid size-7 shrink-0 place-items-center rounded-lg"
               style={{
                 background:
-                  "linear-gradient(135deg, var(--tenant-brand, var(--brand, #E8873C)) 0%, color-mix(in oklab, var(--tenant-brand, var(--brand, #E8873C)) 60%, #6366f1) 100%)",
+                  "linear-gradient(135deg, var(--tenant-brand, var(--brand, #2A7A4B)) 0%, color-mix(in oklab, var(--tenant-brand, var(--brand, #2A7A4B)) 60%, #6366f1) 100%)",
               }}
             >
               <Sparkles className="size-4 text-white" />

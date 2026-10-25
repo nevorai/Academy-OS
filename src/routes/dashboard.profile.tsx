@@ -13,10 +13,8 @@ import {
   MapPin,
   UserCircle,
   BellRing,
-  Palette,
   Settings2,
   CreditCard,
-  Globe,
   ShieldCheck,
   LifeBuoy,
   AlertTriangle,
@@ -81,10 +79,10 @@ function ProfilePage() {
         icon: BellRing,
       },
       {
-        to: "/dashboard/settings",
-        label: "And also they can move, uh, from active tab to the, uh, left tab, right? Active players and those players who left it, right? Who left. And also there should be a double confirmation to delete, uh, the player, completely delete the profile, right? And I guess, uh, we can also put a complete delete profile inside, uh, some kind of recovery data, kind of in-inside a profile tab. So at least a particular person or profile data or number should not get permanently deleted, right? It should be stored in some other way, so it can be archived or sen-- uh, it can be again restore kind of thing. If so, for example, after a one year or two year, that player come back, so at least we have that particular data. So in this way, we can save and store whole data. Develop-- In, in short, I don't want to delete the any kind of data from the applications, right?",
-        hint: "Student lifecycle and data retention management",
-        icon: Palette,
+        to: "/dashboard/students",
+        label: "Left players and recovery",
+        hint: "Move players to Left, recover or delete a profile",
+        icon: Database,
       },
     ],
   });
@@ -101,10 +99,16 @@ function ProfilePage() {
           icon: Settings2,
         },
         {
-          to: "/dashboard/site",
-          label: "Public Website",
-          hint: "Edit pages, SEO, social, payments",
-          icon: Globe,
+          to: "/match-center/scorers",
+          label: "Scorers",
+          hint: "Who may score matches",
+          icon: ShieldCheck,
+        },
+        {
+          to: "/match-center/settings",
+          label: "Match settings",
+          hint: "Match defaults and preferences",
+          icon: Settings2,
         },
         {
           to: "/dashboard/payment-settings",
@@ -350,7 +354,7 @@ function ShareWebsiteDialog({
             onClick={copyLink}
             className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left hover:bg-accent/40 active:scale-[0.99] transition-all"
           >
-            <span className="grid size-9 place-items-center rounded-lg bg-[color-mix(in_oklab,var(--brand,#E8873C)_14%,transparent)] text-[color:var(--brand,#E8873C)]">
+            <span className="grid size-9 place-items-center rounded-lg bg-[color-mix(in_oklab,var(--brand,#2A7A4B)_14%,transparent)] text-[color:var(--brand,#2A7A4B)]">
               <Copy className="size-4" />
             </span>
             <div className="min-w-0">

@@ -206,7 +206,7 @@ export function TeamCard({
         <div
           className="size-12 shrink-0 rounded-xl grid place-items-center text-white text-base font-bold overflow-hidden"
           style={{
-            backgroundColor: team.team_color || "var(--tenant-brand, var(--brand, #E8873C))",
+            backgroundColor: team.team_color || "var(--tenant-brand, var(--brand, #2A7A4B))",
           }}
         >
           {team.logo_url ? (
@@ -328,7 +328,7 @@ export function TeamHeader({
         <div
           className="size-16 shrink-0 rounded-2xl grid place-items-center text-white text-xl font-bold overflow-hidden"
           style={{
-            backgroundColor: anyTeam.team_color || "var(--tenant-brand, var(--brand, #E8873C))",
+            backgroundColor: anyTeam.team_color || "var(--tenant-brand, var(--brand, #2A7A4B))",
           }}
         >
           {anyTeam.logo_url ? (

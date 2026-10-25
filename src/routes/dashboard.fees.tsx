@@ -102,10 +102,10 @@ function FeesHub() {
                 onClick={() => go(t.key)}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors",
+                  "shrink-0 rounded-[7px] border px-3.5 py-1.5 text-[13px] font-semibold transition-colors",
                   active
-                    ? "bg-foreground text-background"
-                    : "bg-muted text-muted-foreground hover:text-foreground",
+                    ? "border-[color:var(--brand)] bg-[color:var(--brand)] text-[color:var(--brand-ink)]"
+                    : "border-border bg-card text-muted-foreground hover:text-foreground",
                 )}
               >
                 <span className="inline-flex items-center gap-1.5">

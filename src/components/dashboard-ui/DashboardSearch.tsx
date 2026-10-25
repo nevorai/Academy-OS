@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 /**
  * DashboardSearch — the canonical search input.
  *
- * Same pill radius, height, icon and placement everywhere. Do not use a raw
+ * Same 9 px radius, height, icon and placement everywhere. Do not use a raw
  * <Input> for search fields inside dashboard routes.
  */
 export const DashboardSearch = forwardRef<
@@ -25,7 +25,7 @@ export const DashboardSearch = forwardRef<
 ) {
   return (
     <div className={cn("relative flex-1 min-w-0", className)}>
-      <Search className="size-4 absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+      <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
       <Input
         ref={ref}
         aria-label={ariaLabel ?? placeholder}
@@ -33,7 +33,7 @@ export const DashboardSearch = forwardRef<
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         autoFocus={autoFocus}
-        className="pl-10 h-11 rounded-full bg-card border-border shadow-sm"
+        className="h-10 rounded-[9px] border-border bg-card pl-10 shadow-none"
       />
     </div>
   );

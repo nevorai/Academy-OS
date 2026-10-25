@@ -159,7 +159,7 @@ export function RemindersPanel() {
                   onClick={() =>
                     r.status === "queued" && setStatus.mutate({ id: r.id, status: "sent" })
                   }
-                  className="inline-flex items-center gap-1.5 rounded-full bg-[#25D366] px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:brightness-110"
+                  className="inline-flex items-center gap-1.5 rounded-[7px] bg-[#25D366] px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:brightness-110"
                 >
                   <MessageCircle className="size-3.5" fill="currentColor" /> Send on WhatsApp
                 </a>
@@ -198,7 +198,7 @@ function StatusPill({ status }: { status: ReminderStatus }) {
   };
   return (
     <span
-      className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${styles[status]}`}
+      className={`rounded-[5px] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${styles[status]}`}
     >
       {status}
     </span>

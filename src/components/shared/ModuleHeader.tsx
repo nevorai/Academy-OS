@@ -52,7 +52,7 @@ export function ModuleHeader({
       <button
         type="button"
         onClick={onBack}
-        className="-ml-2 grid size-9 shrink-0 place-items-center rounded-full active:bg-accent/60 no-tap-highlight"
+        className="-ml-2 grid size-9 shrink-0 place-items-center rounded-[9px] border border-border bg-card active:bg-accent/60 no-tap-highlight"
         aria-label="Back"
       >
         <ArrowLeft className="size-[18px]" />
@@ -63,7 +63,7 @@ export function ModuleHeader({
             {overline}
           </div>
         ) : null}
-        <div className="text-[15px] font-semibold leading-tight truncate">{title}</div>
+        <div className="font-display text-[17px] font-bold leading-tight tracking-tight truncate">{title}</div>
       </div>
       {action ? <div className="flex shrink-0 items-center gap-1.5">{action}</div> : null}
     </div>

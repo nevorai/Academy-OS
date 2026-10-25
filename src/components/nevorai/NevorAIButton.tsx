@@ -44,7 +44,7 @@ export function NevorAIButton({ className }: { className?: string }) {
     >
       <Sparkles
         className="size-3.5"
-        style={{ color: "var(--tenant-brand, var(--brand, #E8873C))" }}
+        style={{ color: "var(--tenant-brand, var(--brand, #2A7A4B))" }}
       />
       <span className="hidden sm:inline">NevorAI</span>
       {showDot ? (

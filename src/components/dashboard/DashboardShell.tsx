@@ -18,7 +18,7 @@ import {
   ClipboardCheck,
   Swords,
   Megaphone,
-  Image as ImageIcon,
+  UserCircle,
   Sparkles,
   LayoutGrid,
   Moon,
@@ -49,10 +49,10 @@ type NavItem = {
   tourId?: string;
 };
 
-// Eleven items, daily things first. Everything else (batches, activation, automation, team, billing,
+// Twelve items, daily things first (Profile is pinned at the foot). Everything else (batches, activation, automation, team, billing,
 // AI health) is one tap away in Manage; Match Center carries its own tabs (Live, Matches, Players,
-// Insights, More); Registrations and Activation share one Admissions page tab strip.
-type NavGroup = { title: string | null; items: NavItem[] };
+// Insights); Registrations and Activation share one Admissions page tab strip.
+type NavGroup = { title: string | null; bottom?: boolean; items: NavItem[] };
 const navGroups: NavGroup[] = [
   {
     title: null,
@@ -91,13 +91,18 @@ const navGroups: NavGroup[] = [
     title: "Grow",
     items: [
       { to: "/dashboard/communications", label: "Communications", icon: Megaphone },
-      { to: "/dashboard/site", label: "Website", icon: ImageIcon, tourId: "site" },
       { to: "/dashboard/reports", label: "Reports", icon: BarChart3 },
     ],
   },
   {
     title: null,
     items: [{ to: "/dashboard/academy", label: "Manage", icon: LayoutGrid, ownerOnly: true }],
+  },
+  // Pinned at the foot of the sidebar: account, notifications, settings, scorers.
+  {
+    title: null,
+    bottom: true,
+    items: [{ to: "/dashboard/profile", label: "Profile", icon: UserCircle, tourId: "profile" }],
   },
 ];
 
@@ -111,11 +116,9 @@ const LIT_ALSO: Record<string, string[]> = {
     "/dashboard/automation",
     "/dashboard/billing",
     "/dashboard/nevorai-health",
-    "/dashboard/profile",
-    "/dashboard/settings",
     "/dashboard/subscription",
-    "/dashboard/notifications",
   ],
+  "/dashboard/profile": ["/dashboard/settings", "/dashboard/notifications", "/dashboard/payment-settings"],
   "/match-center": ["/scorer"],
 };
 
@@ -171,12 +174,12 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       });
 
   const groups: SideGroup[] = navGroups
-    .map((g) => ({ title: g.title ? t(g.title) : null, items: withBadges(g.items) }))
+    .map((g) => ({ title: g.title ? t(g.title) : null, bottom: g.bottom, items: withBadges(g.items) }))
     .filter((g) => g.items.length > 0);
 
   return (
     <NevorAIProvider>
-    <div className="min-h-dvh bg-background text-foreground">
+    <div className="owner-app min-h-dvh bg-background text-foreground">
       {/* Top bar */}
       <div
         aria-hidden="true"
@@ -261,7 +264,7 @@ function TenantMark({ tenant }: { tenant: { name: string; logo_url: string | nul
     <div className="flex min-w-0 items-center gap-2.5">
       <div
         className="grid size-8 shrink-0 place-items-center rounded-md text-xs font-bold text-white"
-        style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
+        style={{ backgroundColor: "var(--tenant-brand, var(--brand, #2A7A4B))" }}
       >
         {tenant.logo_url ? (
           <StoragedImage

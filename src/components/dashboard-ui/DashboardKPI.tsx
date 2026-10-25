@@ -29,7 +29,7 @@ export function DashboardKPIRow({
 
 /**
  * DashboardKPICard — single KPI. Reuses the exact card token
- * (rounded-2xl / bg-card / border / shadow-sm) from Students.
+ * (10 px radius, hairline border, ink rule on top) from Students.
  */
 export function DashboardKPICard({
   label,
@@ -64,7 +64,7 @@ export function DashboardKPICard({
       type={onClick ? "button" : undefined}
       onClick={onClick}
       className={cn(
-        "rounded-2xl bg-card border border-border shadow-sm p-3 md:p-4 text-left transition-colors",
+        "rounded-[10px] border border-border border-t-2 border-t-foreground bg-card p-3 text-left transition-colors md:p-4",
         onClick && "hover:bg-accent/40",
         className,
       )}
@@ -75,7 +75,7 @@ export function DashboardKPICard({
         </div>
         {icon ? <div className="text-muted-foreground shrink-0">{icon}</div> : null}
       </div>
-      <div className={cn("mt-1 text-xl md:text-2xl font-semibold tabular-nums", toneClass)}>
+      <div className={cn("mt-1 font-display text-xl font-bold tabular-nums tracking-tight md:text-[26px]", toneClass)}>
         {value}
       </div>
       {delta ? <div className="text-xs text-muted-foreground mt-0.5">{delta}</div> : null}

@@ -17,7 +17,7 @@ export function DashboardList({
   return (
     <section
       className={cn(
-        "rounded-2xl bg-card border border-border shadow-sm overflow-hidden",
+        "rounded-[10px] bg-card border border-border overflow-hidden",
         className,
       )}
     >

@@ -185,7 +185,7 @@ export function QuickActionCard({
           color: toneVar[tone],
         }
       : accent === "brand"
-        ? { backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))", color: "#fff" }
+        ? { backgroundColor: "var(--tenant-brand, var(--brand, #2A7A4B))", color: "#fff" }
         : {};
   const inner = (
     <div className="group relative flex h-full flex-col justify-between gap-6 rounded-2xl border border-border bg-card p-5 transition-all hover:border-foreground/20 hover:-translate-y-[1px] hover:shadow-[var(--shadow-elev)]">
@@ -248,7 +248,7 @@ export function EmptyState({
   nextSteps?: string[];
 }) {
   const isTrophy = illustration === "trophy";
-  const accent = tone === "neutral" ? "var(--tenant-brand, var(--brand, #E8873C))" : toneVar[tone];
+  const accent = tone === "neutral" ? "var(--tenant-brand, var(--brand, #2A7A4B))" : toneVar[tone];
   return (
     <div
       className={cn(
@@ -288,7 +288,7 @@ export function EmptyState({
         style={
           tone === "neutral"
             ? {
-                backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))",
+                backgroundColor: "var(--tenant-brand, var(--brand, #2A7A4B))",
                 color: "#fff",
               }
             : {

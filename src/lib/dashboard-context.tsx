@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import type { Session } from "@supabase/supabase-js";
@@ -92,18 +92,34 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  // Leaving the app for the public site (no reload): hand the academy's own colour back to it.
+  const tenantRef = useRef<Tenant | null | undefined>(null);
+  tenantRef.current = tenantQ.data;
+  useEffect(
+    () => () => {
+      const root = document.documentElement;
+      const t = tenantRef.current;
+      if (t?.primary_color) root.style.setProperty("--brand", t.primary_color);
+      else root.style.removeProperty("--brand");
+      if (t?.secondary_color) root.style.setProperty("--brand-ink", t.secondary_color);
+      else root.style.removeProperty("--brand-ink");
+    },
+    [],
+  );
+
   // Inject branding — muted premium gold accent, universal light/dark.
   useEffect(() => {
     if (typeof document === "undefined") return;
     const t = tenantQ.data;
     const root = document.documentElement;
     const isDark = root.classList.contains("dark");
-    root.style.setProperty("--brand", isDark ? "#F0932B" : "#E8873C");
-    root.style.setProperty("--brand-ink", isDark ? "#0f0f0f" : "#ffffff");
+    // One brand colour for the whole owner and player app: cricket turf green (the academy's own colour lives on its public site).
+    root.style.setProperty("--brand", isDark ? "#5DB886" : "#2A7A4B");
+    root.style.setProperty("--brand-ink", isDark ? "#06130b" : "#ffffff");
+    root.style.removeProperty("--tenant-brand");
+    root.style.removeProperty("--tenant-brand-ink");
 
     if (t) {
-      if (t.primary_color) root.style.setProperty("--tenant-brand", t.primary_color);
-      if (t.secondary_color) root.style.setProperty("--tenant-brand-ink", t.secondary_color);
       document.title = `${t.name} · Dashboard`;
     }
   }, [tenantQ.data]);

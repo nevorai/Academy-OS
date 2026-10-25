@@ -357,7 +357,7 @@ export function ChatPanel({
                 className="grid size-14 place-items-center rounded-2xl text-2xl text-white shadow-sm"
                 style={{
                   background:
-                    "linear-gradient(135deg, var(--tenant-brand, var(--brand, #E8873C)), color-mix(in oklab, var(--tenant-brand, var(--brand, #E8873C)) 55%, transparent))",
+                    "linear-gradient(135deg, var(--tenant-brand, var(--brand, #2A7A4B)), color-mix(in oklab, var(--tenant-brand, var(--brand, #2A7A4B)) 55%, transparent))",
                 }}
               >
                 ✨

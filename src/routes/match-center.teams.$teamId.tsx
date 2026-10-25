@@ -527,7 +527,7 @@ function SettingsTab({
     age_group_custom: team.age_group_custom ?? "",
     coach_name: team.coach_name ?? "",
     assistant_coach_name: team.assistant_coach_name ?? "",
-    team_color: team.team_color ?? "#E8873C",
+    team_color: team.team_color ?? "#2A7A4B",
     season: team.season ?? "",
     description: team.description ?? "",
     status: (team.status ?? "active") as (typeof TEAM_STATUSES)[number],

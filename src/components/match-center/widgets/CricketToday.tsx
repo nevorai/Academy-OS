@@ -149,7 +149,7 @@ function PlayersTile({ count }: { count: number }) {
     <Link to="/match-center/players" className="group">
       <Card className="p-2.5 min-h-[80px] flex flex-col justify-between transition-all hover:border-[color:var(--brand)]/40 hover:-translate-y-[1px]">
         <div className="flex items-center justify-between">
-          <span className="grid size-7 place-items-center rounded-lg bg-[color-mix(in_oklab,var(--brand,#E8873C)_14%,transparent)] text-[color:var(--brand,#E8873C)]">
+          <span className="grid size-7 place-items-center rounded-lg bg-[color-mix(in_oklab,var(--brand,#2A7A4B)_14%,transparent)] text-[color:var(--brand,#2A7A4B)]">
             <Users className="size-4" />
           </span>
           <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">

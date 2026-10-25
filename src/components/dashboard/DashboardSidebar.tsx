@@ -17,7 +17,7 @@ export type SideItem = {
   /** Other pages that belong to this item: it stays lit on them. */
   also?: string[];
 };
-export type SideGroup = { title: string | null; items: SideItem[] };
+export type SideGroup = { title: string | null; items: SideItem[]; /** Pinned at the foot, above the fold button. */ bottom?: boolean };
 
 const L = SIDE_LIMITS;
 
@@ -29,8 +29,10 @@ const L = SIDE_LIMITS;
  * Nevorai sidebar standard: drag the edge to resize, fold to icons, the folded strip keeps its edge so a click
  * or drag opens it, every icon has an instant name tooltip, and the size is remembered. Phones use the bottom nav.
  */
-export function DashboardSidebar({ groups }: { groups: SideGroup[] }) {
+export function DashboardSidebar({ groups: allGroups }: { groups: SideGroup[] }) {
   const location = useLocation();
+  const groups = allGroups.filter((g) => !g.bottom);
+  const footItems = allGroups.filter((g) => g.bottom).flatMap((g) => g.items);
   const [pref, setPref] = useState(() => loadPanePref(SIDE_KEY, L.def, L.min, L.max));
   // While dragging: the look the panel has right now (null = follow the saved state).
   const [preview, setPreview] = useState<boolean | null>(null);
@@ -135,6 +137,10 @@ export function DashboardSidebar({ groups }: { groups: SideGroup[] }) {
               </div>
             ))}
           </nav>
+
+          {footItems.length > 0 ? (
+            <div className="flex flex-col gap-1 border-t border-border pt-2">{footItems.map(renderItem)}</div>
+          ) : null}
 
           <div className="flex justify-center pt-2">
             <Tip label={compact ? "Show names" : "Icons only"} side={compact ? "right" : "top"}>

@@ -258,11 +258,11 @@ export function CollectionsPanel({
           </div>
 
           {cycle === "calendar_month" && (
-            <div className="flex h-9 shrink-0 items-center rounded-full border border-border bg-card shadow-sm">
+            <div className="flex h-10 shrink-0 items-center rounded-[9px] border border-border bg-card">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-full"
+                className="h-8 w-8 rounded-[7px]"
                 aria-label="Previous month"
                 onClick={() => setMonthOffset((m) => m - 1)}
               >
@@ -274,7 +274,7 @@ export function CollectionsPanel({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-full"
+                className="h-8 w-8 rounded-[7px]"
                 aria-label="Next month"
                 disabled={monthOffset >= 0}
                 onClick={() => setMonthOffset((m) => Math.min(0, m + 1))}
@@ -289,7 +289,7 @@ export function CollectionsPanel({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 shrink-0 rounded-full border border-border bg-card shadow-sm"
+                className="h-10 w-10 shrink-0 rounded-[9px] border border-border bg-card"
                 aria-label="More actions"
               >
                 <MoreHorizontal className="size-4" />
@@ -324,7 +324,7 @@ export function CollectionsPanel({
 
 
 
-      <section className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
+      <section className="rounded-[10px] bg-card border border-border overflow-hidden">
         {loading ? (
           <SkeletonList />
         ) : visible.length === 0 ? (
@@ -436,7 +436,7 @@ function KpiStrip({
   pct: number;
 }) {
   return (
-    <div className="grid grid-cols-4 divide-x divide-border rounded-2xl border border-border bg-card shadow-sm">
+    <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
       <KpiCell label="Pending" value={money(pending)} tone="danger" />
       <KpiCell label="Collected" value={money(collected)} tone="success" />
       <KpiCell label="Overdue" value={String(overdueCount)} tone="danger" />
@@ -461,17 +461,17 @@ function KpiCell({
         ? "text-emerald-600"
         : "text-foreground";
   return (
-    <div className="min-w-0 px-2 py-2 text-center">
+    <div className="min-w-0 rounded-[10px] border border-border border-t-2 border-t-foreground bg-card px-3 py-2.5">
+      <div className="truncate text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        {label}
+      </div>
       <div
         className={cn(
-          "truncate text-[13px] font-bold tabular-nums sm:text-sm",
+          "mt-0.5 truncate font-display text-xl font-bold tabular-nums tracking-tight",
           color,
         )}
       >
         {value}
-      </div>
-      <div className="truncate text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-        {label}
       </div>
     </div>
   );
@@ -600,7 +600,7 @@ function FeeRow({
                   asChild
                   size="icon"
                   variant="ghost"
-                  className="rounded-full h-9 w-9 text-[#25D366] hover:bg-[#25D366]/10"
+                  className="rounded-[7px] h-9 w-9 text-[#25D366] hover:bg-[#25D366]/10"
                   aria-label="Remind on WhatsApp"
                 >
                   <a href={remindHref} target="_blank" rel="noreferrer">
@@ -610,7 +610,7 @@ function FeeRow({
               )}
               <Button
                 onClick={onCollect}
-                className="rounded-full h-9 px-4 font-semibold text-sm"
+                className="rounded-[7px] h-9 px-4 font-semibold text-sm"
                 style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
               >
                 Collect
@@ -623,7 +623,7 @@ function FeeRow({
                   asChild
                   size="icon"
                   variant="ghost"
-                  className="rounded-full h-9 w-9 text-[#25D366] hover:bg-[#25D366]/10"
+                  className="rounded-[7px] h-9 w-9 text-[#25D366] hover:bg-[#25D366]/10"
                   aria-label="Send receipt on WhatsApp"
                 >
                   <a href={receiptHref} target="_blank" rel="noreferrer">
@@ -634,7 +634,7 @@ function FeeRow({
               <Button
                 size="icon"
                 variant="ghost"
-                className="rounded-full h-9 w-9"
+                className="rounded-[7px] h-9 w-9"
                 aria-label="Download receipt"
                 onClick={onReceipt}
               >
@@ -703,12 +703,12 @@ function EmptyState({
           Add students or assign a fee plan to start collecting.
         </div>
         <div className="flex items-center justify-center gap-2">
-          <Button asChild variant="outline" className="rounded-full">
+          <Button asChild variant="outline" className="rounded-[7px]">
             <Link to="/dashboard/students">Add Student</Link>
           </Button>
           <Button
             asChild
-            className="rounded-full"
+            className="rounded-[7px]"
             style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
           >
             <Link to="/dashboard/fee-plans">Assign Fee Plan</Link>

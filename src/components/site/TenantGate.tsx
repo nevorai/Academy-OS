@@ -1,6 +1,5 @@
-import type { ReactNode } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 import { useTenantState } from "@/lib/tenant-context";
-import { TenantPlaceholder } from "./TenantPlaceholder";
 import { DomainNotConfigured } from "./DomainNotConfigured";
 import { SiteHeader } from "./SiteHeader";
 import { SiteFooter } from "./SiteFooter";
@@ -8,6 +7,12 @@ import { FloatingWhatsApp } from "./FloatingWhatsApp";
 
 import { isReservedPlatformHost } from "@/lib/tenant";
 import { requestHostname } from "@/lib/seo";
+
+// The Nevorai Academy marketing page (and its animation library) is only for the platform host; an
+// academy's own site never loads it.
+const TenantPlaceholder = lazy(() =>
+  import("./TenantPlaceholder").then((m) => ({ default: m.TenantPlaceholder })),
+);
 
 /**
  * Wraps public site pages: shows a placeholder when no tenant is resolved,
@@ -42,7 +47,13 @@ export function TenantGate({
     // Reserved platform host (academy.nevorai.com, nevorai.com, lovable
     // preview URLs…) → platform marketing site. Any other unknown hostname
     // is a misconfigured domain, not an ad for Nevorai Academy.
-    return isReservedPlatformHost(host) ? <TenantPlaceholder /> : <DomainNotConfigured />;
+    return isReservedPlatformHost(host) ? (
+      <Suspense fallback={null}>
+        <TenantPlaceholder />
+      </Suspense>
+    ) : (
+      <DomainNotConfigured />
+    );
   }
 
   if (state.status === "suspended") {

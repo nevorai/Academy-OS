@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { getRouteApi, Link } from "@tanstack/react-router";
 import { Radio } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/lib/tenant-context";
 import { useMatchLive } from "@/hooks/use-match-live";
 import { isLiveStale, lastBallTime } from "@/lib/mc-live";
+import type { PublicSiteBundle } from "@/lib/public-site";
+
+const rootApi = getRouteApi("__root__");
 
 type LiveMatch = {
   id: string;
@@ -33,6 +36,10 @@ type TeamMap = Record<string, string>;
  */
 export function LiveMatchBanner() {
   const tenant = useTenant();
+  // The server already checked for a real live match when it built the page: on a quiet day the
+  // banner makes no request at all and only looks again on a slow beat.
+  const { site } = rootApi.useLoaderData() as { site: PublicSiteBundle | null };
+  const quietAtLoad = site?.live === false;
   const [match, setMatch] = useState<LiveMatch | null>(null);
   const [teams, setTeams] = useState<TeamMap>({});
   const [innings, setInnings] = useState<Innings | null>(null);
@@ -135,8 +142,12 @@ export function LiveMatchBanner() {
   };
 
   useEffect(() => {
-    load();
-    const id = window.setInterval(load, 30_000);
+    if (!quietAtLoad) load();
+    // Realtime (below) carries a live match; this slow beat only notices a match that starts while
+    // the page is open, and does nothing in a hidden tab.
+    const id = window.setInterval(() => {
+      if (document.visibilityState === "visible") load();
+    }, 90_000);
     return () => window.clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenant.id]);

@@ -14,6 +14,38 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
+    environments: {
+      client: {
+        build: {
+          rolldownOptions: {
+            output: {
+              // The bundler's default made one tiny file per shared module (about 45 for the
+              // first page, one per icon), so a first visit cost ~60 script requests. Pack what
+              // the first load needs into one file and the icons into another. Lazy screens
+              // (dashboard, charts, exports) stay in their own files and load only when opened.
+              codeSplitting: {
+                groups: [
+                  { name: "icons", test: /node_modules[\\/]lucide-react[\\/]/, priority: 2 },
+                  { name: "app-core", tags: ["$initial"], priority: 1 },
+                  // The public site shell every academy page draws (header, footer, gate, picture),
+                  // and the small helpers it starts after load, each in one file instead of seven.
+                  {
+                    name: "site-shell",
+                    test: /src[\\/]components[\\/]site[\\/](TenantGate|SiteHeader|SiteFooter|FloatingWhatsApp|StoragedImage|StarPlayersShowcase|LiveMatchBanner)\./,
+                    priority: 1,
+                  },
+                  {
+                    name: "site-late",
+                    test: /src[\\/]lib[\\/](pwa[\\/]|page-hero-images)/,
+                    priority: 1,
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    },
     plugins: [
       // Custom-SW strategy (injectManifest) — we own /sw.js so we can handle
       // `push`/`notificationclick` for Web Push. `devOptions.enabled: false` +

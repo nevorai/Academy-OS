@@ -19,6 +19,7 @@ import {
   type Tenant,
 } from "@/lib/tenant";
 import { isPublicSitePath, isSafeHostToken, type PublicSiteBundle } from "@/lib/public-site";
+import { isLiveStale } from "@/lib/mc-live";
 
 const PUBLIC_COLS =
   "id, slug, name, short_name, tagline, custom_domain, logo_url, primary_color, secondary_color, niche, features, phone, whatsapp, email, address, status, fee_cycle, player_prefix, registration_pdf_url, page_hero_images, show_fees_tab, gender_pricing_enabled, admission_fee_enabled";
@@ -103,7 +104,7 @@ export const getPublicSite = createServerFn({ method: "GET" })
       return cacheAndReturn(cacheKey, { ...empty, tenant });
     }
 
-    const [content, fees, batches] = await Promise.all([
+    const [content, fees, batches, live] = await Promise.all([
       supabase
         .from("site_content")
         .select("*")
@@ -122,6 +123,7 @@ export const getPublicSite = createServerFn({ method: "GET" })
         .eq("tenant_id", tenant.id)
         .eq("active", true)
         .order("name", { ascending: true }),
+      hasLiveMatch(supabase, tenant.id),
     ]);
     // A failed read leaves that list null so the page falls back to asking from the browser.
     const bundle: PublicSiteBundle = {
@@ -129,10 +131,55 @@ export const getPublicSite = createServerFn({ method: "GET" })
       siteContent: content.error ? null : ((content.data ?? []) as SiteContent[]),
       feePlans: fees.error ? null : ((fees.data ?? []) as FeePlan[]),
       batches: batches.error ? null : ((batches.data ?? []) as Batch[]),
+      live,
     };
     const failed = Boolean(content.error || fees.error || batches.error);
     return failed ? bundle : cacheAndReturn(cacheKey, bundle);
   });
+
+type AnonClient = NonNullable<Awaited<ReturnType<typeof anonClient>>>;
+
+/**
+ * Is a public match flagged live AND still being scored (last ball within the idle limit)? Same
+ * rule as the browser banner, answered here in one pass so a quiet day costs the visitor no
+ * request. `undefined` when a read failed, so the browser checks for itself.
+ */
+async function hasLiveMatch(supabase: AnonClient, tenantId: string): Promise<boolean | undefined> {
+  const { data: match, error } = await supabase
+    .from("mc_matches")
+    .select("id,updated_at")
+    .eq("tenant_id", tenantId)
+    .eq("visibility", "public")
+    .in("status", ["live", "in_progress"])
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) return undefined;
+  if (!match) return false;
+  const m = match as { id: string; updated_at: string | null };
+  const { data: inn, error: innError } = await supabase
+    .from("mc_innings")
+    .select("id")
+    .eq("match_id", m.id)
+    .order("innings_number", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (innError) return undefined;
+  let last: string | null = null;
+  const inningsId = (inn as { id: string } | null)?.id;
+  if (inningsId) {
+    const { data: ball, error: ballError } = await supabase
+      .from("mc_ball_events")
+      .select("created_at")
+      .eq("innings_id", inningsId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (ballError) return undefined;
+    last = (ball as { created_at: string | null } | null)?.created_at ?? null;
+  }
+  return !isLiveStale(last ?? m.updated_at);
+}
 
 function cacheAndReturn(key: string, value: PublicSiteBundle): PublicSiteBundle {
   if (cache.size >= MAX_ENTRIES) cache.delete(cache.keys().next().value as string);

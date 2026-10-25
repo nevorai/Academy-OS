@@ -10,6 +10,11 @@ export type PublicSiteBundle = {
   siteContent: SiteContent[] | null;
   feePlans: FeePlan[] | null;
   batches: Batch[] | null;
+  /**
+   * Is a public match really live right now (not one left on "live" and forgotten)? The home page's
+   * live banner uses it to skip its own checks on a quiet day. `undefined` = not checked.
+   */
+  live?: boolean;
 };
 
 /** Pages that draw the academy's website, so they get the content bundle too (not the app screens). */

@@ -279,7 +279,7 @@ function AuthPage() {
               <button
                 type="button"
                 onClick={() => switchMode("forgot")}
-                className="text-[13px] text-auth-muted transition-colors hover:text-auth-foreground"
+                className="-my-1 py-2 text-[13px] font-medium text-auth-accent transition-opacity hover:opacity-80"
               >
                 Forgot password?
               </button>
@@ -297,7 +297,7 @@ function AuthPage() {
               </div>
             </div>
 
-            <Button asChild variant="outline" className="h-[54px] w-full rounded-xl border-auth-border bg-transparent text-[15px] font-semibold tracking-tight text-auth-foreground hover:bg-auth-foreground/5">
+            <Button asChild variant="outline" className="h-[50px] w-full rounded-lg border-auth-border bg-transparent text-[15px] font-semibold tracking-tight text-auth-foreground hover:bg-auth-foreground/5">
               <Link to="/register">Create an account</Link>
             </Button>
           </form>
@@ -306,9 +306,9 @@ function AuthPage() {
         {mode === "forgot" &&
           (sentTo ? (
             <div className="mt-6 space-y-4">
-              <div className="rounded-xl border border-auth-border p-4">
+              <div className="rounded-lg border border-auth-border p-4">
                 <div className="flex items-center gap-2 text-[15px] font-semibold">
-                  <ShieldCheck className="size-4 text-auth-foreground" aria-hidden />
+                  <ShieldCheck className="size-4 text-auth-accent" aria-hidden />
                   Check your email
                 </div>
                 <p className="mt-1.5 text-[13px] leading-relaxed text-auth-muted">

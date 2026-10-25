@@ -9,11 +9,10 @@ interface BaseProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "classNa
 }
 
 /**
- * Member-portal text field: a single underline, no container fill and no focus
- * ring. A filled, rounded box here reads as a box-within-a-box once Safari
- * paints its own autofill rectangle on the inner <input> — see the
- * .auth-surface autofill reset in styles.css, which the two must be kept
- * together. Keeps 16px text so iOS Safari does not auto-zoom on focus.
+ * Member-portal text field: a boxed field with an 8 px radius (the Metrol shape) and a turf-green focus ring.
+ * The inner <input> stays transparent, and the .auth-surface autofill reset in styles.css keeps Safari from
+ * painting its own rectangle inside the box; keep the two together. 16px text so iOS Safari does not
+ * auto-zoom on focus.
  */
 export const AuthInput = forwardRef<HTMLInputElement, BaseProps>(function AuthInput(
   { label, icon, error, hint, id, ...rest },
@@ -32,8 +31,10 @@ export const AuthInput = forwardRef<HTMLInputElement, BaseProps>(function AuthIn
         {label}
       </label>
       <div
-        className={`group flex h-[52px] items-center gap-3 border-b bg-transparent transition-colors duration-200 ${
-          error ? "border-auth-danger" : "border-auth-border focus-within:border-auth-foreground"
+        className={`group flex h-12 items-center gap-2.5 rounded-lg border bg-auth-surface/70 px-3 transition-colors duration-200 ${
+          error
+            ? "border-auth-danger"
+            : "border-auth-border focus-within:border-auth-accent focus-within:ring-2 focus-within:ring-auth-accent/25"
         }`}
       >
         {icon ? <span className="shrink-0 text-auth-subtle">{icon}</span> : null}
@@ -79,8 +80,10 @@ export function PasswordInput({
         {label}
       </label>
       <div
-        className={`group flex h-[52px] items-center gap-3 border-b bg-transparent transition-colors duration-200 ${
-          error ? "border-auth-danger" : "border-auth-border focus-within:border-auth-foreground"
+        className={`group flex h-12 items-center gap-2.5 rounded-lg border bg-auth-surface/70 px-3 transition-colors duration-200 ${
+          error
+            ? "border-auth-danger"
+            : "border-auth-border focus-within:border-auth-accent focus-within:ring-2 focus-within:ring-auth-accent/25"
         }`}
       >
         {icon ? <span className="shrink-0 text-auth-subtle">{icon}</span> : null}
@@ -97,7 +100,7 @@ export function PasswordInput({
           onClick={() => setVisible((v) => !v)}
           aria-label={visible ? "Hide password" : "Show password"}
           aria-pressed={visible}
-          className="shrink-0 rounded-lg p-1.5 text-auth-subtle transition-colors hover:text-auth-foreground"
+          className="shrink-0 rounded-md p-1.5 text-auth-subtle transition-colors hover:text-auth-foreground"
         >
           {visible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
         </button>

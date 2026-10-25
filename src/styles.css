@@ -81,6 +81,8 @@
   --color-auth-subtle: var(--auth-subtle);
   --color-auth-border: var(--auth-border);
   --color-auth-danger: var(--auth-danger);
+  --color-auth-accent: var(--auth-accent);
+  --color-auth-accent-ink: var(--auth-accent-ink);
 
 }
 
@@ -183,32 +185,33 @@
   --site-ball: oklch(0.571 0.171 32);      /* #C8452F cricket-ball red */
   --site-ball-soft: oklch(0.653 0.159 33); /* #E0654D lighter tint */
 
-  /* Member-portal (auth) palette — MONOCHROME, and the only surface in the app
-     that flips with the light/dark toggle on the page itself. Deliberately zero
-     chroma: white ground + black type in light, black ground + white type in
-     dark. No accent hue here, ever — the premium read comes from type and
-     space, not colour. Dark overrides live in the .dark block below. */
-  --auth-bg: oklch(1 0 0);
-  --auth-surface: oklch(0.97 0 0);
-  --auth-elevated: oklch(0.94 0 0 / 70%);
-  --auth-foreground: oklch(0.14 0 0);
-  --auth-muted: oklch(0.44 0 0);
-  --auth-subtle: oklch(0.58 0 0);
-  --auth-border: oklch(0.14 0 0 / 14%);
+  /* Member-portal (auth) palette: ivory ground and turf-black type in light, night turf in dark,
+     one turf-green accent for the button and focus. The art panel beside the form is always green. */
+  --auth-bg: oklch(0.985 0.006 100);
+  --auth-surface: oklch(0.955 0.01 120);
+  --auth-elevated: oklch(0.94 0.012 120 / 70%);
+  --auth-foreground: oklch(0.22 0.045 158);
+  --auth-muted: oklch(0.44 0.03 158);
+  --auth-subtle: oklch(0.58 0.02 158);
+  --auth-border: oklch(0.22 0.045 158 / 16%);
   --auth-danger: oklch(0.52 0.19 25);
+  --auth-accent: #2a7a4b;
+  --auth-accent-ink: #ffffff;
 
 }
 
 .dark {
-  /* Member portal, dark: black ground, white type. Mirror of the :root block. */
-  --auth-bg: oklch(0.11 0 0);
-  --auth-surface: oklch(0.16 0 0);
-  --auth-elevated: oklch(0.2 0 0 / 72%);
-  --auth-foreground: oklch(1 0 0);
-  --auth-muted: oklch(0.72 0 0);
-  --auth-subtle: oklch(0.55 0 0);
-  --auth-border: oklch(1 0 0 / 16%);
+  /* Member portal, dark: night-turf ground, ivory type. Mirror of the :root block. */
+  --auth-bg: oklch(0.15 0.016 160);
+  --auth-surface: oklch(0.2 0.02 160);
+  --auth-elevated: oklch(0.24 0.022 160 / 72%);
+  --auth-foreground: oklch(0.965 0.01 105);
+  --auth-muted: oklch(0.75 0.015 140);
+  --auth-subtle: oklch(0.58 0.015 150);
+  --auth-border: oklch(0.965 0.01 105 / 16%);
   --auth-danger: oklch(0.7 0.17 25);
+  --auth-accent: #5db886;
+  --auth-accent-ink: #06130b;
 
   /* Night turf: deep green-black ground, ivory type. */
   --background: oklch(0.15 0.016 160);

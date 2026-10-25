@@ -549,15 +549,20 @@ export async function clearGeneratedFixtures(tournamentId: string): Promise<void
     (m) => !m.match_locked && (m.status === "scheduled" || m.status === "upcoming"),
   );
   if (removable.length > 0) {
-    await supabase
+    const { error: delErr } = await supabase
       .from("mc_matches")
       .delete()
       .in(
         "id",
         removable.map((m) => m.id),
       );
+    if (delErr) throw delErr;
   }
-  await supabase.from("mc_tournament_rounds").delete().eq("tournament_id", tournamentId);
+  const { error: roundsErr } = await supabase
+    .from("mc_tournament_rounds")
+    .delete()
+    .eq("tournament_id", tournamentId);
+  if (roundsErr) throw roundsErr;
 }
 
 /**

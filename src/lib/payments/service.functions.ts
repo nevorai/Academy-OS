@@ -15,6 +15,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { PaymentProviderId, PaymentPurpose, PaymentScope } from "./types";
 import { AUTOMATION_EVENTS } from "@/lib/automation/types";
+import { logAutomationEvent } from "@/lib/automation/log-event";
 
 async function resolveProvider(
   supabase: any,
@@ -111,7 +112,7 @@ export const createPaymentOrder = createServerFn({ method: "POST" })
     // Automation: payment.created
     if (tenantId) {
       try {
-        await supabaseAdmin.from("automation_events").insert({
+        await logAutomationEvent(supabaseAdmin, {
           tenant_id: tenantId,
           event_type: AUTOMATION_EVENTS.PaymentCreated,
           source_module: "payments",
@@ -206,7 +207,7 @@ export const verifyClientPayment = createServerFn({ method: "POST" })
         if (failErr) console.error("[payments] could not mark transaction failed", tx.id, failErr.message);
       }
       if (tx.tenant_id) {
-        await supabaseAdmin.from("automation_events").insert({
+        await logAutomationEvent(supabaseAdmin, {
           tenant_id: tx.tenant_id,
           event_type: AUTOMATION_EVENTS.PaymentFailed,
           source_module: "payments",
@@ -269,7 +270,7 @@ export const verifyClientPayment = createServerFn({ method: "POST" })
     }
 
     if (tx.tenant_id) {
-      await supabaseAdmin.from("automation_events").insert([
+      await logAutomationEvent(supabaseAdmin, [
         {
           tenant_id: tx.tenant_id,
           event_type: AUTOMATION_EVENTS.PaymentSuccess,

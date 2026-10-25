@@ -30,7 +30,7 @@ export function RegistrationsBanner({ tenantId }: { tenantId: string }) {
       ]);
       return (regs.count ?? 0) + (leads.count ?? 0);
     },
-    refetchInterval: 30_000,
+    refetchInterval: 60_000,
   });
 
   const dismissKey = `regs-banner-ack:${tenantId}`;

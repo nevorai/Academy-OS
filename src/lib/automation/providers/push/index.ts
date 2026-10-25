@@ -283,7 +283,7 @@ export const pushProvider: ActionProvider = {
     // Always write one in-app notification per recipient — the OS delivery is
     // best-effort; the in-app center is the source of truth.
     for (const uid of userIds) {
-      await supabaseAdmin.from("notifications").insert({
+      const { error: notifErr } = await supabaseAdmin.from("notifications").insert({
         tenant_id: ctx.tenantId,
         recipient_user_id: uid,
         category: message.category ?? "general",
@@ -299,6 +299,8 @@ export const pushProvider: ActionProvider = {
           rule_id: ctx.rule?.id ?? null,
         },
       } as never);
+      // The in-app centre is the source of truth: say so when a row is lost (the OS push below still goes out).
+      if (notifErr) console.error("[push] in-app notification insert failed:", notifErr.message);
     }
 
     const allRecipients = await loadTokens(userIds);

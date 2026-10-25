@@ -9,6 +9,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { toE164 } from "@/lib/phone";
+import { logAutomationEvent } from "@/lib/automation/log-event";
 
 const TOKEN_TTL_MS = 60 * 24 * 60 * 60 * 1000; // 60 days
 
@@ -188,7 +189,7 @@ export const claimActivation = createServerFn({ method: "POST" })
       .eq("id", student.id);
     if (updErr) return { ok: false as const, reason: "update_failed" as const, message: updErr.message };
 
-    await supabaseAdmin.from("automation_events").insert({
+    await logAutomationEvent(supabaseAdmin, {
       tenant_id: student.tenant_id,
       event_type: "student.activated",
       source_module: "admissions",

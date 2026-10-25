@@ -16,6 +16,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AUTOMATION_EVENTS } from "@/lib/automation/types";
 import { requireCronAuth } from "@/lib/cron-auth.server";
+import { logAutomationEvent } from "@/lib/automation/log-event";
 
 export const Route = createFileRoute("/api/public/hooks/subscription-check")({
   server: {
@@ -92,7 +93,7 @@ export const Route = createFileRoute("/api/public/hooks/subscription-check")({
 
         if (events.length) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await supabaseAdmin.from("automation_events").insert(
+          await logAutomationEvent(supabaseAdmin,
             events.map((e) => ({ ...e, payload: e.payload as never, status: "pending" })) as any,
           );
         }

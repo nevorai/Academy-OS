@@ -2,6 +2,7 @@
 // provider verifies its own signature. Public — verify signature before writes.
 import { createFileRoute } from "@tanstack/react-router";
 import type { PaymentProviderId, PaymentScope } from "@/lib/payments/types";
+import { logAutomationEvent } from "@/lib/automation/log-event";
 
 export const Route = createFileRoute("/api/public/payments/$provider/webhook")({
   server: {
@@ -149,7 +150,7 @@ export const Route = createFileRoute("/api/public/payments/$provider/webhook")({
                   : isSuccess
                     ? "payment.success"
                     : "payment.failed";
-                await supabaseAdmin.from("automation_events").insert({
+                await logAutomationEvent(supabaseAdmin, {
                   tenant_id: tx.tenant_id,
                   event_type: evType,
                   source_module: "payments",

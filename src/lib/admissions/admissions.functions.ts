@@ -5,6 +5,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { logAutomationEvent } from "@/lib/automation/log-event";
 
 const idInput = z.object({ registrationId: z.string().uuid(), tenantId: z.string().uuid() });
 
@@ -102,7 +103,7 @@ export const approveRegistration = createServerFn({ method: "POST" })
     if (regUpdateErr) throw regUpdateErr;
     if (!regUpdated?.length) throw new Error("Registration update matched 0 rows — check permissions.");
 
-    await supabase.from("automation_events").insert({
+    await logAutomationEvent(supabase, {
       tenant_id: data.tenantId,
       event_type: "student.registration_approved",
       source_module: "admissions",
@@ -130,7 +131,7 @@ export const rejectRegistration = createServerFn({ method: "POST" })
       .eq("id", data.registrationId)
       .eq("tenant_id", data.tenantId);
     if (error) throw error;
-    await context.supabase.from("automation_events").insert({
+    await logAutomationEvent(context.supabase, {
       tenant_id: data.tenantId,
       event_type: "student.registration_rejected",
       source_module: "admissions",
@@ -160,7 +161,7 @@ export const waitlistRegistration = createServerFn({ method: "POST" })
     
     if (wErr) throw wErr;
     if (!wUpdated?.length) throw new Error("Registration update matched 0 rows — check permissions.");
-    await context.supabase.from("automation_events").insert({
+    await logAutomationEvent(context.supabase, {
       tenant_id: data.tenantId,
       event_type: "student.waitlisted",
       source_module: "admissions",
@@ -275,7 +276,7 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
       })
       .eq("id", batch.id);
 
-    await supabase.from("automation_events").insert({
+    await logAutomationEvent(supabase, {
       tenant_id: data.tenantId,
       event_type: "student.imported",
       source_module: "admissions",
@@ -327,7 +328,7 @@ export const sendActivations = createServerFn({ method: "POST" })
         .eq("tenant_id", data.tenantId);
       if (!error) results.push({ studentId: id, token });
     }
-    await context.supabase.from("automation_events").insert({
+    await logAutomationEvent(context.supabase, {
       tenant_id: data.tenantId,
       event_type: "student.activation_sent",
       source_module: "admissions",
@@ -358,7 +359,7 @@ export const activateStudent = createServerFn({ method: "POST" })
       })
       .eq("id", student.id);
     if (updErr) throw updErr;
-    await context.supabase.from("automation_events").insert({
+    await logAutomationEvent(context.supabase, {
       tenant_id: student.tenant_id,
       event_type: "student.activated",
       source_module: "admissions",
@@ -388,7 +389,7 @@ export const requestRegistrationChanges = createServerFn({ method: "POST" })
       .eq("id", data.registrationId)
       .eq("tenant_id", data.tenantId);
     if (error) throw error;
-    await context.supabase.from("automation_events").insert({
+    await logAutomationEvent(context.supabase, {
       tenant_id: data.tenantId,
       event_type: "student.registration_changes_requested",
       source_module: "admissions",

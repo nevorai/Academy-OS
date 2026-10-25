@@ -150,7 +150,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         .eq("status", "live");
       return count ?? 0;
     },
-    refetchInterval: 30_000,
+    refetchInterval: 60_000,
     staleTime: 15_000,
   });
 

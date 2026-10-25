@@ -70,7 +70,11 @@ export async function updateGroup(id: string, patch: TournamentGroupUpdate) {
 
 export async function deleteGroup(id: string) {
   // First, clear any assignments so we don't orphan tournament_teams rows.
-  await supabase.from("mc_tournament_teams").update({ group_id: null }).eq("group_id", id);
+  const { error: clearErr } = await supabase
+    .from("mc_tournament_teams")
+    .update({ group_id: null })
+    .eq("group_id", id);
+  if (clearErr) throw clearErr;
   const { error } = await supabase.from("mc_tournament_groups").delete().eq("id", id);
   if (error) throw error;
 }
@@ -97,11 +101,16 @@ export async function autoGenerateGroups(input: {
   // Clear existing groups + assignments so re-run is idempotent.
   const existing = await listGroups(tournamentId);
   if (existing.length > 0) {
-    await supabase
+    const { error: clearErr } = await supabase
       .from("mc_tournament_teams")
       .update({ group_id: null })
       .eq("tournament_id", tournamentId);
-    await supabase.from("mc_tournament_groups").delete().eq("tournament_id", tournamentId);
+    if (clearErr) throw clearErr;
+    const { error: dropErr } = await supabase
+      .from("mc_tournament_groups")
+      .delete()
+      .eq("tournament_id", tournamentId);
+    if (dropErr) throw dropErr;
   }
 
   const letters = "ABCDEFGHIJKLMNOP".slice(0, groupCount).split("");
@@ -130,7 +139,11 @@ export async function autoGenerateGroups(input: {
   });
 
   for (const a of assignments) {
-    await supabase.from("mc_tournament_teams").update({ group_id: a.group_id }).eq("id", a.id);
+    const { error: assignErr } = await supabase
+      .from("mc_tournament_teams")
+      .update({ group_id: a.group_id })
+      .eq("id", a.id);
+    if (assignErr) throw assignErr;
   }
 
   return groupList;
@@ -166,7 +179,8 @@ export async function updateVenue(id: string, patch: TournamentVenueUpdate) {
 }
 
 export async function deleteVenue(id: string) {
-  await supabase.from("mc_matches").update({ venue_id: null }).eq("venue_id", id);
+  const { error: clearErr } = await supabase.from("mc_matches").update({ venue_id: null }).eq("venue_id", id);
+  if (clearErr) throw clearErr;
   const { error } = await supabase.from("mc_tournament_venues").delete().eq("id", id);
   if (error) throw error;
 }

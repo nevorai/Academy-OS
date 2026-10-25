@@ -12,6 +12,7 @@
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { registerAIEventHandler } from "./events/bus";
+import { logAutomationEvent } from "@/lib/automation/log-event";
 
 let installed = false;
 let disposer: (() => void) | null = null;
@@ -21,7 +22,7 @@ export function bootstrapAutomationBridge(): void {
   installed = true;
   disposer = registerAIEventHandler(async (event) => {
     try {
-      await supabaseAdmin.from("automation_events").insert({
+      await logAutomationEvent(supabaseAdmin, {
         tenant_id: event.tenantId,
         event_type: event.type,
         source_module: "nevorai",

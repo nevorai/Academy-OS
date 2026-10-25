@@ -14,6 +14,7 @@ import { STORAGE_BUCKET } from "@/lib/db-schema";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { logAutomationEvent } from "@/lib/automation/log-event";
 
 const submitInput = z.object({
   tenantId: z.string().uuid(),
@@ -55,7 +56,7 @@ export const submitManualPayment = createServerFn({ method: "POST" })
 
     // Automation: payment.proof_uploaded + payment.verification_requested
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("automation_events").insert([
+    await logAutomationEvent(supabaseAdmin, [
       {
         tenant_id: data.tenantId,
         event_type: "payment.proof_uploaded",
@@ -195,7 +196,7 @@ export const approveManualPayment = createServerFn({ method: "POST" })
 
     // Automation events
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("automation_events").insert([
+    await logAutomationEvent(supabaseAdmin, [
       {
         tenant_id: row.tenant_id,
         event_type: "payment.approved",
@@ -270,7 +271,7 @@ export const reviewManualPayment = createServerFn({ method: "POST" })
     if (uerr) throw uerr;
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("automation_events").insert({
+    await logAutomationEvent(supabaseAdmin, {
       tenant_id: row.tenant_id,
       event_type: data.action === "needs_reupload" ? "payment.resubmitted" : "payment.rejected",
       source_module: "manual-payments",
@@ -326,7 +327,7 @@ export const recordOfflinePayment = createServerFn({ method: "POST" })
     if (rerr) throw rerr;
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("automation_events").insert([
+    await logAutomationEvent(supabaseAdmin, [
       {
         tenant_id: data.tenantId,
         event_type: "payment.approved",
@@ -393,7 +394,7 @@ export const markManualPaymentViewed = createServerFn({ method: "POST" })
       .update({ viewed_at: now, viewed_by: context.userId })
       .eq("id", row.id);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("automation_events").insert({
+    await logAutomationEvent(supabaseAdmin, {
       tenant_id: row.tenant_id,
       event_type: "payment.viewed",
       source_module: "manual-payments",

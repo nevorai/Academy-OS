@@ -29,7 +29,7 @@ export function SiteFooter() {
 
   return (
     <footer className="mt-16 border-t border-border/60 bg-muted/30">
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-4">
+      <div className="mx-auto grid w-[min(1320px,94%)] gap-8 py-12 md:grid-cols-4">
         <div>
           <div className="text-base font-semibold text-foreground">{tenant.name}</div>
           {tenant.tagline ? (
@@ -46,7 +46,7 @@ export function SiteFooter() {
               <Link
                 key={n.to}
                 to={n.to}
-                className="text-foreground/80 hover:text-foreground"
+                className="py-1.5 text-foreground/80 hover:text-foreground"
               >
                 {n.label}
               </Link>
@@ -108,7 +108,7 @@ export function SiteFooter() {
       </div>
 
       <div className="border-t border-border/60">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-4 text-xs text-muted-foreground sm:flex-row sm:px-6">
+        <div className="mx-auto flex w-[min(1320px,94%)] flex-col items-center justify-between gap-2 py-4 text-xs text-muted-foreground sm:flex-row">
           <div>
             © {new Date().getFullYear()} {tenant.name}. All rights reserved.
           </div>

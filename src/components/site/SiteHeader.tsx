@@ -52,22 +52,14 @@ export function SiteHeader() {
         className="pointer-events-none fixed inset-x-0 top-0 z-40 bg-background"
         style={{ height: "var(--app-safe-top)" }}
       />
-      <div
-        aria-hidden="true"
-        className="bg-background"
-        style={{ height: "var(--app-safe-top)" }}
-      />
+      <div aria-hidden="true" className="bg-background" style={{ height: "var(--app-safe-top)" }} />
       <header
         className="sticky z-40 border-b border-border/60 bg-background/85 backdrop-blur-lg"
         style={{ top: "var(--app-safe-top)" }}
       >
-        <div className="mx-auto flex h-16 max-w-screen-2xl items-center gap-4 px-4 sm:px-8">
+        <div className="mx-auto flex h-16 w-[min(1320px,94%)] items-center gap-4">
           {/* Lockup — mark shrink-0, text block min-w-0 + truncate so it never wraps */}
-          <Link
-            to="/"
-            className="flex min-w-0 items-center gap-3"
-            onClick={() => setOpen(false)}
-          >
+          <Link to="/" className="flex min-w-0 items-center gap-3" onClick={() => setOpen(false)}>
             {tenant.logo_url ? (
               <StoragedImage
                 path={tenant.logo_url}
@@ -126,13 +118,13 @@ export function SiteHeader() {
           <div className="hidden shrink-0 items-center gap-2 md:flex">
             <Link
               to="/auth"
-              className="inline-flex items-center rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+              className="inline-flex items-center rounded-[10px] border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
             >
               Sign in
             </Link>
             <Link
               to="/register"
-              className="inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+              className="inline-flex items-center rounded-[10px] px-5 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
               style={{ backgroundColor: "var(--brand)" }}
             >
               Register
@@ -151,7 +143,7 @@ export function SiteHeader() {
 
         {open ? (
           <div className="border-t border-border/60 bg-background md:hidden">
-            <div className="mx-auto flex max-w-screen-2xl flex-col px-4 py-2 sm:px-6">
+            <div className="mx-auto flex w-[min(1320px,94%)] flex-col py-2">
               {mobileNavItems.map((item) => (
                 <Link
                   key={item.to}
@@ -165,7 +157,7 @@ export function SiteHeader() {
               <Link
                 to="/register"
                 onClick={() => setOpen(false)}
-                className="mx-1 my-2 rounded-full px-4 py-2.5 text-center text-sm font-semibold text-white"
+                className="mx-1 my-2 rounded-[10px] px-4 py-3 text-center text-sm font-semibold text-white"
                 style={{ backgroundColor: "var(--brand)" }}
               >
                 Register Now
@@ -173,7 +165,7 @@ export function SiteHeader() {
               <Link
                 to="/auth"
                 onClick={() => setOpen(false)}
-                className="mx-1 mb-2 rounded-full border border-border bg-background px-4 py-2.5 text-center text-sm font-semibold text-foreground hover:bg-muted"
+                className="mx-1 mb-2 rounded-[10px] border border-border bg-background px-4 py-3 text-center text-sm font-semibold text-foreground hover:bg-muted"
               >
                 Sign in
               </Link>

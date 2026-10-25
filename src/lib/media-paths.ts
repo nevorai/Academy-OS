@@ -79,6 +79,16 @@ export function publicMediaUrl(path: string): string | null {
 }
 
 /**
+ * The address to put in an <img>/<video> right now, with no request, or "" when one is needed
+ * (a signed link). Lets the server-rendered page carry real picture addresses.
+ */
+export function directMediaUrl(path?: string | null): string {
+  if (!path) return "";
+  if (path.startsWith("http") || path.startsWith("/")) return path;
+  return mediaR2On() ? (publicMediaUrl(path) ?? "") : "";
+}
+
+/**
  * What may be uploaded to R2: the type is fixed from the file extension (never taken
  * from the browser), and each kind has its own size cap.
  */

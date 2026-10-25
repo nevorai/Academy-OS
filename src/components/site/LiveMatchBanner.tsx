@@ -36,8 +36,16 @@ export function LiveMatchBanner() {
   const [match, setMatch] = useState<LiveMatch | null>(null);
   const [teams, setTeams] = useState<TeamMap>({});
   const [innings, setInnings] = useState<Innings | null>(null);
-  const [derived, setDerived] = useState<{ runs: number; wickets: number; overs: number; balls: number } | null>(null);
+  const [derived, setDerived] = useState<{
+    runs: number;
+    wickets: number;
+    overs: number;
+    balls: number;
+  } | null>(null);
   const [dismissed, setDismissed] = useState(false);
+  // The banner shows only once we know the match is really live (not left on "live" and forgotten),
+  // so it never flashes in and out and shoves the page down.
+  const [liveOk, setLiveOk] = useState(false);
 
   const load = () => {
     supabase
@@ -54,6 +62,7 @@ export function LiveMatchBanner() {
           setMatch(null);
           setInnings(null);
           setDerived(null);
+          setLiveOk(false);
           return;
         }
         setMatch(data as LiveMatch);
@@ -80,6 +89,7 @@ export function LiveMatchBanner() {
             setInnings(row);
             if (!row?.id) {
               setDerived(null);
+              setLiveOk(true);
               return;
             }
             supabase
@@ -88,28 +98,37 @@ export function LiveMatchBanner() {
               .eq("innings_id", row.id)
               .then(async ({ data: balls }) => {
                 // A match left on "live" with no scoring for 12 h is not live: hide the banner.
-                if (isLiveStale(lastBallTime(balls as { created_at?: string | null }[] | null) ?? data.updated_at ?? null)) {
+                if (
+                  isLiveStale(
+                    lastBallTime(balls as { created_at?: string | null }[] | null) ??
+                      data.updated_at ??
+                      null,
+                  )
+                ) {
                   setMatch(null);
                   setInnings(null);
                   setDerived(null);
+                  setLiveOk(false);
                   return;
                 }
                 if (!balls || balls.length === 0) {
                   setDerived(null);
+                  setLiveOk(true);
                   return;
                 }
                 const { calculateInningsStatistics } = await import("@/lib/mc-statistics-engine");
-                const stats = calculateInningsStatistics(balls as any, { 
+                const stats = calculateInningsStatistics(balls as any, {
                   totalOvers: match?.overs ?? 0,
                   playingRules: match?.playing_rules || {},
-                  target: row.target_runs ?? null
+                  target: row.target_runs ?? null,
                 });
-                setDerived({ 
-                  runs: stats.team.runs, 
-                  wickets: stats.team.wickets, 
-                  overs: Math.floor(stats.team.legalBalls / 6), 
-                  balls: stats.team.legalBalls % 6 
+                setDerived({
+                  runs: stats.team.runs,
+                  wickets: stats.team.wickets,
+                  overs: Math.floor(stats.team.legalBalls / 6),
+                  balls: stats.team.legalBalls % 6,
                 });
+                setLiveOk(true);
               });
           });
       });
@@ -124,12 +143,16 @@ export function LiveMatchBanner() {
 
   useMatchLive(match?.id ?? null, load);
 
-  if (!match || dismissed) return null;
+  if (!match || !liveOk || dismissed) return null;
 
-  const battingName = innings ? teams[innings.batting_team_id] ?? "Batting" : "";
+  const battingName = innings ? (teams[innings.batting_team_id] ?? "Batting") : "";
   const nameA = teams[match.team_a_id] ?? "Team A";
   const nameB = teams[match.team_b_id] ?? "Team B";
-  const score = derived ?? (innings ? { runs: innings.runs, wickets: innings.wickets, overs: innings.overs, balls: innings.balls } : null);
+  const score =
+    derived ??
+    (innings
+      ? { runs: innings.runs, wickets: innings.wickets, overs: innings.overs, balls: innings.balls }
+      : null);
 
   return (
     <Link

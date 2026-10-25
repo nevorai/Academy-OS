@@ -917,3 +917,8 @@ body {
 .owner-app div.rounded-full[class*="px-"] {
   border-radius: 6px;
 }
+
+/* Academy home page: the page ends where the footer ends, with no empty strip between the last band and the footer. */
+main:has(> .pub-home) + footer {
+  margin-top: 0;
+}

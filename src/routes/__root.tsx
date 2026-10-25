@@ -16,7 +16,9 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { TenantProvider } from "../lib/tenant-context";
 import { ImpersonationBanner } from "../components/platform/ImpersonationBanner";
-import { PLATFORM_OG_IMAGE } from "../lib/seo";
+import { PLATFORM_OG_IMAGE, requestHostname } from "../lib/seo";
+import { getPublicSite } from "../lib/public-site.functions";
+import type { PublicSiteBundle } from "../lib/public-site";
 
 function NotFoundComponent() {
   return (
@@ -91,6 +93,22 @@ function ErrorComponent({ error: rawError, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  // One server trip per page load: the academy (and, on website pages, its content), so the HTML that
+  // arrives is already the finished page. Read once; later in-app navigation keeps it.
+  loader: async ({ location }): Promise<{ site: PublicSiteBundle | null }> => {
+    const hostname = requestHostname();
+    if (!hostname) return { site: null };
+    try {
+      const site = await getPublicSite({
+        data: { hostname, pathname: location.pathname, search: location.searchStr ?? "" },
+      });
+      return { site };
+    } catch (e) {
+      console.error("[root] public site read failed", e);
+      return { site: null };
+    }
+  },
+  staleTime: Infinity,
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -286,11 +304,12 @@ function PwaBootstrap() {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const { site } = Route.useLoaderData();
   const toastTheme = useToastTheme();
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TenantProvider>
+      <TenantProvider initialTenant={site ? site.tenant : undefined}>
         <ThemeSystemListener />
         <PwaBootstrap />
         <ImpersonationBanner />

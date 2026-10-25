@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Trophy } from "lucide-react";
-import { motion } from "framer-motion";
 import { useTenant } from "@/lib/tenant-context";
 import { StoragedImage } from "./StoragedImage";
 
@@ -60,13 +59,7 @@ export function pickFeatured(players: StarPlayer[]): {
 export function StarPlayerFeaturedCard({ player }: { player: StarPlayer }) {
   const tenant = useTenant();
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.7, ease: "easeOut" }}
-      className="grid gap-8 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:items-center"
-    >
+    <div className="grid gap-8 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:items-center">
       <div className="relative">
         <div
           className="absolute -inset-4 rounded-[36px] opacity-40 blur-2xl"
@@ -108,15 +101,10 @@ export function StarPlayerFeaturedCard({ player }: { player: StarPlayer }) {
           {player.name}
         </h3>
         {player.currently_playing ? (
-          <div className="mt-3 text-lg font-semibold text-white/85">
-            {player.currently_playing}
-          </div>
+          <div className="mt-3 text-lg font-semibold text-white/85">{player.currently_playing}</div>
         ) : null}
         <p className="mt-5 flex items-start gap-2 text-base leading-relaxed text-white/70 sm:text-lg">
-          <Trophy
-            className="mt-1 h-5 w-5 flex-shrink-0"
-            style={{ color: tenant.primary_color }}
-          />
+          <Trophy className="mt-1 h-5 w-5 flex-shrink-0" style={{ color: tenant.primary_color }} />
           <span>{player.achievement}</span>
         </p>
 
@@ -136,7 +124,7 @@ export function StarPlayerFeaturedCard({ player }: { player: StarPlayer }) {
         <div className="mt-8">
           <Link
             to="/register"
-            className="group inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white shadow-lg transition-transform hover:scale-[1.02]"
+            className="group inline-flex items-center gap-2 rounded-[10px] px-6 py-3.5 text-[15px] font-semibold text-white shadow-lg transition-transform active:scale-[0.98]"
             style={{
               background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
             }}
@@ -146,7 +134,7 @@ export function StarPlayerFeaturedCard({ player }: { player: StarPlayer }) {
           </Link>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 

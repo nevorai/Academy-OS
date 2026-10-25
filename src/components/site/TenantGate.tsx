@@ -7,6 +7,7 @@ import { SiteFooter } from "./SiteFooter";
 import { FloatingWhatsApp } from "./FloatingWhatsApp";
 
 import { isReservedPlatformHost } from "@/lib/tenant";
+import { requestHostname } from "@/lib/seo";
 
 /**
  * Wraps public site pages: shows a placeholder when no tenant is resolved,
@@ -36,7 +37,8 @@ export function TenantGate({
   }
 
   if (state.status === "missing") {
-    const host = typeof window !== "undefined" ? window.location.hostname : "";
+    // Same host on the server and in the browser, so the first HTML matches what the browser draws.
+    const host = requestHostname() ?? "";
     // Reserved platform host (academy.nevorai.com, nevorai.com, lovable
     // preview URLs…) → platform marketing site. Any other unknown hostname
     // is a misconfigured domain, not an ad for Nevorai Academy.
@@ -92,8 +94,13 @@ function TenantJsonLd({
     custom_domain: string | null;
   };
 }) {
-  if (typeof window === "undefined") return null;
-  const url = tenant.custom_domain ? `https://${tenant.custom_domain}` : window.location.origin;
+  // Built from the host (never window.location) so the server HTML and the browser agree, and crawlers see it.
+  const host = requestHostname();
+  const url = tenant.custom_domain
+    ? `https://${tenant.custom_domain}`
+    : host
+      ? `${/^(localhost|127\.0\.0\.1)$/.test(host) ? "http" : "https"}://${host}`
+      : undefined;
   const logoAbs =
     tenant.logo_url && tenant.logo_url.startsWith("http") ? tenant.logo_url : undefined;
   const data = {

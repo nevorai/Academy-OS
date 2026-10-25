@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveTenantHint, type Tenant } from "./tenant";
 import { pickPreset } from "./theme-presets";
@@ -48,12 +49,30 @@ async function fetchTenant(): Promise<Tenant | null> {
   return data as unknown as Tenant | null;
 }
 
-export function TenantProvider({ children }: { children: ReactNode }) {
+/** Screens of the signed-in app wear the cricket-green brand, never the academy's own colour. */
+const APP_SCREENS = /^\/(dashboard|match-center|coach)(\/|$)/;
+
+const HEX = /^#[0-9a-f]{3,8}$/i;
+const safeColor = (v: string | null | undefined) => (v && HEX.test(v) ? v : null);
+
+/**
+ * `initialTenant` is what the server already read for this request (undefined = it did not look,
+ * null = no such academy). With it the very first HTML is the finished page, in the academy's colours.
+ */
+export function TenantProvider({
+  children,
+  initialTenant,
+}: {
+  children: ReactNode;
+  initialTenant?: Tenant | null;
+}) {
   const { data, isLoading } = useQuery({
     queryKey: ["current-tenant"],
     queryFn: fetchTenant,
     staleTime: 5 * 60 * 1000,
+    ...(initialTenant !== undefined ? { initialData: initialTenant } : {}),
   });
+  const pathname = useLocation({ select: (l) => l.pathname });
 
   const state: TenantState = useMemo(() => {
     if (isLoading) return { status: "loading", tenant: null };
@@ -148,7 +167,26 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     }
   }, [state.tenant]);
 
-  return <TenantContext.Provider value={state}>{children}</TenantContext.Provider>;
+  // The brand colours go into the server HTML itself, so the first paint is already the academy's
+  // colour (the effect above only repeats this and handles later navigation).
+  const brand = state.tenant && !APP_SCREENS.test(pathname) ? state.tenant : null;
+  const primary = safeColor(brand?.primary_color);
+  const ink = safeColor(brand?.secondary_color);
+  const preset = brand ? pickPreset(brand.niche, brand.slug) : null;
+
+  return (
+    <TenantContext.Provider value={state}>
+      {brand && preset ? (
+        <style
+          data-tenant-brand=""
+          dangerouslySetInnerHTML={{
+            __html: `:root{--brand:${primary ?? preset.primary};--brand-ink:${ink ?? preset.ink};--brand-accent:${preset.accent};--brand-surface:${preset.surface}}`,
+          }}
+        />
+      ) : null}
+      {children}
+    </TenantContext.Provider>
+  );
 }
 
 export function useTenantState() {

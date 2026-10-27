@@ -356,8 +356,14 @@ export function Closing({ tenant, m }: { tenant: Tenant; m: HomeModel }) {
   }, [media]);
 
   return (
-    <section className="relative isolate overflow-hidden bg-[var(--brand)] text-white">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_85%_20%,rgba(255,255,255,0.16),transparent_55%)]" />
+    <section className="relative isolate overflow-hidden border-t border-white/10 bg-[#070B14] text-white">
+      <div
+        className="absolute inset-0 -z-10"
+        style={{
+          background:
+            "radial-gradient(60% 90% at 88% 0%, color-mix(in srgb, var(--pub-hot) 16%, transparent), transparent 65%), radial-gradient(55% 80% at 0% 100%, color-mix(in srgb, var(--brand) 55%, transparent), transparent 70%)",
+        }}
+      />
       {media && m.cta.mediaIsVideo ? (
         <div className="absolute inset-0 -z-10">
           <video
@@ -381,9 +387,9 @@ export function Closing({ tenant, m }: { tenant: Tenant; m: HomeModel }) {
           className="absolute inset-0 -z-10 h-full w-full object-cover opacity-30"
         />
       ) : null}
-      <div className="absolute inset-0 -z-10 bg-black/35" />
+      <div className="absolute inset-0 -z-10 bg-[#070B14]/55" />
       <div className={`${WRAP} py-16 text-center sm:py-24`}>
-        <SeamLine className="mx-auto mb-8 h-2 w-40 text-white/50" />
+        <SeamLine className="mx-auto mb-8 h-2 w-40 text-[var(--pub-hot)]" />
         <h2 className="mx-auto max-w-3xl font-[family-name:var(--font-display)] text-[clamp(2rem,5vw,3.6rem)] font-extrabold leading-[1.05] tracking-tight">
           {m.cta.headline}
         </h2>
@@ -393,7 +399,7 @@ export function Closing({ tenant, m }: { tenant: Tenant; m: HomeModel }) {
           </p>
         ) : null}
         <div className="mt-9 flex flex-wrap justify-center gap-3">
-          <Link to="/register" className={BTN_LIGHT}>
+          <Link to="/register" className={BTN_HOT}>
             {m.hero.cta}
             <ArrowRight className="h-4 w-4" />
           </Link>

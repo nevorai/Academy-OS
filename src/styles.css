@@ -922,3 +922,32 @@ body {
 main:has(> .pub-home) + footer {
   margin-top: 0;
 }
+
+/* Public academy site palette: night base, ONE bright accent (volt) and cricket-ball red. The academy's own colour stays a
+   small accent (logo tile, borders, light bands). Gyms and learning centres keep a lighter tint of their own colour as the accent. */
+:root {
+  --pub-night: #070b14;
+  --pub-hot: #c8f31d;
+  --pub-hot-ink: #0a0f1a;
+  --pub-ball: #e0402a;
+}
+[data-pack="gym"],
+[data-pack="learning"] {
+  --pub-hot: color-mix(in srgb, var(--brand) 42%, white);
+}
+
+/* Trading-card sheen: a soft diagonal light that slides across a star card on hover. Static for reduced motion. */
+.pub-card-sheen {
+  background: linear-gradient(115deg, transparent 32%, rgb(255 255 255 / 0.16) 46%, transparent 60%);
+  background-size: 260% 100%;
+  background-position: 130% 0;
+  transition: background-position 0.7s ease;
+}
+.group:hover .pub-card-sheen {
+  background-position: -30% 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pub-card-sheen {
+    transition: none;
+  }
+}

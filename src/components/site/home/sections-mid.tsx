@@ -13,7 +13,7 @@ import {
   BTN_BRAND,
   BTN_GHOST_DARK,
   BTN_GHOST_LIGHT,
-  BTN_LIGHT,
+  BTN_HOT,
   SectionHead,
   WRAP,
 } from "./sections-top";
@@ -168,7 +168,7 @@ export function Stars({ m }: { m: HomeModel }) {
           <StarPlayerFeaturedCard player={featured} />
         </div>
         {rest.length ? (
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
             {rest.slice(0, 6).map((p) => (
               <StarPlayerCard key={p.name} player={p} />
             ))}
@@ -240,9 +240,22 @@ export function MatchCentre({ m }: { m: HomeModel }) {
   ] as const;
   return (
     <section
-      className="relative overflow-hidden bg-[color-mix(in_srgb,var(--brand)_88%,#000)] py-16 text-white sm:py-24"
+      className="relative isolate overflow-hidden bg-[#070B14] py-16 text-white sm:py-24"
       id="match-centre"
     >
+      {/* Floodlight glow: volt from the top right, ball red from the bottom left, over a faint pitch grid. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-10"
+        style={{
+          background:
+            "radial-gradient(640px 420px at 84% 8%, color-mix(in srgb, var(--pub-hot) 20%, transparent), transparent 70%), radial-gradient(560px 400px at 6% 100%, color-mix(in srgb, var(--pub-ball) 28%, transparent), transparent 70%), linear-gradient(180deg, #070B14, #0B1426)",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 opacity-[0.06] [background-image:linear-gradient(white_1px,transparent_1px),linear-gradient(90deg,white_1px,transparent_1px)] [background-size:56px_56px]"
+      />
       <div
         className={`${WRAP} grid gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center`}
       >
@@ -255,22 +268,32 @@ export function MatchCentre({ m }: { m: HomeModel }) {
           />
           <ul className="mt-8 grid gap-4 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
             {points.map(([t, d]) => (
-              <li key={t} className="rounded-[10px] border border-white/20 bg-black/20 p-4">
+              <li
+                key={t}
+                className="rounded-[10px] border border-white/12 border-t-2 border-t-[var(--pub-hot)] bg-white/[0.05] p-4"
+              >
                 <div className="font-[family-name:var(--font-display)] text-lg font-bold">{t}</div>
-                <p className="mt-1 text-sm leading-snug text-white/75">{d}</p>
+                <p className="mt-1 text-sm leading-snug text-white/70">{d}</p>
               </li>
             ))}
           </ul>
           <div className="mt-8">
-            <Link to="/matches" className={BTN_LIGHT}>
+            <Link to="/matches" className={BTN_HOT}>
               Open the match centre
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
-        <div className="relative mx-auto w-full max-w-[380px] text-white">
-          <WagonWheel className="h-auto w-full" />
-          <div className="mt-6 flex justify-center">
+        <div className="relative mx-auto w-full max-w-[400px] rounded-2xl border border-white/15 bg-black/35 p-6 text-white backdrop-blur-md">
+          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-[0.24em]">
+            <span className="text-[var(--pub-hot)]">Scoreboard</span>
+            <span className="inline-flex items-center gap-2 text-white/60">
+              <span className="h-2 w-2 rounded-full bg-[var(--pub-ball)]" aria-hidden="true" />
+              Ball by ball
+            </span>
+          </div>
+          <WagonWheel className="mt-4 h-auto w-full" />
+          <div className="mt-5 flex justify-center">
             <OverStrip />
           </div>
         </div>

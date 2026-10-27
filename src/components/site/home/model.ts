@@ -19,6 +19,12 @@ export function packFor(niche: string | null | undefined): Pack {
   return "cricket";
 }
 
+/** Cricket sites speak to the players: a blank or generic "Register now" becomes "Join the squad". An owner's own wording stays. */
+export function heroCta(pack: Pack, label: string): string {
+  if (pack !== "cricket") return label || "Register now";
+  return !label || /^register( now)?$/i.test(label) ? "Join the squad" : label;
+}
+
 export type Fact = { figure: string | null; label: string };
 
 /** "800+ students trained" becomes figure "800+" and label "students trained". */
@@ -153,7 +159,7 @@ export function buildHomeModel(input: {
       sub:
         clean(hero?.subheadline) ||
         `Professional training, clear fees and a home for every player at ${tenant.name}.`,
-      cta: clean(hero?.cta_label) || "Register now",
+      cta: heroCta(pack, clean(hero?.cta_label)),
       mediaPath: clean(hero?.background_url),
       mediaIsVideo: hero?.background_type === "video",
     },

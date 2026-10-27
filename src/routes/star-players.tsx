@@ -35,10 +35,7 @@ function StarPlayersContent() {
       <div className="pointer-events-none absolute inset-0 opacity-[0.04] [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:22px_22px]" />
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
         <div className="text-center">
-          <div
-            className="text-[11px] font-semibold uppercase tracking-[0.28em]"
-            style={{ color: tenant.primary_color }}
-          >
+          <div className="text-[11px] font-bold uppercase tracking-[0.28em] text-[var(--pub-hot)]">
             Champions of {tenant.name}
           </div>
           <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-6xl">Star Players</h1>
@@ -59,7 +56,7 @@ function StarPlayersContent() {
         )}
 
         {rest.length > 0 ? (
-          <div className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-16 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
             {rest.map((p, i) => (
               <StarPlayerCard key={i} player={p} />
             ))}

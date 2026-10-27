@@ -16,10 +16,25 @@ export const WRAP = "mx-auto w-[min(1320px,94%)]";
 export const BTN =
   "inline-flex items-center justify-center gap-2 rounded-[10px] px-6 py-3.5 text-[15px] font-semibold transition-[transform,background-color,border-color] active:scale-[0.98]";
 export const BTN_BRAND = `${BTN} bg-[var(--brand)] text-white hover:brightness-110`;
+/** The one bright call to action on dark bands (volt on cricket sites, a light tint of the academy colour elsewhere). */
+export const BTN_HOT = `${BTN} bg-[var(--pub-hot)] font-bold text-[var(--pub-hot-ink)] hover:brightness-95`;
 export const BTN_LIGHT = `${BTN} bg-white text-[#0A0F1A] hover:bg-white/90`;
 export const BTN_GHOST_DARK = `${BTN} border border-white/30 text-white hover:bg-white/10`;
 export const BTN_GHOST_LIGHT = `${BTN} border border-[#0A0F1A]/25 text-[#0A0F1A] hover:bg-[#0A0F1A]/5`;
-const ACCENT_ON_DARK = "text-[color-mix(in_srgb,var(--brand)_42%,white)]";
+export const ACCENT_ON_DARK = "text-[var(--pub-hot)]";
+
+/** The last word of a headline in the accent colour. */
+function AccentTail({ text }: { text: string }) {
+  const trimmed = text.trimEnd();
+  const i = trimmed.lastIndexOf(" ");
+  if (i < 0) return <>{text}</>;
+  return (
+    <>
+      {trimmed.slice(0, i + 1)}
+      <span className="text-[var(--pub-hot)]">{trimmed.slice(i + 1)}</span>
+    </>
+  );
+}
 
 export function SectionHead({
   n,
@@ -42,7 +57,7 @@ export function SectionHead({
   return (
     <div className={`max-w-3xl ${className}`}>
       <div className={`flex items-center gap-3 ${dark ? "text-white" : "text-[#0A0F1A]"}`}>
-        <OverDots filled={((n - 1) % 6) + 1} onBrand={onBrand} />
+        <OverDots filled={((n - 1) % 6) + 1} onBrand={onBrand} dark={dark} />
         <span
           className={`text-xs font-bold uppercase tracking-[0.22em] ${onBrand ? "text-white/85" : dark ? ACCENT_ON_DARK : "text-[var(--brand)]"}`}
         >
@@ -106,7 +121,7 @@ export function Hero({ tenant, m }: { tenant: Tenant; m: HomeModel }) {
       <HeroGround className="pointer-events-none absolute inset-0 -z-10 h-full w-full text-white/[0.12]" />
 
       <div
-        className={`${WRAP} grid gap-10 pb-12 pt-14 sm:pt-20 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:items-end lg:pb-16 lg:pt-28`}
+        className={`${WRAP} grid gap-10 pb-12 pt-[calc(3.5rem+65px)] sm:pt-[calc(5rem+65px)] lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:items-end lg:pb-16 lg:pt-[calc(7rem+65px)]`}
       >
         <div>
           <div className="inline-flex items-center gap-2.5 rounded-md border border-white/20 bg-black/30 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.24em] text-white/85 backdrop-blur-sm">
@@ -115,13 +130,13 @@ export function Hero({ tenant, m }: { tenant: Tenant; m: HomeModel }) {
             {m.town ? <span className="text-white/55">· {m.town}</span> : null}
           </div>
           <h1 className="mt-6 font-[family-name:var(--font-display)] text-[clamp(2.6rem,7.2vw,5.6rem)] font-extrabold leading-[0.98] tracking-tight">
-            {m.hero.headline}
+            <AccentTail text={m.hero.headline} />
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/80 sm:text-xl">
             {m.hero.sub}
           </p>
           <div className="mt-9 flex flex-wrap gap-3">
-            <Link to="/register" className={BTN_BRAND}>
+            <Link to="/register" className={BTN_HOT}>
               {m.hero.cta}
               <ArrowRight className="h-4 w-4" />
             </Link>
@@ -173,7 +188,7 @@ export function Hero({ tenant, m }: { tenant: Tenant; m: HomeModel }) {
             {ribbon.map((f, i) => (
               <div
                 key={i}
-                className="min-w-0 border-l-2 border-[var(--brand)] pl-4 [&:last-child:nth-child(odd)]:col-span-2 sm:[&:last-child:nth-child(odd)]:col-span-1"
+                className="min-w-0 border-l-2 border-[var(--pub-hot)] pl-4 [&:last-child:nth-child(odd)]:col-span-2 sm:[&:last-child:nth-child(odd)]:col-span-1"
               >
                 <dt className="sr-only">{f.label}</dt>
                 <dd>
@@ -260,7 +275,7 @@ export function Pillars({ m }: { m: HomeModel }) {
               <span className="absolute right-4 top-3 font-[family-name:var(--font-display)] text-5xl font-extrabold text-[#0A0F1A]/[0.06]">
                 {String(i + 1).padStart(2, "0")}
               </span>
-              <div className="grid h-14 w-14 place-items-center rounded-[10px] bg-[var(--brand)] text-white">
+              <div className="grid h-14 w-14 place-items-center rounded-[10px] bg-[#0A0F1A] text-[var(--pub-hot)]">
                 {p.icon.startsWith("lucide:") ? (
                   <Lucide name={p.icon.slice(7)} className="h-7 w-7" />
                 ) : (

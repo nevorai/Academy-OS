@@ -128,7 +128,7 @@ function HomeContent() {
   );
 
   return (
-    <div className="pub-home lp-root font-[family-name:var(--font-sans)]">
+    <div data-pack={m.pack} className="pub-home lp-root font-[family-name:var(--font-sans)]">
       <Hero tenant={tenant} m={m} />
       <About tenant={tenant} m={m} />
       <Pillars m={m} />

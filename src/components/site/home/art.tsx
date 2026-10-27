@@ -9,20 +9,24 @@ export function OverDots({
   filled = 1,
   total = 6,
   onBrand = false,
+  dark = false,
   className = "",
 }: {
   filled?: number;
   total?: number;
   /** On a band in the academy's own colour, lit dots are white. */
   onBrand?: boolean;
+  /** On a night band, lit dots take the accent colour (the academy's blue is too dim there). */
+  dark?: boolean;
   className?: string;
 }) {
+  const lit = onBrand ? "bg-white" : dark ? "bg-[var(--pub-hot)]" : "bg-[var(--brand)]";
   return (
     <span className={`inline-flex items-center gap-1 ${className}`} aria-hidden="true">
       {Array.from({ length: total }, (_, i) => (
         <span
           key={i}
-          className={`h-1.5 w-1.5 rounded-full ${i < filled ? (onBrand ? "bg-white" : "bg-[var(--brand)]") : "bg-current opacity-30"}`}
+          className={`h-1.5 w-1.5 rounded-full ${i < filled ? lit : "bg-current opacity-30"}`}
         />
       ))}
     </span>

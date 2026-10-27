@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Batch, FeePlan, SiteContent, Tenant } from "@/lib/tenant";
 import { oneLineAddress, townFromAddress } from "@/lib/public-site";
-import { buildHomeModel, packFor, parseFact, startMinutes } from "./model";
+import { buildHomeModel, heroCta, packFor, parseFact, startMinutes } from "./model";
 
 const tenant = {
   id: "t1",
@@ -22,6 +22,15 @@ const fee = (id: string, type: string, amount: number) =>
   ({ id, type, amount, name: id }) as unknown as FeePlan;
 
 describe("home page rules", () => {
+  it("cricket sites say 'Join the squad' unless the owner wrote their own button text", () => {
+    expect(heroCta("cricket", "")).toBe("Join the squad");
+    expect(heroCta("cricket", "Register Now")).toBe("Join the squad");
+    expect(heroCta("cricket", "Register")).toBe("Join the squad");
+    expect(heroCta("cricket", "Book a trial")).toBe("Book a trial");
+    expect(heroCta("gym", "")).toBe("Register now");
+    expect(heroCta("learning", "Register Now")).toBe("Register Now");
+  });
+
   it("splits a fact into figure and label", () => {
     expect(parseFact("800+ students trained")).toEqual({
       figure: "800+",

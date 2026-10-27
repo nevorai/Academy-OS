@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Phone, MessageCircle, Mail, MapPin } from "lucide-react";
 import { useTenant } from "@/lib/tenant-context";
 import { getFeatures } from "@/lib/tenant";
+import { packFor } from "./home/model";
 
 function waLink(number?: string | null) {
   if (!number) return null;
@@ -28,26 +29,23 @@ export function SiteFooter() {
   const wa = waLink(tenant.whatsapp ?? tenant.phone);
 
   return (
-    <footer className="mt-16 border-t border-border/60 bg-muted/30">
+    <footer
+      data-pack={packFor(tenant.niche)}
+      className="mt-16 border-t border-white/10 bg-[#070B14] text-white"
+    >
       <div className="mx-auto grid w-[min(1320px,94%)] gap-8 py-12 md:grid-cols-4">
         <div>
-          <div className="text-base font-semibold text-foreground">{tenant.name}</div>
-          {tenant.tagline ? (
-            <p className="mt-2 text-sm text-muted-foreground">{tenant.tagline}</p>
-          ) : null}
+          <div className="text-base font-semibold text-white">{tenant.name}</div>
+          {tenant.tagline ? <p className="mt-2 text-sm text-white/55">{tenant.tagline}</p> : null}
         </div>
 
         <div className="space-y-2 text-sm">
-          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="text-xs font-semibold uppercase tracking-wider text-white/55">
             Explore
           </div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
             {footerNav.map((n) => (
-              <Link
-                key={n.to}
-                to={n.to}
-                className="py-1.5 text-foreground/80 hover:text-foreground"
-              >
+              <Link key={n.to} to={n.to} className="py-1.5 text-white/80 hover:text-white">
                 {n.label}
               </Link>
             ))}
@@ -55,15 +53,15 @@ export function SiteFooter() {
         </div>
 
         <div className="space-y-2 text-sm">
-          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="text-xs font-semibold uppercase tracking-wider text-white/55">
             Contact
           </div>
           {tenant.phone ? (
             <a
               href={`tel:${tenant.phone}`}
-              className="flex items-center gap-2 text-foreground hover:opacity-80"
+              className="flex items-center gap-2 text-white hover:opacity-80"
             >
-              <Phone className="h-4 w-4" style={{ color: "var(--brand)" }} />
+              <Phone className="h-4 w-4" style={{ color: "var(--pub-hot)" }} />
               {tenant.phone}
             </a>
           ) : null}
@@ -72,18 +70,18 @@ export function SiteFooter() {
               href={wa}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-2 text-foreground hover:opacity-80"
+              className="flex items-center gap-2 text-white hover:opacity-80"
             >
-              <MessageCircle className="h-4 w-4" style={{ color: "var(--brand)" }} />
+              <MessageCircle className="h-4 w-4" style={{ color: "var(--pub-hot)" }} />
               WhatsApp
             </a>
           ) : null}
           {tenant.email ? (
             <a
               href={`mailto:${tenant.email}`}
-              className="flex items-center gap-2 text-foreground hover:opacity-80"
+              className="flex items-center gap-2 text-white hover:opacity-80"
             >
-              <Mail className="h-4 w-4" style={{ color: "var(--brand)" }} />
+              <Mail className="h-4 w-4" style={{ color: "var(--pub-hot)" }} />
               {tenant.email}
             </a>
           ) : null}
@@ -91,24 +89,27 @@ export function SiteFooter() {
 
         {tenant.address ? (
           <div className="space-y-2 text-sm">
-            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="text-xs font-semibold uppercase tracking-wider text-white/55">
               Visit us
             </div>
             <a
               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tenant.address)}`}
               target="_blank"
               rel="noreferrer"
-              className="flex items-start gap-2 text-foreground hover:opacity-80"
+              className="flex items-start gap-2 text-white hover:opacity-80"
             >
-              <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0" style={{ color: "var(--brand)" }} />
+              <MapPin
+                className="mt-0.5 h-4 w-4 flex-shrink-0"
+                style={{ color: "var(--pub-hot)" }}
+              />
               <span>{tenant.address}</span>
             </a>
           </div>
         ) : null}
       </div>
 
-      <div className="border-t border-border/60">
-        <div className="mx-auto flex w-[min(1320px,94%)] flex-col items-center justify-between gap-2 py-4 text-xs text-muted-foreground sm:flex-row">
+      <div className="border-t border-white/10">
+        <div className="mx-auto flex w-[min(1320px,94%)] flex-col items-center justify-between gap-2 py-4 text-xs text-white/55 sm:flex-row">
           <div>
             © {new Date().getFullYear()} {tenant.name}. All rights reserved.
           </div>
@@ -116,23 +117,23 @@ export function SiteFooter() {
             <Link
               to="/policies/$kind"
               params={{ kind: "terms" }}
-              className="text-muted-foreground/80 hover:text-foreground"
+              className="text-white/55 hover:text-white"
             >
               Terms &amp; Conditions
             </Link>
             <Link
               to="/policies/$kind"
               params={{ kind: "privacy" }}
-              className="text-muted-foreground/80 hover:text-foreground"
+              className="text-white/55 hover:text-white"
             >
               Privacy
             </Link>
-            <Link to="/auth" className="text-muted-foreground/80 hover:text-foreground">
+            <Link to="/auth" className="text-white/55 hover:text-white">
               Owner login
             </Link>
             {features.powered_by_badge !== false ? (
               <div>
-                Powered by <span className="font-semibold text-foreground">Nevorai Academy</span>
+                Powered by <span className="font-semibold text-white">Nevorai Academy</span>
               </div>
             ) : null}
           </div>

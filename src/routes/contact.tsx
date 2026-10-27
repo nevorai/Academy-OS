@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { isPlatformRequest, seo } from "@/lib/seo";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Phone,
   MessageCircle,
@@ -13,7 +14,21 @@ import {
 import { toast } from "sonner";
 import { TenantGate } from "@/components/site/TenantGate";
 import { PageHero } from "@/components/site/PageHero";
+import {
+  BTN_NIGHT,
+  Band,
+  BandHead,
+  CARD_CREAM,
+  FIELD,
+  IconTile,
+  InnerPage,
+} from "@/components/site/inner-ui";
+import { BTN_GHOST_DARK, BTN_HOT } from "@/components/site/home/sections-top";
+import { buildHomeModel } from "@/components/site/home/model";
+import { oneLineAddress } from "@/lib/public-site";
+import { siteContentQuery } from "@/lib/site-queries";
 import { useTenant } from "@/lib/tenant-context";
+import { useSiteBundle } from "@/lib/use-site-bundle";
 import { supabase } from "@/integrations/supabase/client";
 import { checkRateLimit } from "@/lib/bulk-ops";
 
@@ -33,37 +48,43 @@ export const Route = createFileRoute("/contact")({
   ),
 });
 
+const CONTACT_CARD = `${CARD_CREAM} group flex flex-col transition-colors hover:border-[#0A0F1A]/40`;
+const CONTACT_LABEL =
+  "mt-5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.18em] text-[#0A0F1A]/55";
+const CONTACT_GO =
+  "mt-auto pt-6 text-sm font-bold text-[#0A0F1A] underline decoration-[var(--pub-hot)] decoration-2 underline-offset-4";
+const CONTACT_VALUE =
+  "mt-1 break-words font-[family-name:var(--font-display)] text-lg font-bold leading-snug";
+
 function ContactContent() {
   const tenant = useTenant();
+  const site = useSiteBundle();
+  const { data: sections = [] } = useQuery({
+    ...siteContentQuery(tenant.id),
+    initialData: site?.siteContent ?? undefined,
+  });
   const wa = (tenant.whatsapp ?? tenant.phone)?.replace(/[^\d]/g, "");
-  const mapUrl = tenant.address
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tenant.address)}`
-    : null;
+  const address = tenant.address ? oneLineAddress(tenant.address) : null;
+  const { map } = buildHomeModel({ tenant, sections, fees: [], batches: [] });
 
   return (
-    <>
+    <InnerPage>
       <PageHero
         pageKey="contact"
         eyebrow="Get in touch"
         title="Contact us"
         subtitle="Have questions? Reach out — we usually reply the same day."
       />
-      <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
-        <div className="grid gap-4 sm:grid-cols-2">
+      <Band tone="white">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {tenant.phone ? (
-            <a
-              href={`tel:${tenant.phone}`}
-              className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-md"
-            >
-              <div
-                className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl transition-opacity group-hover:opacity-30"
-                style={{ backgroundColor: "var(--brand)" }}
-              />
-              <Phone className="h-6 w-6" style={{ color: "var(--brand)" }} />
-              <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Call
-              </div>
-              <div className="mt-1 text-lg font-semibold text-foreground">{tenant.phone}</div>
+            <a href={`tel:${tenant.phone}`} className={CONTACT_CARD}>
+              <IconTile>
+                <Phone className="h-5 w-5" />
+              </IconTile>
+              <div className={CONTACT_LABEL}>Call</div>
+              <div className={CONTACT_VALUE}>{tenant.phone}</div>
+              <div className={CONTACT_GO}>Call now →</div>
             </a>
           ) : null}
 
@@ -72,62 +93,89 @@ function ContactContent() {
               href={`https://wa.me/${wa}`}
               target="_blank"
               rel="noreferrer"
-              className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-md"
+              className={CONTACT_CARD}
             >
-              <div
-                className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl transition-opacity group-hover:opacity-30"
-                style={{ backgroundColor: "var(--brand)" }}
-              />
-              <MessageCircle className="h-6 w-6" style={{ color: "var(--brand)" }} />
-              <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                WhatsApp
-              </div>
-              <div className="mt-1 text-lg font-semibold text-foreground">Chat with us</div>
+              <IconTile>
+                <MessageCircle className="h-5 w-5" />
+              </IconTile>
+              <div className={CONTACT_LABEL}>WhatsApp</div>
+              <div className={CONTACT_VALUE}>Chat with us</div>
+              <div className={CONTACT_GO}>Open WhatsApp →</div>
             </a>
           ) : null}
 
           {tenant.email ? (
-            <a
-              href={`mailto:${tenant.email}`}
-              className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-md"
-            >
-              <div
-                className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl transition-opacity group-hover:opacity-30"
-                style={{ backgroundColor: "var(--brand)" }}
-              />
-              <Mail className="h-6 w-6" style={{ color: "var(--brand)" }} />
-              <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Email
-              </div>
-              <div className="mt-1 break-all text-lg font-semibold text-foreground">
-                {tenant.email}
-              </div>
+            <a href={`mailto:${tenant.email}`} className={CONTACT_CARD}>
+              <IconTile>
+                <Mail className="h-5 w-5" />
+              </IconTile>
+              <div className={CONTACT_LABEL}>Email</div>
+              <div className={`${CONTACT_VALUE} break-all`}>{tenant.email}</div>
+              <div className={CONTACT_GO}>Send an email →</div>
             </a>
           ) : null}
 
-          {mapUrl ? (
-            <a
-              href={mapUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-md"
-            >
-              <div
-                className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl transition-opacity group-hover:opacity-30"
-                style={{ backgroundColor: "var(--brand)" }}
-              />
-              <MapPin className="h-6 w-6" style={{ color: "var(--brand)" }} />
-              <div className="mt-4 flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {map.linkUrl && address ? (
+            <a href={map.linkUrl} target="_blank" rel="noreferrer" className={CONTACT_CARD}>
+              <IconTile>
+                <MapPin className="h-5 w-5" />
+              </IconTile>
+              <div className={CONTACT_LABEL}>
                 Visit <ExternalLink className="h-3 w-3" />
               </div>
-              <div className="mt-1 text-lg font-semibold text-foreground">{tenant.address}</div>
+              <div className={CONTACT_VALUE}>{address}</div>
+              <div className={CONTACT_GO}>Open in Maps →</div>
             </a>
           ) : null}
         </div>
 
         <EnquiryForm tenantId={tenant.id} tenantName={tenant.name} />
-      </div>
-    </>
+      </Band>
+
+      {map.embedUrl ? (
+        <Band tone="night">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:items-center">
+            <div>
+              <BandHead
+                n={2}
+                label="Find us"
+                title="Come and see the ground"
+                lead={address ?? undefined}
+                tone="night"
+              />
+              <div className="mt-8 flex flex-wrap gap-3">
+                {map.linkUrl ? (
+                  <a href={map.linkUrl} target="_blank" rel="noreferrer" className={BTN_HOT}>
+                    <MapPin className="h-4 w-4" />
+                    Get directions
+                  </a>
+                ) : null}
+                {map.shareUrl ? (
+                  <a
+                    href={`https://wa.me/?text=${encodeURIComponent(`${tenant.name}\n${address ?? ""}\n${map.shareUrl}`)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={BTN_GHOST_DARK}
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    Share location
+                  </a>
+                ) : null}
+              </div>
+            </div>
+            <div className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
+              <iframe
+                title={`Map to ${tenant.name}`}
+                src={map.embedUrl}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="block h-[320px] w-full border-0 lg:h-[400px]"
+              />
+            </div>
+          </div>
+        </Band>
+      ) : null}
+    </InnerPage>
   );
 }
 
@@ -174,15 +222,14 @@ function EnquiryForm({ tenantId, tenantName }: { tenantId: string; tenantName: s
 
   if (done) {
     return (
-      <div className="mt-12 rounded-2xl border border-border/60 bg-card p-8 text-center">
-        <div
-          className="mx-auto grid h-14 w-14 place-items-center rounded-full"
-          style={{ backgroundColor: "var(--brand)" }}
-        >
-          <CheckCircle2 className="h-7 w-7 text-white" />
-        </div>
-        <h2 className="mt-5 text-xl font-bold text-foreground">Thanks — message received</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
+      <div className={`${CARD_CREAM} mt-14 flex flex-col items-center !p-10 text-center`}>
+        <IconTile>
+          <CheckCircle2 className="h-5 w-5" />
+        </IconTile>
+        <h2 className="mt-5 font-[family-name:var(--font-display)] text-2xl font-extrabold">
+          Thanks — message received
+        </h2>
+        <p className="mt-2 text-[15px] text-[#0A0F1A]/70">
           {tenantName} will get back to you shortly, usually on WhatsApp.
         </p>
       </div>
@@ -190,74 +237,56 @@ function EnquiryForm({ tenantId, tenantName }: { tenantId: string; tenantName: s
   }
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="mt-12 space-y-4 rounded-2xl border border-border/60 bg-card p-6 sm:p-8"
-    >
-      <div>
-        <div
-          className="text-xs font-semibold uppercase tracking-widest"
-          style={{ color: "var(--brand)" }}
-        >
-          Send a message
+    <div className="mt-14 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] lg:gap-14">
+      <BandHead
+        n={1}
+        label="Send a message"
+        title="Or leave your number and we will reach out"
+        lead="Tell us what you are looking for. The academy will call or message you."
+      />
+      <form onSubmit={onSubmit} className={`${CARD_CREAM} space-y-4 sm:!p-8`}>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#0A0F1A]/60">
+              Your name *
+            </span>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoComplete="name"
+              className={FIELD}
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#0A0F1A]/60">
+              Phone *
+            </span>
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              inputMode="tel"
+              autoComplete="tel"
+              className={FIELD}
+            />
+          </label>
         </div>
-        <h2 className="mt-1 text-2xl font-bold text-foreground">
-          Or leave your number — we'll reach out
-        </h2>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Your name *
+          <span className="text-xs font-bold uppercase tracking-wider text-[#0A0F1A]/60">
+            What can we help with?
           </span>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="mt-1.5 block w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none focus:ring-2"
-            style={{ boxShadow: "none" }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = "var(--brand)")}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "")}
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            rows={4}
+            placeholder="e.g. Looking for morning batches for my 12-year-old."
+            className={FIELD}
           />
         </label>
-        <label className="block">
-          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Phone *
-          </span>
-          <input
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            inputMode="tel"
-            className="mt-1.5 block w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none focus:ring-2"
-            style={{ boxShadow: "none" }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = "var(--brand)")}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "")}
-          />
-        </label>
-      </div>
-      <label className="block">
-        <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          What can we help with?
-        </span>
-        <textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          rows={3}
-          placeholder="e.g. Looking for morning batches for my 12-year-old."
-          className="mt-1.5 block w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none focus:ring-2"
-          style={{ boxShadow: "none" }}
-          onFocus={(e) => (e.currentTarget.style.borderColor = "var(--brand)")}
-          onBlur={(e) => (e.currentTarget.style.borderColor = "")}
-        />
-      </label>
-      <button
-        type="submit"
-        disabled={saving}
-        className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white disabled:opacity-60"
-        style={{ backgroundColor: "var(--brand)" }}
-      >
-        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-        Send message
-      </button>
-    </form>
+        <button type="submit" disabled={saving} className={BTN_NIGHT}>
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          Send message
+        </button>
+      </form>
+    </div>
   );
 }

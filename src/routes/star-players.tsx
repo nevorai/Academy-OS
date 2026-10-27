@@ -9,6 +9,7 @@ import {
   type RawStarPlayer,
 } from "@/components/site/StarPlayersShowcase";
 import { useTenant } from "@/lib/tenant-context";
+import { useSiteBundle } from "@/lib/use-site-bundle";
 import { sectionsBy, siteContentQuery } from "@/lib/site-queries";
 
 export const Route = createFileRoute("/star-players")({
@@ -24,7 +25,11 @@ export const Route = createFileRoute("/star-players")({
 
 function StarPlayersContent() {
   const tenant = useTenant();
-  const { data: sections = [] } = useQuery(siteContentQuery(tenant.id));
+  const site = useSiteBundle();
+  const { data: sections = [] } = useQuery({
+    ...siteContentQuery(tenant.id),
+    initialData: site?.siteContent ?? undefined,
+  });
   const players = sectionsBy(sections, "star_players")
     .map((s) => normalizeStar(s.content as RawStarPlayer))
     .filter((p) => p.name);

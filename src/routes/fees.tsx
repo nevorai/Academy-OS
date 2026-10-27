@@ -3,7 +3,20 @@ import { useQuery } from "@tanstack/react-query";
 import { Check, Sparkles, MessageCircle, CalendarClock } from "lucide-react";
 import { TenantGate } from "@/components/site/TenantGate";
 import { PageHero } from "@/components/site/PageHero";
+import {
+  BTN_NIGHT,
+  Band,
+  BandHead,
+  CARD_CREAM,
+  EmptyNote,
+  IconTile,
+  InnerPage,
+  JoinBand,
+} from "@/components/site/inner-ui";
+import { BTN, BTN_GHOST_LIGHT } from "@/components/site/home/sections-top";
+import { cleanBatchName } from "@/components/site/home/model";
 import { useTenant } from "@/lib/tenant-context";
+import { useSiteBundle } from "@/lib/use-site-bundle";
 import { feePlansQuery, siteContentQuery, sectionOne } from "@/lib/site-queries";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -33,8 +46,15 @@ type FeesMode = "show" | "hide" | "contact" | "demo";
 
 function FeesContent() {
   const tenant = useTenant();
-  const { data: fees = [], isLoading } = useQuery(feePlansQuery(tenant.id));
-  const { data: sections = [] } = useQuery(siteContentQuery(tenant.id));
+  const site = useSiteBundle();
+  const { data: fees = [], isLoading } = useQuery({
+    ...feePlansQuery(tenant.id),
+    initialData: site?.feePlans ?? undefined,
+  });
+  const { data: sections = [] } = useQuery({
+    ...siteContentQuery(tenant.id),
+    initialData: site?.siteContent ?? undefined,
+  });
   const pricing = sectionOne<{ mode?: FeesMode; visible?: string }>(sections, "pricing");
   const mode: FeesMode = pricing?.mode ?? (pricing?.visible === "false" ? "hide" : "show");
 
@@ -47,39 +67,38 @@ function FeesContent() {
     sortedMonthly.length >= 2 ? sortedMonthly[Math.floor(sortedMonthly.length / 2)]?.id : undefined;
 
   return (
-    <>
-      <PageHero pageKey="fees"
+    <InnerPage>
+      <PageHero
+        pageKey="fees"
         eyebrow="Simple, transparent pricing"
         title="Fees & plans"
         subtitle={`Pay directly to ${tenant.name} via UPI. No hidden fees, no card surcharges.`}
       />
-      <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
-        <div className="mb-8 rounded-2xl border border-border/60 bg-muted/30 p-4 text-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="text-muted-foreground">
-              Ready to join? Start an admission request in a few minutes.
-            </div>
-            <Link
-              to="/admissions"
-              className="inline-flex items-center gap-1 font-semibold"
-              style={{ color: "var(--brand)" }}
-            >
-              Start admissions →
-            </Link>
+      <Band tone="white">
+        <div className={`${CARD_CREAM} flex flex-wrap items-center justify-between gap-3 !p-5`}>
+          <div className="text-[15px] text-[#0A0F1A]/75">
+            Ready to join? Start an admission request in a few minutes.
           </div>
+          <Link
+            to="/admissions"
+            className="inline-flex items-center gap-1 font-bold text-[#0A0F1A] underline decoration-[var(--pub-hot)] decoration-2 underline-offset-4"
+          >
+            Start admissions →
+          </Link>
         </div>
+
         {isLoading ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {[0, 1, 2].map((i) => (
-              <Skeleton key={i} className="h-48 rounded-2xl" />
+              <Skeleton key={i} className="h-52 rounded-xl" />
             ))}
           </div>
         ) : (
           <>
             {monthly.length > 0 ? (
-              <section>
-                <h2 className="text-lg font-semibold text-foreground">Monthly plans</h2>
-                <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <section className="mt-12">
+                <BandHead n={1} label="Pay monthly" title="Monthly plans" />
+                <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {sortedMonthly.map((p) => (
                     <PlanCard
                       key={p.id}
@@ -95,9 +114,9 @@ function FeesContent() {
             ) : null}
 
             {registration.length > 0 ? (
-              <section className="mt-12">
-                <h2 className="text-lg font-semibold text-foreground">One-time</h2>
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <section className="mt-16">
+                <BandHead n={2} label="Pay once" title="One-time fees" />
+                <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {registration.map((p) => (
                     <PlanCard
                       key={p.id}
@@ -112,52 +131,31 @@ function FeesContent() {
             ) : null}
 
             {fees.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border/60 bg-muted/20 p-12 text-center text-muted-foreground">
-                Fee plans coming soon.
+              <div className="mt-12">
+                <EmptyNote>Fee plans coming soon.</EmptyNote>
               </div>
             ) : null}
           </>
         )}
+      </Band>
 
-        <div
-          className="mt-16 overflow-hidden rounded-3xl p-8 text-white sm:p-10"
-          style={{ backgroundColor: "var(--brand-ink)" }}
-        >
-          <div className="text-lg font-semibold">Ready to join?</div>
-          <p className="mt-2 text-sm text-white/70">
-            Register online and pay directly to {tenant.name} via UPI.
-          </p>
-          <Link
-            to="/register"
-            className="mt-6 inline-flex rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-neutral-900 transition-transform hover:scale-[1.02]"
-          >
-            Register Now
-          </Link>
-        </div>
-      </div>
-    </>
+      <JoinBand text={`Register online and pay directly to ${tenant.name} via UPI.`} />
+    </InnerPage>
   );
 }
 
 function FeesCtaOnly({ tenant, mode }: { tenant: ReturnType<typeof useTenant>; mode: FeesMode }) {
   if (mode === "hide") {
     return (
-      <>
-        <PageHero pageKey="fees"
+      <InnerPage>
+        <PageHero
+          pageKey="fees"
           eyebrow="Fees"
           title="Fees & plans"
           subtitle="Please register or contact us to know more about our plans."
         />
-        <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 text-center">
-          <Link
-            to="/register"
-            className="inline-flex rounded-full px-6 py-3 text-sm font-semibold text-white shadow-sm"
-            style={{ backgroundColor: "var(--brand)" }}
-          >
-            Register Now
-          </Link>
-        </div>
-      </>
+        <JoinBand text="Register online, or contact the academy to ask about plans." />
+      </InnerPage>
     );
   }
   const wa = (tenant.whatsapp ?? tenant.phone ?? "").replace(/[^\d]/g, "");
@@ -167,8 +165,9 @@ function FeesCtaOnly({ tenant, mode }: { tenant: ReturnType<typeof useTenant>; m
   const waHref = wa ? `https://wa.me/${wa}?text=${waMsg}` : null;
   const isDemo = mode === "demo";
   return (
-    <>
-      <PageHero pageKey="fees"
+    <InnerPage>
+      <PageHero
+        pageKey="fees"
         eyebrow={isDemo ? "Try before you join" : "Get in touch"}
         title={isDemo ? "Book a free demo" : "Chat with us about fees"}
         subtitle={
@@ -177,47 +176,45 @@ function FeesCtaOnly({ tenant, mode }: { tenant: ReturnType<typeof useTenant>; m
             : `Reach out to ${tenant.name} — we'll share plans that suit your child.`
         }
       />
-      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
-        <div className="rounded-3xl border border-border/60 bg-card p-8 text-center shadow-sm">
-          <div
-            className="mx-auto flex h-14 w-14 items-center justify-center rounded-full"
-            style={{ backgroundColor: "var(--brand)" }}
-          >
-            {isDemo ? (
-              <CalendarClock className="h-7 w-7 text-white" />
-            ) : (
-              <MessageCircle className="h-7 w-7 text-white" />
-            )}
+      <Band tone="white" className="min-h-[30vh]">
+        <div
+          className={`${CARD_CREAM} flex flex-col gap-6 !p-7 sm:!p-9 lg:flex-row lg:items-center`}
+        >
+          <IconTile>
+            {isDemo ? <CalendarClock className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
+          </IconTile>
+          <div className="min-w-0 lg:max-w-md">
+            <h2 className="font-[family-name:var(--font-display)] text-2xl font-extrabold leading-tight">
+              {isDemo ? "Try a session first" : "Talk to the academy"}
+            </h2>
+            <p className="mt-2 text-[15px] leading-relaxed text-[#0A0F1A]/70">
+              {isDemo
+                ? "Send a message and the academy will confirm a time for you."
+                : "Message or call, and the academy will share the plans that suit you."}
+            </p>
           </div>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap lg:ml-auto">
             {waHref ? (
               <a
                 href={waHref}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-5 py-3 text-sm font-semibold text-white shadow-sm"
+                className={`${BTN} w-full bg-[#25D366] text-white hover:brightness-105 sm:w-auto`}
               >
                 <MessageCircle className="h-4 w-4" fill="currentColor" />
                 {isDemo ? "Book on WhatsApp" : "Message us on WhatsApp"}
               </a>
             ) : null}
-            <Link
-              to="/contact"
-              className="inline-flex items-center rounded-full border border-border bg-background px-5 py-3 text-sm font-semibold text-foreground"
-            >
+            <Link to="/contact" className={`${BTN_GHOST_LIGHT} w-full sm:w-auto`}>
               Contact us
             </Link>
-            <Link
-              to="/register"
-              className="inline-flex items-center rounded-full px-5 py-3 text-sm font-semibold text-white"
-              style={{ backgroundColor: "var(--brand)" }}
-            >
+            <Link to="/register" className={`${BTN_NIGHT} w-full sm:w-auto`}>
               {isDemo ? "Register for a trial" : "Register Now"}
             </Link>
           </div>
         </div>
-      </div>
-    </>
+      </Band>
+    </InnerPage>
   );
 }
 
@@ -235,47 +232,52 @@ function PlanCard({
   popular?: boolean;
 }) {
   return (
-    <div
-      className={`relative rounded-2xl border bg-card p-6 transition-all ${
+    <article
+      className={`relative flex flex-col rounded-xl border p-6 sm:p-7 ${
         popular
-          ? "border-transparent shadow-xl sm:scale-[1.03]"
-          : "border-border/60 hover:shadow-md"
+          ? "border-[var(--pub-hot)] bg-[#0A0F1A] text-white shadow-[0_18px_50px_-24px_rgba(7,11,20,0.7)]"
+          : "border-[#0A0F1A]/10 bg-[#F4F1E9] text-[#0A0F1A]"
       }`}
-      style={
-        popular
-          ? {
-              outline: "2px solid var(--brand)",
-              boxShadow: "0 12px 40px -12px color-mix(in oklab, var(--brand) 40%, transparent)",
-            }
-          : undefined
-      }
     >
       {popular ? (
-        <div
-          className="absolute -top-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-1 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow"
-          style={{ backgroundColor: "var(--brand)" }}
-        >
+        <div className="absolute -top-3 left-6 inline-flex items-center gap-1 rounded-md bg-[var(--pub-hot)] px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.14em] text-[var(--pub-hot-ink)]">
           <Sparkles className="h-3 w-3" /> Most popular
         </div>
       ) : null}
-      <div className="text-sm font-medium text-muted-foreground">{name}</div>
-      <div className="mt-4 flex items-baseline gap-1">
-        <span className="text-4xl font-black tracking-tight text-foreground sm:text-5xl">
+      <div
+        className={`text-sm font-bold uppercase tracking-[0.14em] ${popular ? "text-white/60" : "text-[#0A0F1A]/55"}`}
+      >
+        {cleanBatchName(name)}
+      </div>
+      <div className="mt-4 flex flex-wrap items-baseline gap-x-2">
+        <span
+          className={`font-[family-name:var(--font-display)] text-4xl font-extrabold tracking-tight sm:text-5xl ${popular ? "text-[var(--pub-hot)]" : ""}`}
+        >
           ₹{amount.toLocaleString("en-IN")}
         </span>
-        <span className="text-sm text-muted-foreground">{period}</span>
+        <span className={`text-sm ${popular ? "text-white/65" : "text-[#0A0F1A]/60"}`}>
+          {period}
+        </span>
       </div>
-      {desc ? <p className="mt-4 text-sm text-muted-foreground">{desc}</p> : null}
-      <ul className="mt-5 space-y-2 text-sm text-foreground">
-        <li className="flex items-start gap-2">
-          <Check className="mt-0.5 h-4 w-4 flex-shrink-0" style={{ color: "var(--brand)" }} />
-          <span>Direct UPI payment</span>
-        </li>
-        <li className="flex items-start gap-2">
-          <Check className="mt-0.5 h-4 w-4 flex-shrink-0" style={{ color: "var(--brand)" }} />
-          <span>Digital receipt</span>
-        </li>
+      {desc ? (
+        <p
+          className={`mt-4 text-[15px] leading-relaxed ${popular ? "text-white/70" : "text-[#0A0F1A]/75"}`}
+        >
+          {desc}
+        </p>
+      ) : null}
+      <ul className="mt-5 space-y-2.5 text-[15px]">
+        {["Direct UPI payment", "Digital receipt"].map((line) => (
+          <li key={line} className="flex items-start gap-2.5">
+            <span
+              className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full ${popular ? "bg-[var(--pub-hot)] text-[var(--pub-hot-ink)]" : "bg-[#0A0F1A] text-[var(--pub-hot)]"}`}
+            >
+              <Check className="h-3 w-3" strokeWidth={3} />
+            </span>
+            <span>{line}</span>
+          </li>
+        ))}
       </ul>
-    </div>
+    </article>
   );
 }

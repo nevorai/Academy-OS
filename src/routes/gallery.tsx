@@ -3,7 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { TenantGate } from "@/components/site/TenantGate";
 import { PageHero } from "@/components/site/PageHero";
 import { StoragedImage } from "@/components/site/StoragedImage";
+import { Band, EmptyNote, InnerPage } from "@/components/site/inner-ui";
 import { useTenant } from "@/lib/tenant-context";
+import { useSiteBundle } from "@/lib/use-site-bundle";
 import { sectionsBy, siteContentQuery } from "@/lib/site-queries";
 
 export const Route = createFileRoute("/gallery")({
@@ -24,26 +26,33 @@ export const Route = createFileRoute("/gallery")({
 
 function GalleryPage() {
   const tenant = useTenant();
-  const { data: sections = [] } = useQuery(siteContentQuery(tenant.id));
+  const site = useSiteBundle();
+  const { data: sections = [] } = useQuery({
+    ...siteContentQuery(tenant.id),
+    initialData: site?.siteContent ?? undefined,
+  });
   const items = sectionsBy(sections, "gallery").map(
     (s) => s.content as { url?: string; caption?: string },
   );
 
   return (
-    <>
-      <PageHero pageKey="gallery" eyebrow="Moments" title="Gallery" subtitle={`Life at ${tenant.name}.`} />
-      {/* Full-bleed masonry — natural aspect ratios, no forced crop */}
-      <div className="mx-auto max-w-none px-4 py-16 sm:px-6 lg:px-10">
+    <InnerPage>
+      <PageHero
+        pageKey="gallery"
+        eyebrow="Moments"
+        title="Gallery"
+        subtitle={`Life at ${tenant.name}.`}
+      />
+      {/* Masonry on night: natural aspect ratios, no forced crop, photos stand out */}
+      <Band tone="night" className="min-h-[40vh]">
         {items.length === 0 ? (
-          <div className="mx-auto max-w-3xl rounded-2xl border border-dashed border-border/60 bg-muted/20 p-12 text-center text-muted-foreground">
-            Photos and videos coming soon.
-          </div>
+          <EmptyNote tone="night">Photos and videos coming soon.</EmptyNote>
         ) : (
           <div className="columns-2 gap-3 md:columns-3 xl:columns-4">
             {items.map((it, i) => (
               <figure
                 key={i}
-                className="group relative mb-3 break-inside-avoid overflow-hidden rounded-xl border border-border/60 bg-muted animate-in fade-in duration-500"
+                className="group relative mb-3 break-inside-avoid overflow-hidden rounded-xl border border-white/10 bg-white/5"
               >
                 {it.url && (
                   <StoragedImage
@@ -53,7 +62,7 @@ function GalleryPage() {
                   />
                 )}
                 {it.caption && (
-                  <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 py-2 text-xs font-medium text-white">
+                  <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-3 pb-2.5 pt-8 text-xs font-medium text-white">
                     {it.caption}
                   </figcaption>
                 )}
@@ -61,7 +70,7 @@ function GalleryPage() {
             ))}
           </div>
         )}
-      </div>
-    </>
+      </Band>
+    </InnerPage>
   );
 }

@@ -918,8 +918,9 @@ body {
   border-radius: 6px;
 }
 
-/* Academy home page: the page ends where the footer ends, with no empty strip between the last band and the footer. */
-main:has(> .pub-home) + footer {
+/* Academy home and inner pages: the page ends where the footer ends, with no empty strip between the last band and the footer. */
+main:has(> .pub-home) + footer,
+main:has(> .pub-inner) + footer {
   margin-top: 0;
 }
 

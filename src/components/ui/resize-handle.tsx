@@ -17,12 +17,14 @@ type Drag = { x: number; w: number; raw: number; panel: HTMLElement; folded: boo
  * The bar sits straddling the panel's right edge, so the panel's content can be clipped (overflow-hidden) without clipping the bar.
  * `inside` puts it inside a thin strip (a panel folded to nothing) instead.
  */
-export function ResizeHandle({ width, folded, foldedWidth, inside = false, min, max, showAt, label, onPreview, onCommit, onReset }: {
+export function ResizeHandle({ width, folded, foldedWidth, inside = false, tone = "light", min, max, showAt, label, onPreview, onCommit, onReset }: {
   /** The remembered open width: what a folded panel opens to when clicked. */
   width: number;
   folded: boolean;
   foldedWidth: number;
   inside?: boolean;
+  /** "night": the panel is on a dark base, so the grab line lights up volt instead of the primary colour. */
+  tone?: "light" | "night";
   min: number;
   max: number;
   /** While dragging, narrower than this the panel shows as folded, wider as open. */
@@ -126,7 +128,7 @@ export function ResizeHandle({ width, folded, foldedWidth, inside = false, min, 
       }}
       className={`group absolute inset-y-0 z-40 hidden cursor-col-resize touch-none outline-none md:block ${inside ? "inset-x-0" : "-right-1.5 w-3"}`}
     >
-      <span className={`mx-auto block h-full w-0.5 transition-colors duration-150 group-hover:bg-primary/40 group-focus-visible:bg-primary/60 ${dragging ? "bg-primary/60" : ""}`} />
+      <span className={`mx-auto block h-full w-0.5 transition-colors duration-150 ${tone === "night" ? "group-hover:bg-[var(--pub-hot)]/70 group-focus-visible:bg-[var(--pub-hot)]" : "group-hover:bg-primary/40 group-focus-visible:bg-primary/60"} ${dragging ? (tone === "night" ? "bg-[var(--pub-hot)]" : "bg-primary/60") : ""}`} />
     </div>
   );
 }

@@ -22,9 +22,9 @@ export type SideGroup = { title: string | null; items: SideItem[]; /** Pinned at
 const L = SIDE_LIMITS;
 
 /**
- * Desktop sidebar, drawn the way the Metrol CRM rail is: a bordered tile per item, the lit one filled with
- * the academy's colour and a dark bar on its left edge, group names in small capitals, and the fold button at
- * the foot. Who you are and the way out live in the top bar, so the list gets the whole height.
+ * Desktop sidebar, drawn the way the Metrol CRM rail is: a bordered tile per item, on the night base of the public
+ * site. The lit one is a brighter tile with a volt bar on its left edge and a volt icon; group names in small
+ * capitals, and the fold button at the foot. The work area beside it stays light. Who you are and the way out live in the top bar, so the list gets the whole height.
  *
  * Nevorai sidebar standard: drag the edge to resize, fold to icons, the folded strip keeps its edge so a click
  * or drag opens it, every icon has an instant name tooltip, and the size is remembered. Phones use the bottom nav.
@@ -64,22 +64,22 @@ export function DashboardSidebar({ groups: allGroups }: { groups: SideGroup[] })
         aria-current={active ? "page" : undefined}
         className={cn(
           "relative flex h-9 items-center rounded-[9px] border text-[13px] font-medium",
-          "outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]",
+          "outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--pub-hot)]",
           compact ? "mx-auto w-9 justify-center" : "w-full gap-2.5 px-2.5",
           active
-            ? "border-[color:var(--brand)] bg-[color:var(--brand)] text-[color:var(--brand-ink)]"
-            : "border-border bg-muted/40 text-muted-foreground hover:border-foreground/30 hover:bg-accent hover:text-foreground",
+            ? "border-white/20 bg-white/[0.12] text-white"
+            : "border-white/10 bg-white/[0.04] text-white/70 hover:border-white/25 hover:bg-white/10 hover:text-white",
         )}
       >
         {active && (
-          <span className="absolute -left-3 top-2 bottom-2 w-[2.5px] rounded-r-sm bg-foreground" aria-hidden />
+          <span className="absolute -left-3 top-2 bottom-2 w-[3px] rounded-r-sm bg-[var(--pub-hot)]" aria-hidden />
         )}
         <span className="relative grid w-[18px] shrink-0 place-items-center">
-          <Icon className="size-[17px]" />
+          <Icon className={cn("size-[17px]", active && "text-[var(--pub-hot)]")} />
           {n.live ? (
             <span
               aria-hidden
-              className="absolute -right-1 -top-0.5 size-1.5 animate-pulse rounded-full bg-rose-600 ring-2 ring-card"
+              className="absolute -right-1 -top-0.5 size-1.5 animate-pulse rounded-full bg-rose-600 ring-2 ring-[var(--pub-night)]"
             />
           ) : null}
           {compact && n.badge ? (
@@ -118,7 +118,7 @@ export function DashboardSidebar({ groups: allGroups }: { groups: SideGroup[] })
     <TooltipProvider delayDuration={0}>
       <aside
         style={{ width: pref.collapsed ? L.folded : pref.width }}
-        className="sticky top-[calc(var(--app-safe-top)+3.5rem)] hidden h-[calc(100dvh-var(--app-safe-top)-3.5rem)] shrink-0 border-r border-border bg-card transition-[width] duration-200 ease-out md:block"
+        className="sticky top-[calc(var(--app-safe-top)+3.5rem)] hidden h-[calc(100dvh-var(--app-safe-top)-3.5rem)] shrink-0 border-r border-white/10 bg-[var(--pub-night)] text-white transition-[width] duration-200 ease-out md:block"
       >
         <div className="flex h-full flex-col overflow-hidden whitespace-nowrap p-3">
           <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -126,11 +126,11 @@ export function DashboardSidebar({ groups: allGroups }: { groups: SideGroup[] })
               <div key={g.title ?? `g${i}`} className="flex flex-col gap-1">
                 {i > 0 ? (
                   g.title && !compact ? (
-                    <div className="px-1.5 pb-0.5 pt-2.5 text-[10.5px] font-semibold uppercase tracking-[0.09em] text-muted-foreground">
+                    <div className="px-1.5 pb-0.5 pt-2.5 text-[10.5px] font-semibold uppercase tracking-[0.09em] text-white/45">
                       {g.title}
                     </div>
                   ) : (
-                    <div className={cn("my-1 h-px bg-border", compact && "mx-auto w-7")} />
+                    <div className={cn("my-1 h-px bg-white/10", compact && "mx-auto w-7")} />
                   )
                 ) : null}
                 {g.items.map(renderItem)}
@@ -139,7 +139,7 @@ export function DashboardSidebar({ groups: allGroups }: { groups: SideGroup[] })
           </nav>
 
           {footItems.length > 0 ? (
-            <div className="flex flex-col gap-1 border-t border-border pt-2">{footItems.map(renderItem)}</div>
+            <div className="flex flex-col gap-1 border-t border-white/10 pt-2">{footItems.map(renderItem)}</div>
           ) : null}
 
           <div className="flex justify-center pt-2">
@@ -148,7 +148,7 @@ export function DashboardSidebar({ groups: allGroups }: { groups: SideGroup[] })
                 type="button"
                 onClick={toggleFold}
                 aria-label={compact ? "Show names" : "Icons only"}
-                className="grid size-8 place-items-center rounded-md text-muted-foreground outline-none transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]"
+                className="grid size-8 place-items-center rounded-md text-white/60 outline-none transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-[color:var(--pub-hot)]"
               >
                 {compact ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
               </button>
@@ -165,6 +165,7 @@ export function DashboardSidebar({ groups: allGroups }: { groups: SideGroup[] })
           max={L.max}
           showAt={L.showAt}
           label="Resize sidebar"
+          tone="night"
           onPreview={setPreview}
           onCommit={commit}
           onReset={() => commit({ width: L.def, folded: false })}

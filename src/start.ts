@@ -33,15 +33,9 @@ const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => 
     setResponseHeader("X-Frame-Options", "DENY");
     setResponseHeader("X-Content-Type-Options", "nosniff");
     setResponseHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-    setResponseHeader(
-      "Strict-Transport-Security",
-      "max-age=31536000; includeSubDomains",
-    );
+    setResponseHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
     // QR attendance needs the camera + GPS on our own origin.
-    setResponseHeader(
-      "Permissions-Policy",
-      "geolocation=(self), microphone=(), camera=(self)",
-    );
+    setResponseHeader("Permissions-Policy", "geolocation=(self), microphone=(), camera=(self)");
     setResponseHeader(
       "Content-Security-Policy-Report-Only",
       [
@@ -52,7 +46,7 @@ const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => 
         "img-src 'self' data: blob: https:",
         "media-src 'self' blob: https:",
         "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.lovable.app https://*.lovable.dev",
-        "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
+        "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.google.com",
         "frame-ancestors 'none'",
         "base-uri 'self'",
         "form-action 'self'",

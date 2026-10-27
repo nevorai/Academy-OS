@@ -84,7 +84,9 @@ export type HomeModel = {
   monthly: FeePlan[];
   registration: FeePlan | null;
   cta: { headline: string; sub: string; mediaPath: string; mediaIsVideo: boolean };
-  map: { embedUrl: string | null; linkUrl: string | null };
+  map: { embedUrl: string | null; linkUrl: string | null; shareUrl: string | null };
+  /** "7 to 21", read from the owner's own text; null when nobody wrote an age range. */
+  ages: string | null;
 };
 
 const one = <T>(sections: SiteContent[], key: string): T | null => {
@@ -96,16 +98,63 @@ const all = <T>(sections: SiteContent[], key: string): T[] =>
 
 const clean = (v: unknown) => (typeof v === "string" ? v.trim() : "");
 
+/** A name typed in capitals ("RAJIV BILTHARE") is shown in normal case; mixed-case names are left alone. */
+export function tidyName(name: string): string {
+  if (!/[A-Za-z]/.test(name) || /[a-z]/.test(name)) return name;
+  return name
+    .toLowerCase()
+    .replace(/(^|[\s.'-])([a-z])/g, (_, a: string, b: string) => a + b.toUpperCase());
+}
+
+/**
+ * Owners type batch names by hand ("Personal Coa.[ Night Session ]", "Both Session [ morning + eve ]").
+ * Show them tidy on the public page; the stored name is never changed.
+ */
+export function cleanBatchName(raw: string): string {
+  let s = raw.replace(/\s+/g, " ").trim();
+  // Square brackets are a separator, not part of the name: "Coaching [ Night ]" -> "Coaching · Night".
+  s = s.replace(/\s*\[\s*([^\]]*?)\s*\]/g, " · $1");
+  s = s.replace(/\bcoa\b\.?/gi, "Coaching").replace(/\beve\b\.?/gi, "Evening");
+  s = s.replace(/\b(both) session\b/i, "$1 Sessions");
+  s = s
+    .split(" ")
+    .map((w) => (/^[a-z]/.test(w) ? w.charAt(0).toUpperCase() + w.slice(1) : w))
+    .join(" ");
+  return (
+    s
+      .replace(/(\s·)+\s*$/, "")
+      .replace(/\s{2,}/g, " ")
+      .trim() || raw.trim()
+  );
+}
+
+/** "ages 7 to 21" written anywhere in the owner's own text, as "7 to 21", or null. */
+export function parseAges(...texts: Array<string | null | undefined>): string | null {
+  for (const t of texts) {
+    const m = t?.match(/\bages?\s+(?:of\s+)?(\d{1,2})\s*(?:to|-|–|and)\s*(\d{1,2})\b/i);
+    if (m && Number(m[1]) < Number(m[2])) return `${m[1]} to ${m[2]}`;
+  }
+  return null;
+}
+
 function mapLinks(tenant: Tenant, map: MapContent | null) {
   const raw = clean(map?.embed_url);
   const embeddable = raw.includes("google.com/maps/embed") || /[?&]output=embed(&|$)/.test(raw);
   const direct = clean(map?.directions_url);
-  const query = tenant.address
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tenant.address.replace(/\s+/g, " "))}`
-    : null;
+  // Everything below comes from the academy's own address, so no owner has to paste a map link.
+  const place = tenant.address
+    ? encodeURIComponent(tenant.address.replace(/\s+/g, " ").trim())
+    : "";
+  const fromAddress = {
+    embed: place ? `https://www.google.com/maps?q=${place}&output=embed` : null,
+    directions: place ? `https://www.google.com/maps/dir/?api=1&destination=${place}` : null,
+    share: place ? `https://www.google.com/maps/search/?api=1&query=${place}` : null,
+  };
   return {
-    embedUrl: embeddable ? raw : null,
-    linkUrl: direct || (raw && !embeddable && /^https?:\/\//.test(raw) ? raw : query),
+    embedUrl: embeddable ? raw : fromAddress.embed,
+    linkUrl:
+      direct || (raw && !embeddable && /^https?:\/\//.test(raw) ? raw : fromAddress.directions),
+    shareUrl: fromAddress.share,
   };
 }
 
@@ -149,7 +198,7 @@ export function buildHomeModel(input: {
     .slice(0, 4);
 
   const bio = clean(founder?.bio);
-  const founderName = clean(founder?.name);
+  const founderName = tidyName(clean(founder?.name));
 
   return {
     pack,
@@ -172,7 +221,7 @@ export function buildHomeModel(input: {
     batches: batches
       .map((b) => ({
         id: b.id,
-        name: b.name,
+        name: cleanBatchName(b.name),
         timing: clean(b.timing) || null,
         fee: feeOf(b.fee_plan_id),
       }))
@@ -188,12 +237,16 @@ export function buildHomeModel(input: {
       : null,
     coaches: all<Person>(sections, "coaches")
       .filter((c) => clean(c.name))
-      .map((c) => ({ name: clean(c.name), role: clean(c.role), photo: c.photo_url ?? null })),
+      .map((c) => ({
+        name: tidyName(clean(c.name)),
+        role: clean(c.role),
+        photo: c.photo_url ?? null,
+      })),
     stars: pickFeatured(stars),
     spotlights: all<Person>(sections, "spotlight")
       .filter((p) => clean(p.name))
       .map((p) => ({
-        name: clean(p.name),
+        name: tidyName(clean(p.name)),
         role: clean(p.role),
         bio: clean(p.bio),
         photo: p.photo_url ?? null,
@@ -210,6 +263,7 @@ export function buildHomeModel(input: {
       mediaIsVideo: cta?.background_type === "video",
     },
     map: mapLinks(tenant, one<MapContent>(sections, "map")),
+    ages: parseAges(hero?.subheadline, about?.body, tenant.tagline),
   };
 }
 

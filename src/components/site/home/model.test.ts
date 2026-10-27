@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
 import type { Batch, FeePlan, SiteContent, Tenant } from "@/lib/tenant";
 import { oneLineAddress, townFromAddress } from "@/lib/public-site";
-import { buildHomeModel, heroCta, packFor, parseFact, startMinutes } from "./model";
+import {
+  buildHomeModel,
+  cleanBatchName,
+  heroCta,
+  packFor,
+  parseAges,
+  parseFact,
+  startMinutes,
+  tidyName,
+} from "./model";
 
 const tenant = {
   id: "t1",
@@ -29,6 +38,50 @@ describe("home page rules", () => {
     expect(heroCta("cricket", "Book a trial")).toBe("Book a trial");
     expect(heroCta("gym", "")).toBe("Register now");
     expect(heroCta("learning", "Register Now")).toBe("Register Now");
+  });
+
+  it("tidies hand-typed batch names for display only", () => {
+    expect(cleanBatchName("Personal Coa.[ Night Session ]")).toBe(
+      "Personal Coaching · Night Session",
+    );
+    expect(cleanBatchName("Both Session [ morning + eve ]")).toBe(
+      "Both Sessions · Morning + Evening",
+    );
+    expect(cleanBatchName("Morning Session")).toBe("Morning Session");
+    expect(cleanBatchName("  evening   batch ")).toBe("Evening Batch");
+    expect(cleanBatchName("U-14 (Boys)")).toBe("U-14 (Boys)");
+    expect(cleanBatchName("Nets [ ]")).toBe("Nets");
+  });
+
+  it("shows an all-capitals name in normal case and leaves other names alone", () => {
+    expect(tidyName("RAJIV BILTHARE")).toBe("Rajiv Bilthare");
+    expect(tidyName("KRANTI GOUD")).toBe("Kranti Goud");
+    expect(tidyName("Kranti Gaud")).toBe("Kranti Gaud");
+    expect(tidyName("MS Dhoni")).toBe("MS Dhoni");
+    expect(tidyName("")).toBe("");
+  });
+
+  it("reads an age range only when the owner wrote one", () => {
+    expect(parseAges("coaching for ages 7 to 21, from your first grip")).toBe("7 to 21");
+    expect(parseAges(null, "Ages 6-16 welcome")).toBe("6 to 16");
+    expect(parseAges("no age written here")).toBeNull();
+    expect(parseAges("ages 21 to 7")).toBeNull();
+  });
+
+  it("builds the map, directions and share link from the address when no map link was pasted", () => {
+    const m = buildHomeModel({ tenant, sections: [], fees: [], batches: [] });
+    expect(m.map.embedUrl).toContain("https://www.google.com/maps?q=");
+    expect(m.map.embedUrl).toContain("&output=embed");
+    expect(m.map.linkUrl).toContain("https://www.google.com/maps/dir/?api=1&destination=");
+    expect(m.map.shareUrl).toContain("https://www.google.com/maps/search/?api=1&query=");
+    expect(decodeURIComponent(m.map.linkUrl ?? "")).toContain("Chhatarpur");
+    const none = buildHomeModel({
+      tenant: { ...tenant, address: null } as Tenant,
+      sections: [],
+      fees: [],
+      batches: [],
+    });
+    expect(none.map).toEqual({ embedUrl: null, linkUrl: null, shareUrl: null });
   });
 
   it("splits a fact into figure and label", () => {
@@ -129,7 +182,8 @@ describe("home page rules", () => {
       fees: [],
       batches: [],
     });
-    expect(short.map.embedUrl).toBeNull();
+    // A short link cannot be framed, so the frame is built from the address; the owner's link stays the button.
+    expect(short.map.embedUrl).toContain("output=embed");
     expect(short.map.linkUrl).toBe("https://maps.app.goo.gl/xyz");
   });
 });

@@ -3,7 +3,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import { ArrowRight, Clock, Mail, MapPin, MessageCircle, Phone, Share2 } from "lucide-react";
 import type { Tenant } from "@/lib/tenant";
 import { StoragedImage } from "@/components/site/StoragedImage";
 import { oneLineAddress } from "@/lib/public-site";
@@ -14,6 +14,7 @@ import {
   BTN_BRAND,
   BTN_GHOST_DARK,
   BTN_GHOST_LIGHT,
+  BTN_HOT,
   BTN_LIGHT,
   SectionHead,
   WRAP,
@@ -233,7 +234,7 @@ export function Visit({ tenant, m }: { tenant: Tenant; m: HomeModel }) {
           <ul className="mt-8 space-y-3">
             {address ? (
               <li className="flex gap-3 rounded-[10px] border border-white/15 bg-white/[0.04] p-4">
-                <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[color-mix(in_srgb,var(--brand)_42%,white)]" />
+                <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[var(--pub-hot)]" />
                 <span className="leading-snug text-white/85">{address}</span>
               </li>
             ) : null}
@@ -243,7 +244,7 @@ export function Visit({ tenant, m }: { tenant: Tenant; m: HomeModel }) {
                   href={`tel:${phone}`}
                   className="flex gap-3 rounded-[10px] border border-white/15 bg-white/[0.04] p-4 hover:bg-white/[0.08]"
                 >
-                  <Phone className="mt-0.5 h-5 w-5 shrink-0 text-[color-mix(in_srgb,var(--brand)_42%,white)]" />
+                  <Phone className="mt-0.5 h-5 w-5 shrink-0 text-[var(--pub-hot)]" />
                   <span className="text-white/85">{phone}</span>
                 </a>
               </li>
@@ -254,7 +255,7 @@ export function Visit({ tenant, m }: { tenant: Tenant; m: HomeModel }) {
                   href={`mailto:${tenant.email}`}
                   className="flex gap-3 rounded-[10px] border border-white/15 bg-white/[0.04] p-4 hover:bg-white/[0.08]"
                 >
-                  <Mail className="mt-0.5 h-5 w-5 shrink-0 text-[color-mix(in_srgb,var(--brand)_42%,white)]" />
+                  <Mail className="mt-0.5 h-5 w-5 shrink-0 text-[var(--pub-hot)]" />
                   <span className="break-all text-white/85">{tenant.email}</span>
                 </a>
               </li>
@@ -262,7 +263,7 @@ export function Visit({ tenant, m }: { tenant: Tenant; m: HomeModel }) {
           </ul>
           <div className="mt-8 flex flex-wrap gap-3">
             {m.map.linkUrl ? (
-              <a href={m.map.linkUrl} target="_blank" rel="noreferrer" className={BTN_BRAND}>
+              <a href={m.map.linkUrl} target="_blank" rel="noreferrer" className={BTN_HOT}>
                 <MapPin className="h-4 w-4" />
                 Get directions
               </a>
@@ -278,9 +279,20 @@ export function Visit({ tenant, m }: { tenant: Tenant; m: HomeModel }) {
                 WhatsApp
               </a>
             ) : null}
+            {m.map.shareUrl ? (
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(`${tenant.name}\n${address}\n${m.map.shareUrl}`)}`}
+                target="_blank"
+                rel="noreferrer"
+                className={BTN_GHOST_DARK}
+              >
+                <Share2 className="h-4 w-4" />
+                Share location
+              </a>
+            ) : null}
           </div>
         </div>
-        <div className="relative min-h-[260px] overflow-hidden rounded-xl border border-white/15 bg-white/[0.04]">
+        <div className="relative min-h-[320px] overflow-hidden rounded-xl border border-white/15 bg-white/[0.04] lg:min-h-[400px]">
           {m.map.embedUrl ? (
             <iframe
               src={m.map.embedUrl}
@@ -290,15 +302,20 @@ export function Visit({ tenant, m }: { tenant: Tenant; m: HomeModel }) {
               className="absolute inset-0 h-full w-full border-0"
             />
           ) : (
-            <div className="relative grid h-full min-h-[260px] place-items-center p-8 text-center">
-              <PitchPlan className="pointer-events-none absolute inset-0 m-auto h-[92%] w-auto text-white/[0.09]" />
-              <div className="relative">
-                <Clock className="mx-auto h-8 w-8 text-white/40" />
-                <ul className="mt-4 space-y-1.5 text-[15px] text-white/80">
+            <div className="relative flex h-full min-h-[320px] flex-col justify-center p-8">
+              <PitchPlan className="pointer-events-none absolute -bottom-8 -right-8 h-[85%] w-auto text-white/[0.06]" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-[var(--pub-hot)]">
+                  <Clock className="h-4 w-4" />
+                  Training timings
+                </div>
+                <ul className="mt-4 space-y-2.5 text-[15px] text-white/85">
                   {m.batches.slice(0, 4).map((b) => (
-                    <li key={b.id}>
+                    <li key={b.id} className="flex flex-wrap items-baseline gap-x-3">
                       <span className="font-semibold">{b.name}</span>
-                      {b.timing ? <span className="text-white/60"> · {b.timing}</span> : null}
+                      {b.timing ? (
+                        <span className="tabular-nums text-white/60">{b.timing}</span>
+                      ) : null}
                     </li>
                   ))}
                 </ul>

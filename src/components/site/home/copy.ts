@@ -27,6 +27,8 @@ export type PackCopy = {
   programsTitle: string;
   programsLead: string;
   who: string;
+  /** Plain list of what to bring on the first day. Never promises kit the academy may not supply. */
+  bring: string;
 };
 
 export const PACKS: Record<Pack, PackCopy> = {
@@ -61,6 +63,8 @@ export const PACKS: Record<Pack, PackCopy> = {
     programsLead:
       "Training runs in fixed batches. Choose the timing that fits school and home, then register in a few minutes.",
     who: "players",
+    bring:
+      "Sports shoes, a water bottle, a cap and comfortable sports clothes. Ask the coach about bats, pads and kit before you buy any.",
   },
   gym: {
     label: "Gym",
@@ -92,6 +96,7 @@ export const PACKS: Record<Pack, PackCopy> = {
     programsTitle: "Choose your slot",
     programsLead: "Pick the timing that suits your day, then join online in a few minutes.",
     who: "members",
+    bring: "Training shoes, a towel, a water bottle and comfortable workout clothes.",
   },
   learning: {
     label: "Learning centre",
@@ -123,6 +128,7 @@ export const PACKS: Record<Pack, PackCopy> = {
     programsTitle: "Choose a batch",
     programsLead: "Pick the timing that suits your day, then enrol online in a few minutes.",
     who: "learners",
+    bring: "A notebook, a pen and a water bottle. The teacher will say if anything else is needed.",
   },
 };
 

@@ -17,6 +17,7 @@ import {
   Stars,
 } from "@/components/site/home/sections-mid";
 import { Closing, Faq, Fees, Gallery, Visit } from "@/components/site/home/sections-end";
+import { Parents } from "@/components/site/home/sections-parents";
 
 const rootApi = getRouteApi("__root__");
 
@@ -133,6 +134,7 @@ function HomeContent() {
       <About tenant={tenant} m={m} />
       <Pillars m={m} />
       <Batches m={m} />
+      <Parents tenant={tenant} m={m} />
       <Founder tenant={tenant} m={m} />
       <Stars m={m} />
       <Spotlights m={m} />

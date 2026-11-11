@@ -1,0 +1,96 @@
+/**
+ * Owner Home: "What do you want to do?" — ten big buttons, each says what it does in plain words.
+ * Written for academy owners who are not technical: one tap, one job. Numbers on a button
+ * (new admissions, unpaid fees) tell them where something is waiting.
+ */
+import { Link } from "@tanstack/react-router";
+import {
+  BarChart3,
+  CalendarClock,
+  ClipboardCheck,
+  Inbox,
+  IndianRupee,
+  LayoutGrid,
+  Megaphone,
+  QrCode,
+  Swords,
+  Users,
+} from "lucide-react";
+import type { ComponentType } from "react";
+import { cn } from "@/lib/utils";
+
+type Btn = {
+  to: string;
+  title: string;
+  hint: string;
+  icon: ComponentType<{ className?: string }>;
+  /** A number waiting here (shown as a badge). */
+  count?: number;
+  show: boolean;
+};
+
+export function HomeButtons({
+  canViewFees,
+  canScoreMatch,
+  isOwner,
+  newRegs,
+  pendingFees,
+}: {
+  canViewFees: boolean;
+  canScoreMatch: boolean;
+  isOwner: boolean;
+  newRegs: number;
+  pendingFees: number;
+}) {
+  const buttons: Btn[] = [
+    { to: "/dashboard/attendance", title: "Today's attendance", hint: "Who came, who is absent", icon: ClipboardCheck, show: true },
+    { to: "/dashboard/fees", title: "Fees", hint: "Who has not paid, collect money", icon: IndianRupee, count: pendingFees, show: canViewFees },
+    { to: "/dashboard/students", title: "Players", hint: "Everyone's details and batch", icon: Users, show: true },
+    { to: "/dashboard/registrations", title: "New admissions", hint: "Approve new players", icon: Inbox, count: newRegs, show: true },
+    { to: "/match-center", title: "Matches", hint: "Score a match, see results", icon: Swords, show: canScoreMatch },
+    { to: "/dashboard/attendance-qr", title: "Check-in QR", hint: "Show the code players scan", icon: QrCode, show: true },
+    { to: "/dashboard/communications", title: "Message parents", hint: "Send a WhatsApp to everyone", icon: Megaphone, show: true },
+    { to: "/dashboard/reports", title: "Reports", hint: "Money and attendance numbers", icon: BarChart3, show: true },
+    { to: "/dashboard/batches", title: "Batches & timings", hint: "Groups, days and times", icon: CalendarClock, show: true },
+    { to: "/dashboard/academy", title: "Settings", hint: "Academy details, coaches, plans", icon: LayoutGrid, show: isOwner },
+  ];
+  const visible = buttons.filter((b) => b.show);
+
+  return (
+    <section aria-label="What do you want to do?">
+      <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+        What do you want to do?
+      </h2>
+      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 xl:grid-cols-5">
+        {visible.map((b) => (
+          <Link
+            key={b.to}
+            // Typed router paths are strings here on purpose: the list is data, every path is a real route.
+            to={b.to as never}
+            preload="intent"
+            className={cn(
+              "group relative flex min-h-[104px] flex-col justify-between rounded-xl border border-border bg-card p-3.5",
+              "shadow-[var(--shadow-soft)] transition-colors hover:border-primary/50 hover:bg-accent/40",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.99]",
+            )}
+          >
+            <span className="flex items-start justify-between">
+              <span className="grid size-10 place-items-center rounded-lg bg-primary/10 text-primary">
+                <b.icon className="size-5" />
+              </span>
+              {b.count ? (
+                <span className="min-w-6 rounded-full bg-destructive px-1.5 py-0.5 text-center text-xs font-bold leading-none text-destructive-foreground">
+                  {b.count}
+                </span>
+              ) : null}
+            </span>
+            <span className="mt-3 block">
+              <span className="block text-[15px] font-semibold leading-tight">{b.title}</span>
+              <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">{b.hint}</span>
+            </span>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}

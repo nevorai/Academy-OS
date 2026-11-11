@@ -58,7 +58,7 @@ import { getFeatures } from "@/lib/tenant";
 import { LiveBadge } from "@/components/ds";
 import { Skeleton } from "@/components/ds/States";
 import { PersonAvatar } from "@/components/site/PersonAvatar";
-import { CricketToday } from "@/components/match-center/widgets/CricketToday";
+import { HomeButtons } from "@/components/dashboard/HomeButtons";
 import { useLiveMatches, type MatchWithTeams } from "@/lib/match-feeds";
 import { Radio } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -301,18 +301,14 @@ function DashboardHome() {
         <div className={cn("grid gap-2.5", tileGrid)}>{tiles}</div>
       </section>
 
-      {/* ─── Section 3 · Cricket today (moved below Quick actions) ────── */}
-      {canScoreMatch && (
-        <CricketToday tenantId={tenant.id} playerCount={(studentsQ.data ?? []).length} />
-      )}
-
-      {/* ─── Section 4 · Today's activity (compact, scrollable) ───────── */}
-      <section aria-label="Today's activity">
-        <SectionLabel action={<HeaderLink to="/dashboard/attendance">Open</HeaderLink>}>
-          Recent activity
-        </SectionLabel>
-        <ActivityFeed query={activityQ} canViewFees={canViewFees} />
-      </section>
+      {/* The ten things an owner does most. One tap each. */}
+      <HomeButtons
+        canViewFees={canViewFees && feeEnabled}
+        canScoreMatch={canScoreMatch}
+        isOwner={role === "owner"}
+        newRegs={newRegs}
+        pendingFees={canViewFees && feeEnabled ? pendingFees : 0}
+      />
 
       {/* ─── Section 5 · Next actions (actionable only, no duplicate KPIs) */}
       <section aria-label="Next actions">

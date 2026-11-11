@@ -19,7 +19,6 @@ import {
   Swords,
   Megaphone,
   UserCircle,
-  Sparkles,
   LayoutGrid,
   Moon,
   Sun,
@@ -36,7 +35,6 @@ import { useNewRegistrationsCount } from "@/hooks/use-new-registrations";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { TrialBanner } from "@/components/dashboard/TrialBanner";
 import { NevorAIProvider } from "@/components/nevorai/NevorAIProvider";
-import { NevorAIButton } from "@/components/nevorai/NevorAIButton";
 
 type NavItem = {
   to: string;
@@ -58,7 +56,8 @@ const navGroups: NavGroup[] = [
     title: null,
     items: [
       { to: "/dashboard", label: "Home", icon: LayoutDashboard, tourId: "home" },
-      { to: "/dashboard/nevorai", label: "Kaizen", icon: Sparkles, ownerOnly: true, tourId: "nevorai" },
+      // Kaizen is hidden for now (owner decision 2026-11-11). Put the line back to show it again:
+      // { to: "/dashboard/nevorai", label: "Kaizen", icon: Sparkles, ownerOnly: true, tourId: "nevorai" },
       { to: "/dashboard/coach", label: "My Coaching", icon: ClipboardCheck, coachOnly: true },
     ],
   },
@@ -210,7 +209,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
               <ThemeButton />
               <NotificationBell />
-              <NevorAIButton />
+              {/* Kaizen assistant button hidden for now: <NevorAIButton /> */}
 
               {canSeeTour ? (
                 <Tip label={t("Take the tour")} side="bottom">

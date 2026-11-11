@@ -43,16 +43,78 @@ export function HomeButtons({
   pendingFees: number;
 }) {
   const buttons: Btn[] = [
-    { to: "/dashboard/attendance", title: "Today's attendance", hint: "Who came, who is absent", icon: ClipboardCheck, show: true },
-    { to: "/dashboard/fees", title: "Fees", hint: "Who has not paid, collect money", icon: IndianRupee, count: pendingFees, show: canViewFees },
-    { to: "/dashboard/students", title: "Players", hint: "Everyone's details and batch", icon: Users, show: true },
-    { to: "/dashboard/registrations", title: "New admissions", hint: "Approve new players", icon: Inbox, count: newRegs, show: true },
-    { to: "/match-center", title: "Matches", hint: "Score a match, see results", icon: Swords, show: canScoreMatch },
-    { to: "/dashboard/attendance-qr", title: "Check-in QR", hint: "Show the code players scan", icon: QrCode, show: true },
-    { to: "/dashboard/auto-messages", title: "Message parents", hint: "Automatic WhatsApp to parents", icon: Megaphone, show: true },
-    { to: "/dashboard/reports", title: "Reports", hint: "Money and attendance numbers", icon: BarChart3, show: true },
-    { to: "/dashboard/batches", title: "Batches & timings", hint: "Groups, days and times", icon: CalendarClock, show: true },
-    { to: "/dashboard/academy", title: "Settings", hint: "Academy details, coaches, plans", icon: LayoutGrid, show: isOwner },
+    {
+      to: "/dashboard/attendance",
+      title: "Today's attendance",
+      hint: "Who came, who is absent",
+      icon: ClipboardCheck,
+      show: true,
+    },
+    {
+      to: "/dashboard/fees",
+      title: "Fees",
+      hint: "Who has not paid, collect money",
+      icon: IndianRupee,
+      count: pendingFees,
+      show: canViewFees,
+    },
+    {
+      to: "/dashboard/students",
+      title: "Players",
+      hint: "Everyone's details and batch",
+      icon: Users,
+      show: true,
+    },
+    {
+      to: "/dashboard/registrations",
+      title: "New admissions",
+      hint: "Approve new players",
+      icon: Inbox,
+      count: newRegs,
+      show: true,
+    },
+    {
+      to: "/match-center",
+      title: "Matches",
+      hint: "Score a match, see results",
+      icon: Swords,
+      show: canScoreMatch,
+    },
+    {
+      to: "/dashboard/attendance-qr",
+      title: "Check-in QR",
+      hint: "Show the code players scan",
+      icon: QrCode,
+      show: true,
+    },
+    {
+      to: "/dashboard/auto-messages",
+      title: "WhatsApp messages",
+      hint: "Automatic WhatsApp to players & parents",
+      icon: Megaphone,
+      show: true,
+    },
+    {
+      to: "/dashboard/reports",
+      title: "Reports",
+      hint: "Money and attendance numbers",
+      icon: BarChart3,
+      show: true,
+    },
+    {
+      to: "/dashboard/batches",
+      title: "Batches & timings",
+      hint: "Groups, days and times",
+      icon: CalendarClock,
+      show: true,
+    },
+    {
+      to: "/dashboard/academy",
+      title: "Settings",
+      hint: "Academy details, coaches, plans",
+      icon: LayoutGrid,
+      show: isOwner,
+    },
   ];
   const visible = buttons.filter((b) => b.show);
 
@@ -86,7 +148,9 @@ export function HomeButtons({
             </span>
             <span className="mt-3 block">
               <span className="block text-[15px] font-semibold leading-tight">{b.title}</span>
-              <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">{b.hint}</span>
+              <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
+                {b.hint}
+              </span>
             </span>
           </Link>
         ))}

@@ -19,7 +19,7 @@ import { ModuleHeader } from "@/components/shared/ModuleHeader";
 
 export const Route = createFileRoute("/dashboard/auto-messages")({
   head: () => ({
-    meta: [{ title: "Messages to parents" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Messages to players & parents" }, { name: "robots", content: "noindex" }],
   }),
   component: AutoMessages,
 });
@@ -31,6 +31,7 @@ type Settings = {
   checkout: boolean;
   fee_reminder: boolean;
   fee_received: boolean;
+  fee_from_day: number;
 };
 type Recent = {
   id: string;
@@ -53,13 +54,13 @@ const ROWS = [
     key: "checkin",
     icon: LogIn,
     title: "Player arrived",
-    hint: "Parent gets a message when the player checks in",
+    hint: "Every saved number gets a message when the player checks in",
   },
   {
     key: "checkout",
     icon: LogOut,
     title: "Player left",
-    hint: "Parent gets a message when the player checks out",
+    hint: "Every saved number gets a message when the player checks out",
   },
   {
     key: "fee_reminder",
@@ -125,6 +126,7 @@ function AutoMessages() {
         _checkout: next.checkout,
         _fee_reminder: next.fee_reminder,
         _fee_received: next.fee_received,
+        _fee_from_day: next.fee_from_day,
       });
       if (error) throw new Error(error.message);
     },
@@ -149,7 +151,7 @@ function AutoMessages() {
 
   return (
     <div className="mx-auto w-full max-w-[1320px] space-y-4 px-1 pb-24">
-      <ModuleHeader title="Messages to parents" overline="WhatsApp" backTo="/dashboard" />
+      <ModuleHeader title="Messages to players & parents" overline="WhatsApp" backTo="/dashboard" />
 
       {settings.isLoading || !form ? (
         <div className="space-y-3">
@@ -169,15 +171,13 @@ function AutoMessages() {
         <>
           <section className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-4">
             <div>
-              <h2 className="text-lg font-semibold">Send messages to parents</h2>
+              <h2 className="text-lg font-semibold">Send WhatsApp messages</h2>
               <p className="text-base text-muted-foreground">
-                {form.enabled
-                  ? "ON. Parents get messages by themselves."
-                  : "OFF. No message will go."}
+                {form.enabled ? "ON. Messages go out by themselves." : "OFF. No message will go."}
               </p>
             </div>
             <Switch
-              aria-label="Send messages to parents"
+              aria-label="Send WhatsApp messages"
               checked={form.enabled}
               disabled={!isOwner || save.isPending}
               onCheckedChange={(v) => change({ enabled: v })}
@@ -208,6 +208,38 @@ function AutoMessages() {
             ))}
           </section>
 
+          <section className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-4">
+            <div>
+              <h2 className="text-base font-semibold">Start fee reminders on day</h2>
+              <p className="text-sm text-muted-foreground">
+                Every morning from this date, until the fee is paid
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                aria-label="Earlier day"
+                disabled={!isOwner || !form.enabled || form.fee_from_day <= 1 || save.isPending}
+                onClick={() => change({ fee_from_day: form.fee_from_day - 1 })}
+                className="grid size-11 place-items-center rounded-lg border border-border text-xl disabled:opacity-40"
+              >
+                −
+              </button>
+              <span className="w-10 text-center text-xl font-semibold tabular-nums">
+                {form.fee_from_day}
+              </span>
+              <button
+                type="button"
+                aria-label="Later day"
+                disabled={!isOwner || !form.enabled || form.fee_from_day >= 28 || save.isPending}
+                onClick={() => change({ fee_from_day: form.fee_from_day + 1 })}
+                className="grid size-11 place-items-center rounded-lg border border-border text-xl disabled:opacity-40"
+              >
+                +
+              </button>
+            </div>
+          </section>
+
           <section>
             <h2 className="mb-2 text-lg font-semibold">Last messages</h2>
             {recent.isLoading ? (
@@ -225,7 +257,7 @@ function AutoMessages() {
                         {KIND_WORDS[m.kind]} · {m.student_name ?? "Player"}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        Parent number ending {m.phone_tail}
+                        Number ending {m.phone_tail}
                         {m.error ? ` · ${m.error}` : ""}
                       </div>
                     </div>

@@ -31,6 +31,8 @@ type Link = {
   on_checkout: boolean;
   on_fee_reminder: boolean;
   on_fee_received: boolean;
+  fee_remind_from_day: number;
+  fee_cycle: string | null;
 };
 
 type StudentLite = {
@@ -51,6 +53,25 @@ export function parentPhone(p: string | null | undefined): string | null {
 
 export const greetName = (s: Pick<StudentLite, "guardian_name">) =>
   s.guardian_name?.trim() || "Parent";
+
+export type Recipient = { phone: string; greeting: string };
+
+/**
+ * Every saved number gets the message: the parent's AND the player's own. Same number in both = once.
+ * The parent is greeted by the guardian's name, the player by their own name.
+ */
+export function recipientsFor(
+  s: Pick<StudentLite, "name" | "guardian_name" | "guardian_phone" | "phone">,
+): Recipient[] {
+  const out: Recipient[] = [];
+  const add = (raw: string | null, greeting: string) => {
+    const phone = parentPhone(raw);
+    if (phone && !out.some((r) => r.phone === phone)) out.push({ phone, greeting });
+  };
+  add(s.guardian_phone, greetName(s));
+  add(s.phone, s.name);
+  return out;
+}
 
 export function istTime(iso: string): string {
   return new Intl.DateTimeFormat("en-IN", {
@@ -152,38 +173,47 @@ export async function enqueueForTenant(
     const rows: Row[] = [];
     for (const m of list) {
       const s = kids.get(m.student_id);
-      const to = s && parentPhone(s.guardian_phone || s.phone);
-      if (!s || !to) continue;
-      if (link.on_checkin && m.check_in_at && m.check_in_at >= from)
-        rows.push({
-          tenant_id: link.tenant_id,
-          student_id: s.id,
-          kind: "checkin",
-          ref: `ci:${m.id}`,
-          to_phone: to,
-          variables: [greetName(s), s.name, istTime(m.check_in_at), academyName],
-        });
-      if (link.on_checkout && m.check_out_at && m.check_out_at >= from)
-        rows.push({
-          tenant_id: link.tenant_id,
-          student_id: s.id,
-          kind: "checkout",
-          ref: `co:${m.id}`,
-          to_phone: to,
-          variables: [greetName(s), s.name, istTime(m.check_out_at), academyName],
-        });
+      if (!s) continue;
+      for (const r of recipientsFor(s)) {
+        if (link.on_checkin && m.check_in_at && m.check_in_at >= from)
+          rows.push({
+            tenant_id: link.tenant_id,
+            student_id: s.id,
+            kind: "checkin",
+            ref: `ci:${m.id}:${r.phone}`,
+            to_phone: r.phone,
+            variables: [r.greeting, s.name, istTime(m.check_in_at), academyName],
+          });
+        if (link.on_checkout && m.check_out_at && m.check_out_at >= from)
+          rows.push({
+            tenant_id: link.tenant_id,
+            student_id: s.id,
+            kind: "checkout",
+            ref: `co:${m.id}:${r.phone}`,
+            to_phone: r.phone,
+            variables: [r.greeting, s.name, istTime(m.check_out_at), academyName],
+          });
+      }
     }
     queued += await insertRows(db, rows);
   }
 
   // Fee reminders: the daily job already writes reminder_logs; we send them instead of waiting for a tap.
-  if (link.on_fee_reminder) {
+  const istToday = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(
+    new Date(),
+  );
+  const istDay = Number(istToday.slice(8, 10));
+  // Calendar-month academies: nothing before the owner's chosen day. Joining-date academies: the job already waits for the due date.
+  const reminderDayReached =
+    link.fee_cycle === "joining_date" || istDay >= link.fee_remind_from_day;
+  if (link.on_fee_reminder && reminderDayReached) {
     const { data: rem } = await db
       .from("reminder_logs")
       .select("id, student_id, period, amount")
       .eq("tenant_id", link.tenant_id)
       .eq("channel", "whatsapp")
       .eq("status", "queued")
+      .eq("sent_on", istToday)
       .gte("created_at", since)
       .limit(500);
     const list = (rem ?? []) as {
@@ -200,24 +230,24 @@ export async function enqueueForTenant(
     const rows: Row[] = [];
     for (const r of list) {
       const s = kids.get(r.student_id);
-      const to = s && parentPhone(s.guardian_phone || s.phone);
-      if (!s || !to || !r.amount) continue;
-      rows.push({
-        tenant_id: link.tenant_id,
-        student_id: s.id,
-        kind: "fee_due",
-        ref: `fee:${r.id}`,
-        to_phone: to,
-        variables: [
-          greetName(s),
-          s.name,
-          monthLabel(r.period),
-          inr(r.amount),
-          academyName,
-          upi.id || "the UPI QR above",
-        ],
-        header_image: upi.qr || null,
-      });
+      if (!s || !r.amount) continue;
+      for (const to of recipientsFor(s))
+        rows.push({
+          tenant_id: link.tenant_id,
+          student_id: s.id,
+          kind: "fee_due",
+          ref: `fee:${r.id}:${to.phone}`,
+          to_phone: to.phone,
+          variables: [
+            to.greeting,
+            s.name,
+            monthLabel(r.period),
+            inr(r.amount),
+            academyName,
+            upi.id || "the UPI QR above",
+          ],
+          header_image: upi.qr || null,
+        });
     }
     queued += await insertRows(db, rows);
   }
@@ -246,23 +276,23 @@ export async function enqueueForTenant(
     const rows: Row[] = [];
     for (const p of list) {
       const s = kids.get(p.student_id);
-      const to = s && parentPhone(s.guardian_phone || s.phone);
-      if (!s || !to) continue;
-      rows.push({
-        tenant_id: link.tenant_id,
-        student_id: s.id,
-        kind: "fee_received",
-        ref: `pay:${p.id}`,
-        to_phone: to,
-        variables: [
-          greetName(s),
-          s.name,
-          inr(p.amount),
-          p.period ? monthLabel(p.period) : "this month",
-          String(p.receipt_no),
-          academyName,
-        ],
-      });
+      if (!s) continue;
+      for (const to of recipientsFor(s))
+        rows.push({
+          tenant_id: link.tenant_id,
+          student_id: s.id,
+          kind: "fee_received",
+          ref: `pay:${p.id}:${to.phone}`,
+          to_phone: to.phone,
+          variables: [
+            to.greeting,
+            s.name,
+            inr(p.amount),
+            p.period ? monthLabel(p.period) : "this month",
+            String(p.receipt_no),
+            academyName,
+          ],
+        });
     }
     queued += await insertRows(db, rows);
   }
@@ -338,7 +368,7 @@ export async function sendQueued(
           await db
             .from("reminder_logs")
             .update({ status: "sent", sent_at: new Date().toISOString() })
-            .eq("id", m.ref.slice(4));
+            .eq("id", m.ref.split(":")[1]);
         out.sent++;
       } else if (j.error?.code === "opted_out") {
         await db
@@ -386,7 +416,7 @@ export async function runParentMessages(db: Db) {
   const { data: links } = await db
     .from("connect_links")
     .select(
-      "tenant_id, api_key, enabled_at, on_checkin, on_checkout, on_fee_reminder, on_fee_received",
+      "tenant_id, api_key, enabled_at, on_checkin, on_checkout, on_fee_reminder, on_fee_received, fee_remind_from_day",
     )
     .eq("enabled", true)
     .not("api_key", "is", null)
@@ -395,17 +425,22 @@ export async function runParentMessages(db: Db) {
   for (const link of (links ?? []) as Link[]) {
     const { data: t } = await db
       .from("tenants")
-      .select("name, status, upi_id, upi_qr_url")
+      .select("name, status, upi_id, upi_qr_url, fee_cycle")
       .eq("id", link.tenant_id)
       .maybeSingle();
     if (!t || t.status !== "active") continue;
     summary.academies++;
     const qrPath = (t.upi_qr_url as string | null) ?? "";
     const qr = qrPath.startsWith("http") ? qrPath : qrPath ? (publicMediaUrl(qrPath) ?? "") : "";
-    summary.queued += await enqueueForTenant(db, link, t.name as string, {
-      id: (t.upi_id as string | null) ?? "",
-      qr,
-    });
+    summary.queued += await enqueueForTenant(
+      db,
+      { ...link, fee_cycle: (t.fee_cycle as string | null) ?? null },
+      t.name as string,
+      {
+        id: (t.upi_id as string | null) ?? "",
+        qr,
+      },
+    );
     const r = await sendQueued(db, link);
     summary.sent += r.sent;
     summary.failed += r.failed;

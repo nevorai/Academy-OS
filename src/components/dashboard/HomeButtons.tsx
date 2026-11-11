@@ -49,7 +49,7 @@ export function HomeButtons({
     { to: "/dashboard/registrations", title: "New admissions", hint: "Approve new players", icon: Inbox, count: newRegs, show: true },
     { to: "/match-center", title: "Matches", hint: "Score a match, see results", icon: Swords, show: canScoreMatch },
     { to: "/dashboard/attendance-qr", title: "Check-in QR", hint: "Show the code players scan", icon: QrCode, show: true },
-    { to: "/dashboard/communications", title: "Message parents", hint: "Send a WhatsApp to everyone", icon: Megaphone, show: true },
+    { to: "/dashboard/auto-messages", title: "Message parents", hint: "Automatic WhatsApp to parents", icon: Megaphone, show: true },
     { to: "/dashboard/reports", title: "Reports", hint: "Money and attendance numbers", icon: BarChart3, show: true },
     { to: "/dashboard/batches", title: "Batches & timings", hint: "Groups, days and times", icon: CalendarClock, show: true },
     { to: "/dashboard/academy", title: "Settings", hint: "Academy details, coaches, plans", icon: LayoutGrid, show: isOwner },

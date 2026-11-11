@@ -56,6 +56,7 @@ import { Route as DashboardAdmissionsReviewRouteImport } from './routes/dashboar
 import { Route as DashboardAttendanceRouteImport } from './routes/dashboard.attendance'
 import { Route as DashboardAttendanceCalendarRouteImport } from './routes/dashboard.attendance-calendar'
 import { Route as DashboardAttendanceQrRouteImport } from './routes/dashboard.attendance-qr'
+import { Route as DashboardAutoMessagesRouteImport } from './routes/dashboard.auto-messages'
 import { Route as DashboardAutomationRouteImport } from './routes/dashboard.automation'
 import { Route as DashboardAutomationSettingsRouteImport } from './routes/dashboard.automation-settings'
 import { Route as DashboardAutomationTestRouteImport } from './routes/dashboard.automation-test'
@@ -159,6 +160,7 @@ import { Route as ApiPublicHooksDispatchCampaignsRouteImport } from './routes/ap
 import { Route as ApiPublicHooksFeeRemindersRouteImport } from './routes/api/public/hooks/fee-reminders'
 import { Route as ApiPublicHooksNevoraiBriefRouteImport } from './routes/api/public/hooks/nevorai-brief'
 import { Route as ApiPublicHooksOwnerSummariesRouteImport } from './routes/api/public/hooks/owner-summaries'
+import { Route as ApiPublicHooksParentMessagesRouteImport } from './routes/api/public/hooks/parent-messages'
 import { Route as ApiPublicHooksSubscriptionCheckRouteImport } from './routes/api/public/hooks/subscription-check'
 import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
 import { Route as ApiPublicPaymentsProviderWebhookRouteImport } from './routes/api/public/payments/$provider/webhook'
@@ -398,6 +400,11 @@ const DashboardAttendanceCalendarRoute =
 const DashboardAttendanceQrRoute = DashboardAttendanceQrRouteImport.update({
   id: '/attendance-qr',
   path: '/attendance-qr',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAutoMessagesRoute = DashboardAutoMessagesRouteImport.update({
+  id: '/auto-messages',
+  path: '/auto-messages',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardAutomationRoute = DashboardAutomationRouteImport.update({
@@ -934,6 +941,12 @@ const ApiPublicHooksOwnerSummariesRoute =
     path: '/api/public/hooks/owner-summaries',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksParentMessagesRoute =
+  ApiPublicHooksParentMessagesRouteImport.update({
+    id: '/api/public/hooks/parent-messages',
+    path: '/api/public/hooks/parent-messages',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksSubscriptionCheckRoute =
   ApiPublicHooksSubscriptionCheckRouteImport.update({
     id: '/api/public/hooks/subscription-check',
@@ -1000,6 +1013,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/attendance-calendar': typeof DashboardAttendanceCalendarRoute
   '/dashboard/attendance-qr': typeof DashboardAttendanceQrRoute
+  '/dashboard/auto-messages': typeof DashboardAutoMessagesRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
   '/dashboard/automation-settings': typeof DashboardAutomationSettingsRoute
   '/dashboard/automation-test': typeof DashboardAutomationTestRoute
@@ -1104,6 +1118,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
   '/api/public/hooks/nevorai-brief': typeof ApiPublicHooksNevoraiBriefRoute
   '/api/public/hooks/owner-summaries': typeof ApiPublicHooksOwnerSummariesRoute
+  '/api/public/hooks/parent-messages': typeof ApiPublicHooksParentMessagesRoute
   '/api/public/hooks/subscription-check': typeof ApiPublicHooksSubscriptionCheckRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
   '/api/public/payments/$provider/webhook': typeof ApiPublicPaymentsProviderWebhookRoute
@@ -1149,6 +1164,7 @@ export interface FileRoutesByTo {
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/attendance-calendar': typeof DashboardAttendanceCalendarRoute
   '/dashboard/attendance-qr': typeof DashboardAttendanceQrRoute
+  '/dashboard/auto-messages': typeof DashboardAutoMessagesRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
   '/dashboard/automation-settings': typeof DashboardAutomationSettingsRoute
   '/dashboard/automation-test': typeof DashboardAutomationTestRoute
@@ -1253,6 +1269,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
   '/api/public/hooks/nevorai-brief': typeof ApiPublicHooksNevoraiBriefRoute
   '/api/public/hooks/owner-summaries': typeof ApiPublicHooksOwnerSummariesRoute
+  '/api/public/hooks/parent-messages': typeof ApiPublicHooksParentMessagesRoute
   '/api/public/hooks/subscription-check': typeof ApiPublicHooksSubscriptionCheckRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
   '/api/public/payments/$provider/webhook': typeof ApiPublicPaymentsProviderWebhookRoute
@@ -1305,6 +1322,7 @@ export interface FileRoutesById {
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/attendance-calendar': typeof DashboardAttendanceCalendarRoute
   '/dashboard/attendance-qr': typeof DashboardAttendanceQrRoute
+  '/dashboard/auto-messages': typeof DashboardAutoMessagesRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
   '/dashboard/automation-settings': typeof DashboardAutomationSettingsRoute
   '/dashboard/automation-test': typeof DashboardAutomationTestRoute
@@ -1409,6 +1427,7 @@ export interface FileRoutesById {
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
   '/api/public/hooks/nevorai-brief': typeof ApiPublicHooksNevoraiBriefRoute
   '/api/public/hooks/owner-summaries': typeof ApiPublicHooksOwnerSummariesRoute
+  '/api/public/hooks/parent-messages': typeof ApiPublicHooksParentMessagesRoute
   '/api/public/hooks/subscription-check': typeof ApiPublicHooksSubscriptionCheckRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
   '/api/public/payments/$provider/webhook': typeof ApiPublicPaymentsProviderWebhookRoute
@@ -1462,6 +1481,7 @@ export interface FileRouteTypes {
     | '/dashboard/attendance'
     | '/dashboard/attendance-calendar'
     | '/dashboard/attendance-qr'
+    | '/dashboard/auto-messages'
     | '/dashboard/automation'
     | '/dashboard/automation-settings'
     | '/dashboard/automation-test'
@@ -1566,6 +1586,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/fee-reminders'
     | '/api/public/hooks/nevorai-brief'
     | '/api/public/hooks/owner-summaries'
+    | '/api/public/hooks/parent-messages'
     | '/api/public/hooks/subscription-check'
     | '/api/public/manifest/webmanifest'
     | '/api/public/payments/$provider/webhook'
@@ -1611,6 +1632,7 @@ export interface FileRouteTypes {
     | '/dashboard/attendance'
     | '/dashboard/attendance-calendar'
     | '/dashboard/attendance-qr'
+    | '/dashboard/auto-messages'
     | '/dashboard/automation'
     | '/dashboard/automation-settings'
     | '/dashboard/automation-test'
@@ -1715,6 +1737,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/fee-reminders'
     | '/api/public/hooks/nevorai-brief'
     | '/api/public/hooks/owner-summaries'
+    | '/api/public/hooks/parent-messages'
     | '/api/public/hooks/subscription-check'
     | '/api/public/manifest/webmanifest'
     | '/api/public/payments/$provider/webhook'
@@ -1766,6 +1789,7 @@ export interface FileRouteTypes {
     | '/dashboard/attendance'
     | '/dashboard/attendance-calendar'
     | '/dashboard/attendance-qr'
+    | '/dashboard/auto-messages'
     | '/dashboard/automation'
     | '/dashboard/automation-settings'
     | '/dashboard/automation-test'
@@ -1870,6 +1894,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/fee-reminders'
     | '/api/public/hooks/nevorai-brief'
     | '/api/public/hooks/owner-summaries'
+    | '/api/public/hooks/parent-messages'
     | '/api/public/hooks/subscription-check'
     | '/api/public/manifest/webmanifest'
     | '/api/public/payments/$provider/webhook'
@@ -1931,6 +1956,7 @@ export interface RootRouteChildren {
   ApiPublicHooksFeeRemindersRoute: typeof ApiPublicHooksFeeRemindersRoute
   ApiPublicHooksNevoraiBriefRoute: typeof ApiPublicHooksNevoraiBriefRoute
   ApiPublicHooksOwnerSummariesRoute: typeof ApiPublicHooksOwnerSummariesRoute
+  ApiPublicHooksParentMessagesRoute: typeof ApiPublicHooksParentMessagesRoute
   ApiPublicHooksSubscriptionCheckRoute: typeof ApiPublicHooksSubscriptionCheckRoute
   ApiPublicManifestWebmanifestRoute: typeof ApiPublicManifestWebmanifestRoute
   ApiPublicPaymentsProviderWebhookRoute: typeof ApiPublicPaymentsProviderWebhookRoute
@@ -2265,6 +2291,13 @@ declare module '@tanstack/react-router' {
       path: '/attendance-qr'
       fullPath: '/dashboard/attendance-qr'
       preLoaderRoute: typeof DashboardAttendanceQrRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/auto-messages': {
+      id: '/dashboard/auto-messages'
+      path: '/auto-messages'
+      fullPath: '/dashboard/auto-messages'
+      preLoaderRoute: typeof DashboardAutoMessagesRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/automation': {
@@ -2988,6 +3021,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksOwnerSummariesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/parent-messages': {
+      id: '/api/public/hooks/parent-messages'
+      path: '/api/public/hooks/parent-messages'
+      fullPath: '/api/public/hooks/parent-messages'
+      preLoaderRoute: typeof ApiPublicHooksParentMessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/subscription-check': {
       id: '/api/public/hooks/subscription-check'
       path: '/api/public/hooks/subscription-check'
@@ -3047,6 +3087,7 @@ interface DashboardRouteChildren {
   DashboardAttendanceRoute: typeof DashboardAttendanceRoute
   DashboardAttendanceCalendarRoute: typeof DashboardAttendanceCalendarRoute
   DashboardAttendanceQrRoute: typeof DashboardAttendanceQrRoute
+  DashboardAutoMessagesRoute: typeof DashboardAutoMessagesRoute
   DashboardAutomationRoute: typeof DashboardAutomationRoute
   DashboardAutomationSettingsRoute: typeof DashboardAutomationSettingsRoute
   DashboardAutomationTestRoute: typeof DashboardAutomationTestRoute
@@ -3084,6 +3125,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAttendanceRoute: DashboardAttendanceRoute,
   DashboardAttendanceCalendarRoute: DashboardAttendanceCalendarRoute,
   DashboardAttendanceQrRoute: DashboardAttendanceQrRoute,
+  DashboardAutoMessagesRoute: DashboardAutoMessagesRoute,
   DashboardAutomationRoute: DashboardAutomationRoute,
   DashboardAutomationSettingsRoute: DashboardAutomationSettingsRoute,
   DashboardAutomationTestRoute: DashboardAutomationTestRoute,
@@ -3360,6 +3402,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksFeeRemindersRoute: ApiPublicHooksFeeRemindersRoute,
   ApiPublicHooksNevoraiBriefRoute: ApiPublicHooksNevoraiBriefRoute,
   ApiPublicHooksOwnerSummariesRoute: ApiPublicHooksOwnerSummariesRoute,
+  ApiPublicHooksParentMessagesRoute: ApiPublicHooksParentMessagesRoute,
   ApiPublicHooksSubscriptionCheckRoute: ApiPublicHooksSubscriptionCheckRoute,
   ApiPublicManifestWebmanifestRoute: ApiPublicManifestWebmanifestRoute,
   ApiPublicPaymentsProviderWebhookRoute: ApiPublicPaymentsProviderWebhookRoute,

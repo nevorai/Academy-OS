@@ -14,6 +14,7 @@
  *   ball_events → statistics-engine (pure) → career aggregator → cache
  * ================================================================ */
 
+import { fetchAllRows } from "@/lib/fetch-all";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { listMatchBallEvents } from "@/lib/mc-ball-events";
@@ -360,16 +361,12 @@ export async function rebuildCareer(athleteProfileId: string): Promise<MCPlayerC
     .from("mc_match_squads")
     .select("match_id")
     .eq("athlete_profile_id", athleteProfileId);
-  const { data: strikerEvents } = await supabase
-    .from("mc_ball_events")
-    .select("match_id")
-    .eq("striker_athlete_id", athleteProfileId)
-    .limit(5000);
-  const { data: bowlerEvents } = await supabase
-    .from("mc_ball_events")
-    .select("match_id")
-    .eq("bowler_athlete_id", athleteProfileId)
-    .limit(5000);
+  const { data: strikerEvents } = await fetchAllRows(() =>
+    supabase.from("mc_ball_events").select("match_id").eq("striker_athlete_id", athleteProfileId).order("id"),
+  );
+  const { data: bowlerEvents } = await fetchAllRows(() =>
+    supabase.from("mc_ball_events").select("match_id").eq("bowler_athlete_id", athleteProfileId).order("id"),
+  );
 
   const matchIds = new Set<string>();
   (squadMatches ?? []).forEach((r) => r.match_id && matchIds.add(r.match_id));

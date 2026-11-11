@@ -2,6 +2,7 @@
  * Coach analytics queries — RLS-scoped (coaches only see their assigned batches).
  * No new tables; aggregates existing attendance / students / mc_coach_remarks.
  */
+import { fetchAllRows } from "@/lib/fetch-all";
 import { supabase } from "@/integrations/supabase/client";
 import { subDays, format } from "date-fns";
 
@@ -52,11 +53,14 @@ export async function fetchCoachAnalytics(
   if (batchIds.length === 0) return empty;
 
   // Students in coach's batches
-  const { data: students } = await supabase
-    .from("students")
-    .select("id, batch_id, status, joined_at, created_at")
-    .eq("tenant_id", tenantId)
-    .in("batch_id", batchIds);
+  const { data: students } = await fetchAllRows(() =>
+    supabase
+      .from("students")
+      .select("id, batch_id, status, joined_at, created_at")
+      .eq("tenant_id", tenantId)
+      .in("batch_id", batchIds)
+      .order("id"),
+  );
 
   const activeStudents = (students ?? []).filter((s) => s.status === "active");
   const newAdmissions = (students ?? []).filter(
@@ -82,10 +86,13 @@ export async function fetchCoachAnalytics(
   // Marks
   let marks: { session_id: string; status: string }[] = [];
   if (sessionIds.length > 0) {
-    const { data } = await supabase
-      .from("attendance_marks")
-      .select("session_id, status")
-      .in("session_id", sessionIds);
+    const { data } = await fetchAllRows(() =>
+      supabase
+        .from("attendance_marks")
+        .select("session_id, status")
+        .in("session_id", sessionIds)
+        .order("id"),
+    );
     marks = (data ?? []) as typeof marks;
   }
 

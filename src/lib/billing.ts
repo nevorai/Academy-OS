@@ -1,7 +1,8 @@
 /**
  * Nevorai Academy V2 — Financial Core (Phase 02.7)
  *
- * Owner-only. Do not import from admin, student, or parent surfaces.
+ * Owner-only. Do not import
+ * from admin, student, or parent surfaces.
  * Every query is tenant-scoped and relies on RLS + `is_tenant_owner`.
  *
  * Model:
@@ -9,6 +10,7 @@
  *
  * Invoices are immutable once issued. Corrections go to billing_invoice_adjustments.
  */
+import { fetchAllRows } from "@/lib/fetch-all";
 import { supabase } from "@/integrations/supabase/client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
@@ -176,17 +178,23 @@ export const bqk = {
 // ---------- Query fns ------------------------------------------------------
 export async function fetchBillingKpis(tenantId: string, db: Db = supabase) {
   const [outRes, monthRes, overdueRes] = await Promise.all([
-    db
-      .from("billing_invoices")
-      .select("balance, status")
-      .eq("tenant_id", tenantId)
-      .in("status", ["issued", "partially_paid"]),
-    db
-      .from("billing_payments")
-      .select("amount, collected_at")
-      .eq("tenant_id", tenantId)
-      .eq("status", "succeeded")
-      .gte("collected_at", startOfMonthIso()),
+    fetchAllRows(() =>
+      db
+        .from("billing_invoices")
+        .select("balance, status")
+        .eq("tenant_id", tenantId)
+        .in("status", ["issued", "partially_paid"])
+        .order("id"),
+    ),
+    fetchAllRows(() =>
+      db
+        .from("billing_payments")
+        .select("amount, collected_at")
+        .eq("tenant_id", tenantId)
+        .eq("status", "succeeded")
+        .gte("collected_at", startOfMonthIso())
+        .order("id"),
+    ),
     db
       .from("billing_invoices")
       .select("id", { count: "exact", head: true })

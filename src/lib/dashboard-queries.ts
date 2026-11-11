@@ -1,3 +1,4 @@
+import { fetchAllRows } from "@/lib/fetch-all";
 import { supabase } from "@/integrations/supabase/client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
@@ -36,21 +37,27 @@ export const qk = {
 };
 
 export async function fetchRegistrations(tenantId: string) {
-  const { data, error } = await supabase
-    .from("registrations")
-    .select("*, batches(name), fee_plans(name, amount, female_amount)")
-    .eq("tenant_id", tenantId)
-    .order("created_at", { ascending: false });
+  const { data, error } = await fetchAllRows(() =>
+    supabase
+      .from("registrations")
+      .select("*, batches(name), fee_plans(name, amount, female_amount)")
+      .eq("tenant_id", tenantId)
+      .order("created_at", { ascending: false })
+      .order("id"),
+  );
   if (error) throw error;
   return data ?? [];
 }
 
 export async function fetchStudents(tenantId: string) {
-  const { data, error } = await supabase
-    .from("students")
-    .select("*, batches(name), fee_plans(name, amount, female_amount, type)")
-    .eq("tenant_id", tenantId)
-    .order("created_at", { ascending: false });
+  const { data, error } = await fetchAllRows(() =>
+    supabase
+      .from("students")
+      .select("*, batches(name), fee_plans(name, amount, female_amount, type)")
+      .eq("tenant_id", tenantId)
+      .order("created_at", { ascending: false })
+      .order("id"),
+  );
   if (error) throw error;
   return data ?? [];
 }
@@ -154,25 +161,34 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
       .select("id", { count: "exact", head: true })
       .eq("tenant_id", tenantId)
       .gte("created_at", weekAgo),
-    db
-      .from("payments")
-      .select("amount, student_id, students!inner(status)")
-      .eq("tenant_id", tenantId)
-      .eq("type", "monthly")
-      .eq("students.status", "active")
-      .gte("created_at", startOfMonth),
-    db
-      .from("students")
-      .select("id, joined_at, custom_fee, gender, fee_plans!inner(type, amount, female_amount)")
-      .eq("tenant_id", tenantId)
-      .eq("status", "active")
-      .eq("fee_plans.type", "monthly"),
-    db
-      .from("payments")
-      .select("student_id, period, type")
-      .eq("tenant_id", tenantId)
-      .eq("type", "monthly")
-      .in("period", periods),
+    fetchAllRows(() =>
+      db
+        .from("payments")
+        .select("amount, student_id, students!inner(status)")
+        .eq("tenant_id", tenantId)
+        .eq("type", "monthly")
+        .eq("students.status", "active")
+        .gte("created_at", startOfMonth)
+        .order("id"),
+    ),
+    fetchAllRows(() =>
+      db
+        .from("students")
+        .select("id, joined_at, custom_fee, gender, fee_plans!inner(type, amount, female_amount)")
+        .eq("tenant_id", tenantId)
+        .eq("status", "active")
+        .eq("fee_plans.type", "monthly")
+        .order("id"),
+    ),
+    fetchAllRows(() =>
+      db
+        .from("payments")
+        .select("student_id, period, type")
+        .eq("tenant_id", tenantId)
+        .eq("type", "monthly")
+        .in("period", periods)
+        .order("id"),
+    ),
     db
       .from("tenants")
       .select("admission_fee_enabled, gender_pricing_enabled")
@@ -243,12 +259,15 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
 
 /** Payments carrying any of the given period keys (fee register paid-lookup). */
 export async function fetchPaymentsForPeriods(tenantId: string, periods: string[]) {
-  const { data, error } = await supabase
-    .from("payments")
-    .select("id, student_id, period, amount, method, type, receipt_no, created_at")
-    .eq("tenant_id", tenantId)
-    .eq("type", "monthly")
-    .in("period", periods);
+  const { data, error } = await fetchAllRows(() =>
+    supabase
+      .from("payments")
+      .select("id, student_id, period, amount, method, type, receipt_no, created_at")
+      .eq("tenant_id", tenantId)
+      .eq("type", "monthly")
+      .in("period", periods)
+      .order("id"),
+  );
   if (error) throw error;
   return data ?? [];
 }
@@ -256,12 +275,15 @@ export async function fetchPaymentsForPeriods(tenantId: string, periods: string[
 
 /** All payments since a date, with student names (reports + CSV export). */
 export async function fetchPaymentsSince(tenantId: string, sinceISO: string) {
-  const { data, error } = await supabase
-    .from("payments")
-    .select("id, amount, type, period, method, receipt_no, note, created_at, students(name)")
-    .eq("tenant_id", tenantId)
-    .gte("created_at", sinceISO)
-    .order("created_at", { ascending: false });
+  const { data, error } = await fetchAllRows(() =>
+    supabase
+      .from("payments")
+      .select("id, amount, type, period, method, receipt_no, note, created_at, students(name)")
+      .eq("tenant_id", tenantId)
+      .gte("created_at", sinceISO)
+      .order("created_at", { ascending: false })
+      .order("id"),
+  );
   if (error) throw error;
   return data ?? [];
 }
@@ -306,11 +328,14 @@ export async function fetchDashboardInsights(
   const todayStr = now.toISOString().slice(0, 10);
 
   const [payRes, sessRes, studRes] = await Promise.all([
-    db
-      .from("payments")
-      .select("amount, created_at")
-      .eq("tenant_id", tenantId)
-      .gte("created_at", sixMonthsAgo.toISOString()),
+    fetchAllRows(() =>
+      db
+        .from("payments")
+        .select("amount, created_at")
+        .eq("tenant_id", tenantId)
+        .gte("created_at", sixMonthsAgo.toISOString())
+        .order("id"),
+    ),
     db
       .from("attendance_sessions")
       .select("id, attendance_marks(status)")

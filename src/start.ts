@@ -22,10 +22,10 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
 /**
  * Baseline security headers applied to every server response.
  *
- * CSP ships as Report-Only for now — the app uses inline scripts/styles
- * (Vite SSR bootstrap, TanStack Router, shadcn) and third-party embeds
- * (Supabase, Lovable AI, YouTube, WhatsApp). We collect violations before
- * enforcing to avoid breaking legitimate inline usage.
+ * CSP is ENFORCED (2026-11-11). Inline scripts/styles stay allowed because the SSR
+ * bootstrap needs them; the rest is an allow-list of the hosts the browser really talks to
+ * (Supabase, Razorpay checkout, YouTube, Google Maps, Google Fonts, the media CDN).
+ * Add a host here when a new browser-side integration is added, or it will be blocked.
  */
 const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => {
   const response = await next();
@@ -37,16 +37,19 @@ const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => 
     // QR attendance needs the camera + GPS on our own origin.
     setResponseHeader("Permissions-Policy", "geolocation=(self), microphone=(), camera=(self)");
     setResponseHeader(
-      "Content-Security-Policy-Report-Only",
+      "Content-Security-Policy",
       [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.lovable.app https://*.lovable.dev",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://*.lovable.app https://*.lovable.dev",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src 'self' data: https://fonts.gstatic.com",
         "img-src 'self' data: blob: https:",
         "media-src 'self' blob: https:",
-        "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.lovable.app https://*.lovable.dev",
-        "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.google.com",
+        "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.razorpay.com https://lumberjack.razorpay.com https://*.lovable.app https://*.lovable.dev",
+        "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.google.com https://api.razorpay.com https://checkout.razorpay.com",
+        "worker-src 'self' blob:",
+        "manifest-src 'self'",
+        "object-src 'none'",
         "frame-ancestors 'none'",
         "base-uri 'self'",
         "form-action 'self'",

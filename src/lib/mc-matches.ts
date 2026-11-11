@@ -1,3 +1,4 @@
+import { fetchAllRows } from "@/lib/fetch-all";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { emitEvent } from "@/lib/automation/emit-client";
@@ -434,8 +435,8 @@ export async function deleteMatch(id: string) {
   const athleteIds = new Set<string>();
   const [squads, strikers, bowlers] = await Promise.all([
     supabase.from("mc_match_squads").select("athlete_profile_id").eq("match_id", id),
-    supabase.from("mc_ball_events").select("striker_athlete_id").eq("match_id", id).limit(5000),
-    supabase.from("mc_ball_events").select("bowler_athlete_id").eq("match_id", id).limit(5000),
+    fetchAllRows(() => supabase.from("mc_ball_events").select("striker_athlete_id").eq("match_id", id).order("id")),
+    fetchAllRows(() => supabase.from("mc_ball_events").select("bowler_athlete_id").eq("match_id", id).order("id")),
   ]);
   (squads.data ?? []).forEach((r) => r.athlete_profile_id && athleteIds.add(r.athlete_profile_id));
   (strikers.data ?? []).forEach((r) => r.striker_athlete_id && athleteIds.add(r.striker_athlete_id));

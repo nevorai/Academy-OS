@@ -12,6 +12,7 @@
  * The AI summary is deterministic and template-driven — no LLM.
  * ================================================================ */
 
+import { fetchAllRows } from "@/lib/fetch-all";
 import { supabase } from "@/integrations/supabase/client";
 
 export type AttendanceStatus = "present" | "absent" | "late" | "excused";
@@ -84,13 +85,15 @@ export async function fetchAttendanceReport(
   const rangeStartIso = rangeStart.toISOString().slice(0, 10);
 
   // One join query, capped at 1000 rows (plenty for 6 months of training).
-  const { data, error } = await supabase
-    .from("attendance_marks")
-    .select("status, session:attendance_sessions!inner(session_date)")
-    .eq("student_id", studentId)
-    .eq("tenant_id", tenantId)
-    .gte("session.session_date", rangeStartIso)
-    .limit(1000);
+  const { data, error } = await fetchAllRows(() =>
+    supabase
+      .from("attendance_marks")
+      .select("status, session:attendance_sessions!inner(session_date)")
+      .eq("student_id", studentId)
+      .eq("tenant_id", tenantId)
+      .gte("session.session_date", rangeStartIso)
+      .order("id"),
+  );
 
   if (error) throw error;
 

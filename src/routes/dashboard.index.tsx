@@ -310,17 +310,7 @@ function DashboardHome() {
         pendingFees={canViewFees && feeEnabled ? pendingFees : 0}
       />
 
-      {/* ─── Section 5 · Next actions (actionable only, no duplicate KPIs) */}
-      <section aria-label="Next actions">
-        <SectionLabel>Next actions</SectionLabel>
-        <NextActions
-          notArrived={notArrived}
-          pendingFees={canViewFees && feeEnabled ? pendingFees : 0}
-          newRegs={newRegs}
-          birthdaysToday={(insights?.birthdays ?? []).filter((b) => b.daysAway === 0).length}
-          isLoading={attendanceLoading || insightsQ.isLoading || kpisQ.isLoading}
-        />
-      </section>
+      {/* "Next actions" list hidden (owner decision 2026-11-11): the buttons above already show the counts. */}
     </div>
   );
 }

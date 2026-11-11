@@ -44,7 +44,7 @@ export function HomeButtons({
 }) {
   const buttons: Btn[] = [
     {
-      to: "/dashboard/attendance",
+      to: "/dashboard/attendance-overview",
       title: "Today's attendance",
       hint: "Who came, who is absent",
       icon: ClipboardCheck,

@@ -55,6 +55,7 @@ import { Route as DashboardAdminsRouteImport } from './routes/dashboard.admins'
 import { Route as DashboardAdmissionsReviewRouteImport } from './routes/dashboard.admissions-review'
 import { Route as DashboardAttendanceRouteImport } from './routes/dashboard.attendance'
 import { Route as DashboardAttendanceCalendarRouteImport } from './routes/dashboard.attendance-calendar'
+import { Route as DashboardAttendanceOverviewRouteImport } from './routes/dashboard.attendance-overview'
 import { Route as DashboardAttendanceQrRouteImport } from './routes/dashboard.attendance-qr'
 import { Route as DashboardAutoMessagesRouteImport } from './routes/dashboard.auto-messages'
 import { Route as DashboardAutomationRouteImport } from './routes/dashboard.automation'
@@ -395,6 +396,12 @@ const DashboardAttendanceCalendarRoute =
   DashboardAttendanceCalendarRouteImport.update({
     id: '/attendance-calendar',
     path: '/attendance-calendar',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardAttendanceOverviewRoute =
+  DashboardAttendanceOverviewRouteImport.update({
+    id: '/attendance-overview',
+    path: '/attendance-overview',
     getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardAttendanceQrRoute = DashboardAttendanceQrRouteImport.update({
@@ -1012,6 +1019,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/admissions-review': typeof DashboardAdmissionsReviewRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/attendance-calendar': typeof DashboardAttendanceCalendarRoute
+  '/dashboard/attendance-overview': typeof DashboardAttendanceOverviewRoute
   '/dashboard/attendance-qr': typeof DashboardAttendanceQrRoute
   '/dashboard/auto-messages': typeof DashboardAutoMessagesRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
@@ -1163,6 +1171,7 @@ export interface FileRoutesByTo {
   '/dashboard/admissions-review': typeof DashboardAdmissionsReviewRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/attendance-calendar': typeof DashboardAttendanceCalendarRoute
+  '/dashboard/attendance-overview': typeof DashboardAttendanceOverviewRoute
   '/dashboard/attendance-qr': typeof DashboardAttendanceQrRoute
   '/dashboard/auto-messages': typeof DashboardAutoMessagesRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
@@ -1321,6 +1330,7 @@ export interface FileRoutesById {
   '/dashboard/admissions-review': typeof DashboardAdmissionsReviewRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/attendance-calendar': typeof DashboardAttendanceCalendarRoute
+  '/dashboard/attendance-overview': typeof DashboardAttendanceOverviewRoute
   '/dashboard/attendance-qr': typeof DashboardAttendanceQrRoute
   '/dashboard/auto-messages': typeof DashboardAutoMessagesRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
@@ -1480,6 +1490,7 @@ export interface FileRouteTypes {
     | '/dashboard/admissions-review'
     | '/dashboard/attendance'
     | '/dashboard/attendance-calendar'
+    | '/dashboard/attendance-overview'
     | '/dashboard/attendance-qr'
     | '/dashboard/auto-messages'
     | '/dashboard/automation'
@@ -1631,6 +1642,7 @@ export interface FileRouteTypes {
     | '/dashboard/admissions-review'
     | '/dashboard/attendance'
     | '/dashboard/attendance-calendar'
+    | '/dashboard/attendance-overview'
     | '/dashboard/attendance-qr'
     | '/dashboard/auto-messages'
     | '/dashboard/automation'
@@ -1788,6 +1800,7 @@ export interface FileRouteTypes {
     | '/dashboard/admissions-review'
     | '/dashboard/attendance'
     | '/dashboard/attendance-calendar'
+    | '/dashboard/attendance-overview'
     | '/dashboard/attendance-qr'
     | '/dashboard/auto-messages'
     | '/dashboard/automation'
@@ -2284,6 +2297,13 @@ declare module '@tanstack/react-router' {
       path: '/attendance-calendar'
       fullPath: '/dashboard/attendance-calendar'
       preLoaderRoute: typeof DashboardAttendanceCalendarRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/attendance-overview': {
+      id: '/dashboard/attendance-overview'
+      path: '/attendance-overview'
+      fullPath: '/dashboard/attendance-overview'
+      preLoaderRoute: typeof DashboardAttendanceOverviewRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/attendance-qr': {
@@ -3086,6 +3106,7 @@ interface DashboardRouteChildren {
   DashboardAdmissionsReviewRoute: typeof DashboardAdmissionsReviewRoute
   DashboardAttendanceRoute: typeof DashboardAttendanceRoute
   DashboardAttendanceCalendarRoute: typeof DashboardAttendanceCalendarRoute
+  DashboardAttendanceOverviewRoute: typeof DashboardAttendanceOverviewRoute
   DashboardAttendanceQrRoute: typeof DashboardAttendanceQrRoute
   DashboardAutoMessagesRoute: typeof DashboardAutoMessagesRoute
   DashboardAutomationRoute: typeof DashboardAutomationRoute
@@ -3124,6 +3145,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAdmissionsReviewRoute: DashboardAdmissionsReviewRoute,
   DashboardAttendanceRoute: DashboardAttendanceRoute,
   DashboardAttendanceCalendarRoute: DashboardAttendanceCalendarRoute,
+  DashboardAttendanceOverviewRoute: DashboardAttendanceOverviewRoute,
   DashboardAttendanceQrRoute: DashboardAttendanceQrRoute,
   DashboardAutoMessagesRoute: DashboardAutoMessagesRoute,
   DashboardAutomationRoute: DashboardAutomationRoute,

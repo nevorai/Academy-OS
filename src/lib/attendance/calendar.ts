@@ -87,7 +87,13 @@ export function summarize(states: Record<string, DayState>, today: string): Mont
     else if (s === "absent") absent++;
   }
   const held = present + late + absent;
-  return { present, late, absent, held, pct: held ? Math.round(((present + late) / held) * 100) : null };
+  return {
+    present,
+    late,
+    absent,
+    held,
+    pct: held ? Math.round(((present + late) / held) * 100) : null,
+  };
 }
 
 /** Builds the per-day state map for one player. */
@@ -150,7 +156,10 @@ export function dayRows(
     if (state === "none") continue;
     const visits = (visitsByDate.get(d.date) ?? []).filter((v) => v.check_in_at);
     const ins = visits.map((v) => v.check_in_at as string).sort();
-    const outs = visits.map((v) => v.check_out_at).filter((x): x is string => !!x).sort();
+    const outs = visits
+      .map((v) => v.check_out_at)
+      .filter((x): x is string => !!x)
+      .sort();
     const open = visits.some((v) => !v.check_out_at);
     const mins = visits.reduce((n, v) => n + (v.duration_minutes ?? 0), 0);
     rows.push({
@@ -247,6 +256,37 @@ export async function fetchBatchVisits(
   return out;
 }
 
+/** Visits of EVERY player in [from, to] (pages of 1000): the base for the owner's month charts. */
+export async function fetchMonthVisits(
+  tenantId: string,
+  from: string,
+  to: string,
+): Promise<Visit[]> {
+  const out: Visit[] = [];
+  for (let offset = 0; ; offset += PAGE) {
+    const { data, error } = await supabase
+      .from("attendance_marks")
+      .select(
+        "student_id, status, check_in_at, check_out_at, duration_minutes, source, attendance_sessions!inner(session_date)",
+      )
+      .eq("tenant_id", tenantId)
+      .is("superseded_by", null)
+      .gte("attendance_sessions.session_date", from)
+      .lte("attendance_sessions.session_date", to)
+      .order("created_at", { ascending: true })
+      .order("id")
+      .range(offset, offset + PAGE - 1);
+    if (error) throw error;
+    const rows = (data ?? []) as unknown as MarkRow[];
+    for (const r of rows) {
+      const v = toVisit(r);
+      if (v) out.push(v);
+    }
+    if (rows.length < PAGE) break;
+  }
+  return out;
+}
+
 /** One player's visits in [from, to]. A month is at most a few dozen rows. */
 export async function fetchPlayerVisits(
   tenantId: string,
@@ -274,4 +314,5 @@ export const calendarKeys = {
     ["attendance", "cal-player", tenantId, studentId, from] as const,
   batch: (tenantId: string, batchId: string, from: string) =>
     ["attendance", "cal-batch", tenantId, batchId, from] as const,
+  month: (tenantId: string, from: string) => ["attendance", "cal-month", tenantId, from] as const,
 };

@@ -129,7 +129,11 @@ export interface MobileScorerProps {
 
 type PickerKind = "striker" | "nonStriker" | "bowler";
 
-const FOOTER_COLS: Record<number, string> = { 4: "grid-cols-4", 5: "grid-cols-5", 6: "grid-cols-6" };
+const FOOTER_COLS: Record<number, string> = {
+  4: "grid-cols-4",
+  5: "grid-cols-5",
+  6: "grid-cols-6",
+};
 
 export function MobileScorer(props: MobileScorerProps) {
   const [pickerOpen, setPickerOpen] = useState<PickerKind | null>(null);
@@ -179,10 +183,8 @@ export function MobileScorer(props: MobileScorerProps) {
 
   // Swipe gestures: right = undo last ball. Swipe-up removed to prevent
   // accidental opening of the More sheet when scrolling.
-  const swipeHandlers = useSwipe({
-    onSwipeRight: () => props.onUndo(),
-    threshold: 72,
-  });
+  // Swipe-to-undo removed: a slip of the thumb while scrolling must never delete a ball. Use the Undo button.
+  const swipeHandlers = useSwipe({ threshold: 72 });
 
   const openPicker = (kind: PickerKind) => {
     if (sheetPickerEnabled) {
@@ -432,10 +434,14 @@ export function MobileScorer(props: MobileScorerProps) {
           />
         </div>
         <div
-        className={cn(
-          "grid gap-1 px-2 pb-1.5 pt-1",
-          FOOTER_COLS[4 + (props.showFinishInnings && props.onFinishInnings ? 1 : 0) + (props.onFixBall ? 1 : 0)],
-        )}
+          className={cn(
+            "grid gap-1 px-2 pb-1.5 pt-1",
+            FOOTER_COLS[
+              4 +
+                (props.showFinishInnings && props.onFinishInnings ? 1 : 0) +
+                (props.onFixBall ? 1 : 0)
+            ],
+          )}
         >
           <FooterAction
             icon={<Undo2 className="size-[18px]" />}
@@ -573,10 +579,12 @@ function ScoreHeroCard({
             <div className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-1 text-[11.5px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-tight">
               Match Finished
             </div>
-          ) : chase && (
-            <div className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-[var(--score-success-bg,color-mix(in_oklab,var(--primary)_16%,transparent))] px-2 py-1 text-[11.5px] font-black text-[var(--score-success-fg)] tabular-nums">
-              Need {chase.runsNeeded} from {chase.ballsLeft}
-            </div>
+          ) : (
+            chase && (
+              <div className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-[var(--score-success-bg,color-mix(in_oklab,var(--primary)_16%,transparent))] px-2 py-1 text-[11.5px] font-black text-[var(--score-success-fg)] tabular-nums">
+                Need {chase.runsNeeded} from {chase.ballsLeft}
+              </div>
+            )
           )}
         </div>
         <div className="flex flex-col items-end gap-1 text-right tabular-nums">
@@ -853,10 +861,11 @@ function InfoTile({ label, value, accent }: { label: string; value: string; acce
 function BallBubble({ label }: { label: string }) {
   const upper = formatBallNotation(label);
 
-
   const wicket = /W/.test(upper);
-  const four = upper === "4" || upper.endsWith("+4") || (upper.startsWith("NB") && upper.endsWith("5"));
-  const six = upper === "6" || upper.endsWith("+6") || (upper.startsWith("NB") && upper.endsWith("7"));
+  const four =
+    upper === "4" || upper.endsWith("+4") || (upper.startsWith("NB") && upper.endsWith("5"));
+  const six =
+    upper === "6" || upper.endsWith("+6") || (upper.startsWith("NB") && upper.endsWith("7"));
   const extra = /WD|NB|LB|B/.test(upper);
   const isMulti = upper.length > 1;
   return (
@@ -867,7 +876,11 @@ function BallBubble({ label }: { label: string }) {
         wicket && "bg-destructive text-destructive-foreground",
         four && "bg-[var(--score-four)] text-[var(--score-action-foreground)]",
         six && "bg-[var(--score-six)] text-[var(--score-action-foreground)]",
-        extra && !four && !six && !wicket && "bg-[var(--score-extra-bg)] text-[var(--score-extra-fg)]",
+        extra &&
+          !four &&
+          !six &&
+          !wicket &&
+          "bg-[var(--score-extra-bg)] text-[var(--score-extra-fg)]",
         !wicket && !four && !six && !extra && "bg-muted text-foreground",
       )}
     >
@@ -889,27 +902,30 @@ function ScoringDock({
 }) {
   return (
     <div className="rounded-2xl border bg-card/95 p-2 shadow-[0_4px_20px_-12px_oklch(0_0_0/45%)] backdrop-blur-xl">
+      <div className="mb-1.5 px-1 text-[11px] font-semibold text-muted-foreground">
+        Runs scored on this ball
+      </div>
       <div className="grid grid-cols-7 gap-1.5">
         {([0, 1, 2, 3, 4, 5, 6] as const).map((run) => (
           <RunKey key={run} value={run} disabled={disabled} onClick={() => onRun(run)} />
         ))}
       </div>
       <div className="mt-2 grid grid-cols-5 gap-2">
-        <ExtraKey label="WD" tone="wide" disabled={disabled} onClick={() => onExtra("Wide")} />
+        <ExtraKey label="Wide" tone="wide" disabled={disabled} onClick={() => onExtra("Wide")} />
         <ExtraKey
-          label="NB"
+          label="No ball"
           tone="nb"
           disabled={disabled}
           onClick={() => onExtra("No Ball")}
         />
-        <ExtraKey label="B" tone="bye" disabled={disabled} onClick={() => onExtra("Bye")} />
+        <ExtraKey label="Bye" tone="bye" disabled={disabled} onClick={() => onExtra("Bye")} />
         <ExtraKey
-          label="LB"
+          label="Leg bye"
           tone="lb"
           disabled={disabled}
           onClick={() => onExtra("Leg Bye")}
         />
-        <ExtraKey label="WKT" tone="out" disabled={disabled} onClick={onOut} />
+        <ExtraKey label="OUT" tone="out" disabled={disabled} onClick={onOut} />
       </div>
     </div>
   );
@@ -929,9 +945,9 @@ function RunKey({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className="grid h-11 w-full place-items-center rounded-xl border border-border/80 bg-background text-[20px] font-black tabular-nums text-foreground transition duration-100 active:bg-muted active:scale-[0.95] disabled:opacity-40"
+      className="grid h-14 w-full place-items-center rounded-xl border border-border/80 bg-background text-[24px] font-black tabular-nums text-foreground transition duration-100 active:bg-muted active:scale-[0.95] disabled:opacity-40"
     >
-      {value === 0 ? "•" : value}
+      {value}
     </button>
   );
 }
@@ -953,7 +969,7 @@ function ExtraKey({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "grid h-11 w-full place-items-center rounded-xl border px-1 text-[13px] font-black uppercase leading-none tracking-wide transition duration-100 active:scale-[0.95] disabled:opacity-40",
+        "grid h-12 w-full place-items-center rounded-xl border px-0.5 text-[12.5px] font-black leading-none tracking-tight transition duration-100 active:scale-[0.95] disabled:opacity-40",
         tone === "wide" &&
           "border-[var(--score-wide-border)] bg-[var(--score-wide-bg)] text-[var(--score-wide-fg)]",
         tone === "nb" &&
@@ -1118,7 +1134,7 @@ function FooterAction({
       )}
     >
       <span aria-hidden>{icon}</span>
-      <span className="text-[10px] font-bold uppercase tracking-wider leading-none">{label}</span>
+      <span className="text-[11px] font-bold leading-none">{label}</span>
     </button>
   );
 }

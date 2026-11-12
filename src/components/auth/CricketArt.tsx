@@ -48,47 +48,12 @@ export function CricketArt({
       </defs>
 
       {/* The ground: boundary rope, 30-yard circle, inner circle. */}
-      <circle
-        cx="300"
-        cy="380"
-        r="330"
-        fill="none"
-        stroke="#fff"
-        strokeOpacity="0.08"
-        strokeWidth="2"
-      />
-      <circle
-        cx="300"
-        cy="380"
-        r="250"
-        fill="none"
-        stroke="#fff"
-        strokeOpacity="0.12"
-        strokeWidth="2"
-        strokeDasharray="3 11"
-        strokeLinecap="round"
-      />
-      <circle
-        cx="300"
-        cy="380"
-        r="120"
-        fill="none"
-        stroke="#fff"
-        strokeOpacity="0.09"
-        strokeWidth="2"
-      />
+      <circle cx="300" cy="380" r="330" fill="none" stroke="#fff" strokeOpacity="0.08" strokeWidth="2" />
+      <circle cx="300" cy="380" r="250" fill="none" stroke="#fff" strokeOpacity="0.12" strokeWidth="2" strokeDasharray="3 11" strokeLinecap="round" />
+      <circle cx="300" cy="380" r="120" fill="none" stroke="#fff" strokeOpacity="0.09" strokeWidth="2" />
 
       {/* The pitch and its creases. */}
-      <rect
-        x="262"
-        y="110"
-        width="76"
-        height="540"
-        rx="4"
-        fill={`url(#${pitch})`}
-        stroke="#fff"
-        strokeOpacity="0.14"
-      />
+      <rect x="262" y="110" width="76" height="540" rx="4" fill={`url(#${pitch})`} stroke="#fff" strokeOpacity="0.14" />
       <g stroke="#fff" strokeLinecap="round" strokeWidth="2">
         <line x1="236" y1="170" x2="364" y2="170" strokeOpacity="0.4" />
         <line x1="236" y1="590" x2="364" y2="590" strokeOpacity="0.4" />
@@ -119,71 +84,22 @@ export function CricketArt({
           <line x1="-8" y1="-148" x2="8" y2="-148" />
         </g>
         <rect x="-28" y="-118" width="56" height="156" rx="12" fill={`url(#${willow})`} />
-        <line
-          x1="0"
-          y1="-104"
-          x2="0"
-          y2="24"
-          stroke="#6B4A1F"
-          strokeOpacity="0.28"
-          strokeWidth="2"
-        />
-        <rect
-          x="-28"
-          y="-118"
-          width="56"
-          height="156"
-          rx="12"
-          fill="none"
-          stroke="#fff"
-          strokeOpacity="0.35"
-        />
+        <line x1="0" y1="-104" x2="0" y2="24" stroke="#6B4A1F" strokeOpacity="0.28" strokeWidth="2" />
+        <rect x="-28" y="-118" width="56" height="156" rx="12" fill="none" stroke="#fff" strokeOpacity="0.35" />
       </g>
 
       {/* Red ball with its seam. */}
       <g transform="translate(468 540)">
         <circle r="36" fill={`url(#${redBall})`} />
-        <path
-          d="M-27 -22 C-8 -10 -8 10 -27 22"
-          fill="none"
-          stroke="#F4E3D3"
-          strokeOpacity="0.85"
-          strokeWidth="2"
-          strokeDasharray="2.5 3.5"
-          strokeLinecap="round"
-        />
-        <path
-          d="M27 -22 C8 -10 8 10 27 22"
-          fill="none"
-          stroke="#F4E3D3"
-          strokeOpacity="0.85"
-          strokeWidth="2"
-          strokeDasharray="2.5 3.5"
-          strokeLinecap="round"
-        />
+        <path d="M-27 -22 C-8 -10 -8 10 -27 22" fill="none" stroke="#F4E3D3" strokeOpacity="0.85" strokeWidth="2" strokeDasharray="2.5 3.5" strokeLinecap="round" />
+        <path d="M27 -22 C8 -10 8 10 27 22" fill="none" stroke="#F4E3D3" strokeOpacity="0.85" strokeWidth="2" strokeDasharray="2.5 3.5" strokeLinecap="round" />
       </g>
 
       {/* White ball. */}
       <g transform="translate(124 232)">
         <circle r="22" fill={`url(#${whiteBall})`} />
-        <path
-          d="M-16 -12 C-5 -5 -5 5 -16 12"
-          fill="none"
-          stroke="#9A1B27"
-          strokeOpacity="0.55"
-          strokeWidth="1.6"
-          strokeDasharray="2 3"
-          strokeLinecap="round"
-        />
-        <path
-          d="M16 -12 C5 -5 5 5 16 12"
-          fill="none"
-          stroke="#9A1B27"
-          strokeOpacity="0.55"
-          strokeWidth="1.6"
-          strokeDasharray="2 3"
-          strokeLinecap="round"
-        />
+        <path d="M-16 -12 C-5 -5 -5 5 -16 12" fill="none" stroke="#9A1B27" strokeOpacity="0.55" strokeWidth="1.6" strokeDasharray="2 3" strokeLinecap="round" />
+        <path d="M16 -12 C5 -5 5 5 16 12" fill="none" stroke="#9A1B27" strokeOpacity="0.55" strokeWidth="1.6" strokeDasharray="2 3" strokeLinecap="round" />
       </g>
     </svg>
   );

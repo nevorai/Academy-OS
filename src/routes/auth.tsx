@@ -22,8 +22,7 @@ function safeNext(value: unknown): string | undefined {
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (s: Record<string, unknown>): AuthSearch => ({
-    mode:
-      s.mode === "forgot" || s.mode === "reset" || s.mode === "signin" ? s.mode : undefined,
+    mode: s.mode === "forgot" || s.mode === "reset" || s.mode === "signin" ? s.mode : undefined,
     next: safeNext(s.next),
   }),
   head: () => ({
@@ -167,12 +166,18 @@ function AuthPage() {
         setFormError("Incorrect password. Please check and try again.");
       } else if (msg.includes("user not found")) {
         setFormError(
-          <div className="space-y-2">
-            <p>Your account is not created. Please first do registration.</p>
-            <Button asChild variant="outline" className="w-full border-red-200 bg-red-50 text-red-900 hover:bg-red-100">
-              <Link to="/register">Do Registration</Link>
-            </Button>
-          </div> as any
+          (
+            <div className="space-y-2">
+              <p>Your account is not created. Please first do registration.</p>
+              <Button
+                asChild
+                variant="outline"
+                className="w-full border-red-200 bg-red-50 text-red-900 hover:bg-red-100"
+              >
+                <Link to="/register">Do Registration</Link>
+              </Button>
+            </div>
+          ) as any,
         );
       } else {
         setFormError("Check your details and try again. Make sure your email or phone is correct.");
@@ -227,13 +232,13 @@ function AuthPage() {
   }
 
   const title =
-    mode === "reset" ? "Set a new password" : mode === "forgot" ? "Forgot password" : "Welcome back";
+    mode === "reset" ? "Set a new password" : mode === "forgot" ? "Forgot password" : "Sign in";
   const subtitle =
     mode === "reset"
       ? "Choose a new password to finish signing in."
       : mode === "forgot"
         ? "Enter your registered email and we'll send reset instructions."
-        : `Sign in to continue to your ${brand.resolved ? brand.name : "academy"} account.`;
+        : "Players, parents and academy staff.";
 
   return (
     <AcademyAuthLayout>
@@ -242,13 +247,10 @@ function AuthPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.28, ease: "easeOut" }}
       >
-        <h1 className="text-[30px] font-semibold leading-[1.1] tracking-tight sm:text-[34px]">
-          {title}
-        </h1>
-        <p className="mt-2.5 text-[14px] leading-relaxed text-auth-muted">{subtitle}</p>
+        <h1 className="text-[22px] font-semibold leading-tight tracking-tight">{title}</h1>
+        <p className="mt-1.5 text-[14px] leading-relaxed text-auth-subtle">{subtitle}</p>
 
         {/* Moved Register CTA to the pill in the layout header per Task C */}
-        
 
         {mode === "signin" && (
           <form onSubmit={onSignIn} className="mt-6 space-y-4" noValidate>
@@ -293,11 +295,15 @@ function AuthPage() {
                 <div className="w-full border-t border-auth-border" />
               </div>
               <div className="relative flex justify-center text-[11px] font-semibold uppercase tracking-widest">
-                <span className="bg-auth-bg px-3 text-auth-subtle">New here?</span>
+                <span className="bg-auth-card px-3 text-auth-subtle">New here?</span>
               </div>
             </div>
 
-            <Button asChild variant="outline" className="h-[50px] w-full rounded-lg border-auth-border bg-transparent text-[15px] font-semibold tracking-tight text-auth-foreground hover:bg-auth-foreground/5">
+            <Button
+              asChild
+              variant="outline"
+              className="h-11 w-full rounded-lg border-auth-border bg-transparent text-[14px] font-semibold tracking-tight text-auth-foreground hover:bg-auth-foreground/5"
+            >
               <Link to="/register">Create an account</Link>
             </Button>
           </form>
@@ -365,17 +371,11 @@ function AuthPage() {
               icon={<KeyRound className="size-4" aria-hidden />}
               hint="Use at least 8 characters."
             />
-            <AuthButton
-              type="submit"
-              loading={loading}
-              loadingLabel="Updating…"
-              showArrow={false}
-            >
+            <AuthButton type="submit" loading={loading} loadingLabel="Updating…" showArrow={false}>
               Update password
             </AuthButton>
           </form>
         )}
-
       </motion.div>
     </AcademyAuthLayout>
   );

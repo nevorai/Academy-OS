@@ -6,7 +6,7 @@
  * `components/students`. Nothing here reads or writes the database directly.
  */
 
-import { createFileRoute, Outlet, useChildMatches } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useChildMatches, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import { DashboardSearch } from "@/components/dashboard-ui";
@@ -14,7 +14,6 @@ import { FilterTabs } from "@/components/shared/FilterTabs";
 import { Button } from "@/components/ui/button";
 import { AddStudentSheet } from "@/components/students/AddStudentSheet";
 import { DeleteArchivedButton } from "@/components/students/DeleteArchivedButton";
-import { ProfileSheet } from "@/components/students/ProfileSheet";
 import { RegistrationsBanner } from "@/components/students/RegistrationsBanner";
 import { MyBatchesToggle, StudentsFilterPanel } from "@/components/students/StudentsFilterPanel";
 import { StudentsHeader } from "@/components/students/StudentsHeader";
@@ -44,7 +43,7 @@ function StudentsPage() {
 
   const [showFilters, setShowFilters] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
-  const [profileId, setProfileId] = useState<string | null>(null);
+  const navigate = useNavigate();
   const openAdd = () => setAddOpen(true);
 
   return (
@@ -132,13 +131,12 @@ function StudentsPage() {
         onAdd={openAdd}
         onOpen={(s) => {
           p.primeProfile(s);
-          setProfileId(s.id);
+          void navigate({ to: "/dashboard/students/$id", params: { id: s.id } });
         }}
         onStatusChanged={() => void p.refreshStudents()}
       />
 
       <AddStudentSheet open={addOpen} onOpenChange={setAddOpen} />
-      <ProfileSheet id={profileId} onOpenChange={(open) => !open && setProfileId(null)} />
     </div>
   );
 }

@@ -63,7 +63,7 @@ export function useAttendanceDay() {
   const [quickMode, setQuickMode] = useState<boolean>(false);
   const [selectMode, setSelectMode] = useState<boolean>(false);
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
-  const [rosterTab, setRosterTab] = useState<RosterTab>("waiting");
+  const [rosterTab, setRosterTab] = useState<RosterTab>("present");
   const [selectedDate, setSelectedDate] = useState<Date>(() => startOfDay(new Date()));
 
   const isTodayView = isToday(selectedDate);

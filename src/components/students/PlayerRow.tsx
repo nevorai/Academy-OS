@@ -27,19 +27,19 @@ export interface PlayerRowData {
 
 /**
  * One player in the list: tap the row to open the profile, tap the arrow for
- * the status menu (archive, reactivate, trial and the rest). Active players
- * show whether this cycle's fee is paid; everyone else shows their status.
+ * the status menu (archive, reactivate, trial and the rest). Only players who
+ * are not active show a status chip; fees live in the Fees screen.
  */
 export function PlayerRow({
   index,
   s,
-  paid,
   onOpen,
   onStatusChanged,
 }: {
   index: number;
   s: PlayerRowData;
-  paid: boolean;
+  /** Kept for callers; fees are shown in the Fees screen, not on the player list. */
+  paid?: boolean;
   onOpen: () => void;
   onStatusChanged: () => void;
 }) {
@@ -87,9 +87,7 @@ export function PlayerRow({
             </div>
           )}
         </div>
-        {isActive ? (
-          <FeePill paid={paid} />
-        ) : (
+        {isActive ? null : (
           <span className="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-wide bg-muted text-muted-foreground">
             {meta?.label ?? s.status}
           </span>
@@ -125,21 +123,5 @@ export function PlayerRow({
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
-  );
-}
-
-function FeePill({ paid }: { paid: boolean }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[11px] font-semibold",
-        paid ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700",
-      )}
-    >
-      <span
-        className={cn("w-1.5 h-1.5 rounded-full mr-1.5", paid ? "bg-emerald-500" : "bg-rose-500")}
-      />
-      {paid ? "Paid" : "Due"}
-    </span>
   );
 }

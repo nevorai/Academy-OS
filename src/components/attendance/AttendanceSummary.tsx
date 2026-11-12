@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import type { RosterTab } from "@/lib/attendance/roster";
 
 type Kpis = {
   present: number;
@@ -15,14 +16,30 @@ type Kpis = {
  * look as the Metrol CRM attendance day view. Six tiles on a phone fit in
  * two rows of three, so the roster below stays in view.
  */
-export function AttendanceSummary({ kpis }: { kpis: Kpis }) {
+export function AttendanceSummary({
+  kpis,
+  onPick,
+}: {
+  kpis: Kpis;
+  /** Tapping a tile opens its list below. */
+  onPick?: (tab: RosterTab) => void;
+}) {
   return (
     <div className="grid grid-cols-3 gap-2 sm:grid-cols-6" aria-label="Day summary">
-      <Tile n={`${kpis.present}/${kpis.total}`} label="Present" />
+      <Tile
+        n={`${kpis.present}/${kpis.total}`}
+        label="Came today"
+        onClick={() => onPick?.("present")}
+      />
       <Tile n={`${kpis.pct}%`} label="Attendance" />
-      <Tile n={kpis.notArrived} label="Waiting" tone={kpis.notArrived > 0 ? "warn" : undefined} />
-      <Tile n={kpis.inAcademy} label="Inside" tone="good" />
-      <Tile n={kpis.checkedOutToday} label="Out" tone="info" />
+      <Tile
+        n={kpis.notArrived}
+        label="Not arrived"
+        tone={kpis.notArrived > 0 ? "warn" : undefined}
+        onClick={() => onPick?.("waiting")}
+      />
+      <Tile n={kpis.inAcademy} label="Inside now" tone="good" onClick={() => onPick?.("present")} />
+      <Tile n={kpis.checkedOutToday} label="Left" tone="info" onClick={() => onPick?.("done")} />
       <Tile n={kpis.late} label="Late" tone={kpis.late > 0 ? "warn" : undefined} />
     </div>
   );
@@ -32,13 +49,22 @@ function Tile({
   n,
   label,
   tone,
+  onClick,
 }: {
   n: number | string;
   label: string;
   tone?: "good" | "info" | "warn";
+  onClick?: () => void;
 }) {
+  const Wrapper = onClick ? "button" : "div";
   return (
-    <div className="flex flex-col rounded-xl border border-border bg-card px-3 py-2 shadow-[var(--shadow-soft)]">
+    <Wrapper
+      {...(onClick ? { type: "button" as const, onClick } : {})}
+      className={cn(
+        "flex flex-col rounded-xl border border-border bg-card px-3 py-2 text-left shadow-[var(--shadow-soft)]",
+        onClick && "transition-colors hover:border-foreground/40 active:scale-[0.98]",
+      )}
+    >
       <span
         className={cn(
           "font-[family-name:var(--font-display)] text-[19px] font-extrabold leading-tight tabular-nums",
@@ -50,6 +76,6 @@ function Tile({
         {n}
       </span>
       <span className="text-[11px] text-muted-foreground">{label}</span>
-    </div>
+    </Wrapper>
   );
 }

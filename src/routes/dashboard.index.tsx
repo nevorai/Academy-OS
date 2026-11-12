@@ -9,7 +9,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Copy, MessageCircle, QrCode } from "lucide-react";
 import { ScanStudentCardDialog } from "@/components/attendance/ScanStudentCardDialog";
 import { tenantSiteUrl } from "@/lib/tenant";
@@ -30,7 +36,6 @@ import {
   TrendingUp,
   Activity,
   Cake,
-  
   Megaphone,
   BarChart3,
   Share2,
@@ -106,7 +111,11 @@ function DashboardHome() {
   // it. One channel per tenant, refcounted.
   useAttendanceRealtime(tenant.id, qc);
 
-  const kpisQ = useQuery({ queryKey: qk.kpis(tenant.id), queryFn: () => fetchKpis(tenant), refetchOnWindowFocus: true });
+  const kpisQ = useQuery({
+    queryKey: qk.kpis(tenant.id),
+    queryFn: () => fetchKpis(tenant),
+    refetchOnWindowFocus: true,
+  });
   const insightsQ = useQuery({
     queryKey: qk.insights(tenant.id),
     queryFn: () => fetchDashboardInsights(tenant.id),
@@ -201,23 +210,22 @@ function DashboardHome() {
   // Metrol's rule: tiles fill their row. Five tiles take 2 / 3 / 5 columns (5 only from 1280 px, where the labels fit) with the last one stretching.
   const tiles: React.ReactNode[] = [];
   if (showMoney) {
+    // One tile for the month's fees: how many players paid, how many are pending. Money is the small line.
+    const total = kpis?.activeStudents ?? 0;
+    const paidCount = Math.max(0, total - pendingFees);
     tiles.push(
       <KpiTile
-        key="collected"
+        key="fees"
         to="/dashboard/fees"
-        label="Collected"
-        value={kpisQ.isLoading ? null : money(collectedMonth)}
-        hint="This month"
-        tone="brand"
-      />,
-      <KpiTile
-        key="pending"
-        to="/dashboard/fees"
-        search={{ filter: "pending" }}
-        label="Pending fees"
-        value={kpisQ.isLoading ? null : money(pendingFees > 0 ? (kpis?.pendingFeeAmount ?? 0) : 0)}
-        hint={pendingHint}
-        tone={pendingFees > 0 ? "warn" : "muted"}
+        search={pendingFees > 0 ? { filter: "pending" } : undefined}
+        label="Fees this month"
+        value={kpisQ.isLoading ? null : `${paidCount} of ${total} paid`}
+        hint={
+          pendingFees > 0
+            ? `${pendingFees} pending · ${money(collectedMonth)} collected · ${money(kpis?.pendingFeeAmount ?? 0)} due`
+            : `All paid · ${money(collectedMonth)} collected`
+        }
+        tone={pendingFees > 0 ? "warn" : "success"}
       />,
     );
   }
@@ -284,7 +292,9 @@ function DashboardHome() {
       <div className="flex items-center gap-3">
         <div className="flex min-w-0 items-baseline gap-2.5">
           <h1 className="truncate text-xl font-semibold tracking-tight">{greeting}</h1>
-          <span className="hidden text-xs text-muted-foreground sm:inline">{format(now, "EEE, d MMM")}</span>
+          <span className="hidden text-xs text-muted-foreground sm:inline">
+            {format(now, "EEE, d MMM")}
+          </span>
         </div>
         <span className="hidden sm:block">
           <LiveBadge state="live" />
@@ -314,7 +324,6 @@ function DashboardHome() {
     </div>
   );
 }
-
 
 // ---------------------------------------------------------------------------
 
@@ -447,7 +456,10 @@ function KpiTile({
               className="absolute inline-flex size-full animate-ping rounded-full opacity-70"
               style={{ backgroundColor: color }}
             />
-            <span className="relative inline-flex size-2 rounded-full" style={{ backgroundColor: color }} />
+            <span
+              className="relative inline-flex size-2 rounded-full"
+              style={{ backgroundColor: color }}
+            />
           </span>
         ) : null}
       </div>
@@ -457,7 +469,7 @@ function KpiTile({
       >
         {value === null ? <Skeleton className="h-6 w-14" /> : value}
       </div>
-      {hint ? <div className="truncate text-[11.5px] text-muted-foreground">{hint}</div> : null}
+      {hint ? <div className="text-[11.5px] leading-snug text-muted-foreground">{hint}</div> : null}
     </Link>
   );
 }
@@ -486,7 +498,11 @@ function HeaderActions({
     <>
       <div className="flex items-center gap-1.5">
         {/* Phones have the Scan button in the bottom bar already. */}
-        <button type="button" className={cn(HEADER_BTN, "hidden md:inline-flex")} onClick={() => setScanOpen(true)}>
+        <button
+          type="button"
+          className={cn(HEADER_BTN, "hidden md:inline-flex")}
+          onClick={() => setScanOpen(true)}
+        >
           <QrCode className="size-3.5" /> Scan QR
         </button>
         {canScoreMatch ? (
@@ -495,7 +511,12 @@ function HeaderActions({
             <span className="hidden sm:inline">Create match</span>
           </Link>
         ) : null}
-        <button type="button" className={HEADER_BTN} onClick={() => setShareOpen(true)} aria-label="Share website">
+        <button
+          type="button"
+          className={HEADER_BTN}
+          onClick={() => setShareOpen(true)}
+          aria-label="Share website"
+        >
           <Share2 className="size-3.5" />
           <span className="hidden sm:inline">Share website</span>
         </button>
@@ -547,7 +568,9 @@ function ShareWebsiteDialog({
             </span>
             <div className="min-w-0">
               <div className="text-sm font-semibold">Copy link</div>
-              <div className="text-[11px] text-muted-foreground truncate">Copy the public site URL</div>
+              <div className="text-[11px] text-muted-foreground truncate">
+                Copy the public site URL
+              </div>
             </div>
           </button>
           <a
@@ -562,7 +585,9 @@ function ShareWebsiteDialog({
             </span>
             <div className="min-w-0">
               <div className="text-sm font-semibold">Share on WhatsApp</div>
-              <div className="text-[11px] text-muted-foreground truncate">Send with a pre-filled message</div>
+              <div className="text-[11px] text-muted-foreground truncate">
+                Send with a pre-filled message
+              </div>
             </div>
           </a>
         </div>

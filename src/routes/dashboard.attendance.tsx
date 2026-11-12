@@ -51,9 +51,9 @@ function AttendancePage() {
         : groups.done;
   const activeEmpty =
     rosterTab === "waiting"
-      ? "No students are waiting for check-in."
+      ? "Everyone has arrived."
       : rosterTab === "present"
-        ? "No students are currently present."
+        ? "Nobody is in the academy right now."
         : "No students have checked out yet.";
   const goToday = () => a.setSelectedDate(startOfDay(new Date()));
 
@@ -144,20 +144,34 @@ function AttendancePage() {
         />
       ) : (
         <>
-          <AttendanceSummary kpis={kpis} />
+          <AttendanceSummary kpis={kpis} onPick={(t) => a.changeRosterTab(t)} />
 
-          {/* Roster tab selector: Waiting / Present / Checked Out. */}
-          <div className="sticky top-[6.5rem] z-10 -mx-4 mt-3 border-b border-border/60 bg-background/95 px-4 py-1.5 backdrop-blur md:-mx-8 md:px-8">
-            <FilterTabs
-              value={rosterTab}
-              onChange={(k: string) => a.changeRosterTab(k as RosterTab)}
-              items={[
-                { key: "waiting", label: "Waiting", count: groups.waiting.length },
-                { key: "present", label: "Present", count: groups.present.length },
-                { key: "done", label: "Checked Out", count: groups.done.length },
-              ]}
-              ariaLabel="Attendance groups"
-            />
+          {/* Two main lists: who is in the academy now, and who has left. "Not arrived" is a button beside them. */}
+          <div className="sticky top-[6.5rem] z-10 -mx-4 mt-3 flex items-center gap-2 border-b border-border/60 bg-background/95 px-4 py-1.5 backdrop-blur md:-mx-8 md:px-8">
+            <div className="min-w-0 flex-1">
+              <FilterTabs
+                value={rosterTab === "waiting" ? "" : rosterTab}
+                onChange={(k: string) => a.changeRosterTab(k as RosterTab)}
+                items={[
+                  { key: "present", label: "Present", count: groups.present.length },
+                  { key: "done", label: "Checked out", count: groups.done.length },
+                ]}
+                ariaLabel="Attendance groups"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => a.changeRosterTab("waiting")}
+              aria-pressed={rosterTab === "waiting"}
+              className={
+                "shrink-0 rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors " +
+                (rosterTab === "waiting"
+                  ? "border-amber-500 bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                  : "border-border bg-card hover:bg-muted")
+              }
+            >
+              Not arrived {groups.waiting.length}
+            </button>
           </div>
 
           {/* Bulk action bar: writes are disabled when looking at a past day. */}

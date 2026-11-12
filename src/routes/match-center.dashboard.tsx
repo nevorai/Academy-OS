@@ -141,22 +141,11 @@ function MatchCenterDashboard() {
     (tenant as { contact_name?: string | null }).contact_name ??
     "Coach";
 
-  return (
-    <div>
-      <PageHeader
-        title="Match Center"
-        description="Your live sports command center — everything happening in your academy, at a glance."
-        breadcrumbs={[{ label: "Nevorai Academy", to: "/dashboard" }, { label: "Match Center" }]}
-        actions={
-          <Button asChild>
-            <Link to="/match-center/create">
-              <PlusCircle className="size-4 mr-1.5" /> Start match
-            </Link>
-          </Button>
-        }
-      />
+  const [more, setMore] = useState(false);
 
-      {/* HERO ------------------------------------------------------------ */}
+  return (
+    <div className="space-y-4 pb-6">
+      {/* ONE CARD: the live match, or a big Start button. */}
       {liveMatches.length > 0 ? (
         <LiveHero match={liveMatches[0]} extra={liveMatches.length - 1} />
       ) : (
@@ -168,242 +157,214 @@ function MatchCenterDashboard() {
         />
       )}
 
-      {/* ONBOARDING or CONTENT ------------------------------------------ */}
       {!loading && !hasAnyData ? (
         <OnboardingChecklist />
       ) : (
         <>
-          {/* QUICK ACTIONS ------------------------------------------------ */}
-          <SectionTitle
-            eyebrow="Do next"
-            title="Quick actions"
+          {/* SIX BIG BUTTONS, plain words */}
+          <div className="grid grid-cols-3 gap-2.5 md:grid-cols-6">
+            <ActionTile
+              icon={Radio}
+              label="Live scoring"
+              hint="Score a match"
+              to="/match-center/live"
+              live={liveMatches.length > 0}
+            />
+            <ActionTile
+              icon={ClipboardList}
+              label="Results"
+              hint="Scorecards"
+              to="/match-center/matches"
+            />
+            <ActionTile icon={Users2} label="Teams" hint="Squads" to="/match-center/teams" />
+            <ActionTile
+              icon={UserPlus}
+              label="Players"
+              hint="Who plays"
+              to="/match-center/players"
+            />
+            <ActionTile
+              icon={Trophy}
+              label="Tournaments"
+              hint="Leagues"
+              to="/match-center/tournaments"
+            />
+            <ActionTile
+              icon={Activity}
+              label="Stats"
+              hint="Runs and wickets"
+              to="/match-center/performance"
+            />
+          </div>
+
+          {/* One slim line of numbers */}
+          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-0.5 px-1 text-[12.5px] text-muted-foreground">
+            <span>
+              <b className="font-semibold tabular-nums text-foreground">{liveMatches.length}</b>{" "}
+              live
+            </span>
+            <span>
+              <b className="font-semibold tabular-nums text-foreground">{todaysMatches.length}</b>{" "}
+              today
+            </span>
+            <span>
+              <b className="font-semibold tabular-nums text-foreground">{teams.length}</b> teams
+            </span>
+            <span>
+              <b className="font-semibold tabular-nums text-foreground">{athletes.length}</b>{" "}
+              players
+            </span>
+          </div>
+
+          <DashboardCard
+            title="Matches"
+            icon={CalendarClock}
+            tone="analytics"
             action={
               <Link
                 to="/match-center/matches"
-                className="text-xs font-medium text-muted-foreground hover:text-foreground"
+                className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
               >
-                View all
+                See all <ChevronRight className="size-3" />
               </Link>
             }
-          />
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-10">
-            <PrimaryStartMatchCard />
-            <div className="md:col-span-3 grid grid-cols-2 lg:grid-cols-3 gap-4">
-              <QuickActionCard
-                icon={Trophy}
-                title="Tournament Center"
-                description="Leagues & knockouts."
-                to="/match-center/tournaments"
-                tone="tournament"
-              />
-              <QuickActionCard
-                icon={Radio}
-                title="Live Matches"
-                description="Scoring in progress."
-                to="/match-center/live"
-                tone="live"
-              />
-              <QuickActionCard
-                icon={ClipboardList}
-                title="Match Reports"
-                description="Scorecards & results."
-                to="/match-center/matches"
-                tone="analytics"
-              />
-              <QuickActionCard
-                icon={Users2}
-                title="Teams"
-                description="Manage squads."
-                to="/match-center/teams"
-                accent="muted"
-              />
-              <QuickActionCard
-                icon={UserPlus}
-                title="Players"
-                description="Academy roster."
-                to="/match-center/players"
-                accent="muted"
-              />
-              <QuickActionCard
-                icon={Activity}
-                title="Statistics"
-                description="Performance & insights."
-                to="/match-center/performance"
-                tone="ai"
-              />
-            </div>
+          >
+            <FixturesTabs live={liveMatches} upcoming={upcomingMatches} recent={recentMatches} />
+          </DashboardCard>
 
-          </div>
+          {/* Everything else folds away */}
+          <button
+            type="button"
+            onClick={() => setMore((v) => !v)}
+            aria-expanded={more}
+            className="flex w-full items-center justify-between rounded-xl border border-border bg-card px-4 py-3 text-[14px] font-semibold"
+          >
+            More: recent activity, awards, tournament
+            <ChevronRight className={"size-4 transition-transform " + (more ? "rotate-90" : "")} />
+          </button>
 
-
-          {/* SNAPSHOT ----------------------------------------------------- */}
-          <SectionTitle eyebrow="Snapshot" title="Academy at a glance" />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-            <StatCard
-              label="Live now"
-              value={liveMatches.length}
-              icon={Radio}
-              tone="live"
-              hint={liveMatches.length > 0 ? "In progress" : "No live matches"}
-              loading={matchesQ.isLoading}
-            />
-            <StatCard
-              label="Today"
-              value={todaysMatches.length}
-              icon={CalendarClock}
-              tone="analytics"
-              hint={todaysMatches.length > 0 ? "Scheduled today" : "Nothing today"}
-              loading={matchesQ.isLoading}
-            />
-            <StatCard
-              label="Teams"
-              value={teams.length}
-              icon={Users2}
-              tone="success"
-              hint="Active squads"
-              loading={teamsQ.isLoading}
-            />
-            <StatCard
-              label="Players"
-              value={athletes.length}
-              icon={Star}
-              tone="award"
-              hint="On the roster"
-              loading={athletesQ.isLoading}
-            />
-          </div>
-
-          {/* PRIMARY GRID ------------------------------------------------- */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-            <DashboardCard
-              title="Fixtures"
-              icon={CalendarClock}
-              tone="analytics"
-              className="lg:col-span-2"
-              action={
-                <Link
-                  to="/match-center/matches"
-                  className="text-xs font-medium text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
-                >
-                  View all <ChevronRight className="size-3" />
-                </Link>
-              }
-            >
-              <FixturesTabs live={liveMatches} upcoming={upcomingMatches} recent={recentMatches} />
-            </DashboardCard>
-
-            <DashboardCard title="Recent activity" icon={Activity} tone="ai">
-              {timeline.length === 0 ? (
-                <EmptyState
-                  icon={Activity}
-                  title="Nothing yet"
-                  description="Match events and milestones will show here as they happen."
-                />
-              ) : (
-                <ol className="relative space-y-4">
-                  <span className="absolute left-[9px] top-1 bottom-1 w-px bg-border" aria-hidden />
-                  {timeline.slice(0, 6).map((t) => (
-                    <li key={t.id} className="relative pl-7">
-                      <span
-                        className="absolute left-1 top-1 size-[7px] rounded-full ring-4 ring-card"
-                        style={{ backgroundColor: "var(--tenant-brand, var(--brand, #2A7A4B))" }}
-                      />
-                      <div className="text-sm font-medium leading-tight truncate">{t.title}</div>
-                      {t.description && (
-                        <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                          {t.description}
+          {more && (
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+              <DashboardCard title="Recent activity" icon={Activity} tone="ai">
+                {timeline.length === 0 ? (
+                  <EmptyState
+                    icon={Activity}
+                    title="Nothing yet"
+                    description="Match events will show here as they happen."
+                  />
+                ) : (
+                  <ol className="space-y-3">
+                    {timeline.slice(0, 6).map((t) => (
+                      <li key={t.id}>
+                        <div className="truncate text-sm font-medium leading-tight">{t.title}</div>
+                        <div className="text-[11px] text-muted-foreground">
+                          {new Date(t.created_at as string).toLocaleString(undefined, {
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </div>
-                      )}
-                      <div className="text-[10px] uppercase tracking-wide text-muted-foreground/70 mt-1">
-                        {new Date(t.created_at as string).toLocaleString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              )}
-            </DashboardCard>
-          </div>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </DashboardCard>
 
-          {/* PERFORMERS -------------------------------------------------- */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-            <DashboardCard title="Recent recognition" icon={Award} tone="award">
-              {recentRecognitions.length === 0 ? (
-                <EmptyState
-                  icon={Award}
-                  title="No awards yet"
-                  description="Player recognitions will surface here."
-                  actionLabel="Open recognition"
-                  actionTo="/match-center/recognition"
-                />
-              ) : (
-                <ul className="space-y-3">
-                  {recentRecognitions.map((r) => (
-                    <li key={r.id} className="flex items-start gap-3">
-                      <div
-                        className="mt-0.5 size-8 shrink-0 rounded-lg grid place-items-center"
-                        style={{
-                          backgroundColor:
-                            "color-mix(in oklch, var(--accent-award) 14%, transparent)",
-                          color: "var(--accent-award)",
-                        }}
-                      >
-                        <Medal className="size-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-sm font-medium truncate">{r.title}</div>
-                        <div className="text-xs text-muted-foreground truncate">
-                          {r.athleteName ?? "Recognition"}
+              <DashboardCard title="Awards" icon={Award} tone="award">
+                {recentRecognitions.length === 0 ? (
+                  <EmptyState
+                    icon={Award}
+                    title="No awards yet"
+                    description="Player awards will show here."
+                    actionLabel="Open awards"
+                    actionTo="/match-center/recognition"
+                  />
+                ) : (
+                  <ul className="space-y-2.5">
+                    {recentRecognitions.map((r) => (
+                      <li key={r.id} className="flex items-center gap-2.5">
+                        <Medal className="size-4 shrink-0 text-muted-foreground" />
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-medium">{r.title}</div>
+                          <div className="truncate text-xs text-muted-foreground">
+                            {r.athleteName ?? "Recognition"}
+                          </div>
                         </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </DashboardCard>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </DashboardCard>
 
-            <DashboardCard title="Featured tournament" icon={Trophy} tone="tournament">
-              {!activeTournament ? (
-                <EmptyState
-                  icon={Trophy}
-                  title="No tournaments"
-                  description="Create a tournament to track brackets and standings."
-                  actionLabel="Create tournament"
-                  actionTo="/match-center/tournaments"
-                />
-              ) : (
-                <Link
-                  to="/match-center/tournaments/$tournamentId"
-                  params={{ tournamentId: activeTournament.id }}
-                  className="block group"
-                >
-                  <div className="rounded-xl border border-border bg-background/40 p-4 transition-colors group-hover:border-foreground/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <StatusChip tone="tournament">
-                        {activeTournament.status?.replace("_", " ") ?? "tournament"}
-                      </StatusChip>
-                      <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                        {activeTournament.format ?? ""}
-                      </span>
-                    </div>
-                    <div className="text-base font-semibold tracking-tight truncate">
+              <DashboardCard title="Tournament" icon={Trophy} tone="tournament">
+                {!activeTournament ? (
+                  <EmptyState
+                    icon={Trophy}
+                    title="No tournaments"
+                    description="Create one to track standings."
+                    actionLabel="Create tournament"
+                    actionTo="/match-center/tournaments"
+                  />
+                ) : (
+                  <Link
+                    to="/match-center/tournaments/$tournamentId"
+                    params={{ tournamentId: activeTournament.id }}
+                    className="block rounded-xl border border-border p-3 hover:border-foreground/20"
+                  >
+                    <div className="truncate text-base font-semibold tracking-tight">
                       {activeTournament.name}
                     </div>
-                    <div className="mt-1 text-xs text-muted-foreground line-clamp-2">
-                      {activeTournament.description ?? "Tap to open standings and fixtures."}
+                    <div className="mt-0.5 text-xs text-muted-foreground">
+                      {activeTournament.status?.replace("_", " ") ?? "tournament"} · tap to open
                     </div>
-                  </div>
-                </Link>
-              )}
-            </DashboardCard>
-          </div>
+                  </Link>
+                )}
+              </DashboardCard>
+            </div>
+          )}
         </>
       )}
     </div>
+  );
+}
+
+function ActionTile({
+  icon: Icon,
+  label,
+  hint,
+  to,
+  live,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  hint: string;
+  to: string;
+  live?: boolean;
+}) {
+  return (
+    <Link
+      to={to}
+      className="relative flex min-h-[92px] flex-col items-center justify-center gap-1 rounded-2xl border border-border bg-card px-1.5 py-3 text-center transition-colors hover:border-foreground/30 active:scale-[0.97]"
+    >
+      {live && (
+        <span className="absolute right-2.5 top-2.5 size-2 animate-pulse rounded-full bg-rose-500" />
+      )}
+      <span
+        className="grid size-10 place-items-center rounded-xl"
+        style={{
+          backgroundColor:
+            "color-mix(in oklab, var(--tenant-brand, var(--brand, #2A7A4B)) 12%, transparent)",
+          color: "var(--tenant-brand, var(--brand, #2A7A4B))",
+        }}
+      >
+        <Icon className="size-5" />
+      </span>
+      <span className="text-[13px] font-semibold leading-tight">{label}</span>
+      <span className="hidden text-[11px] leading-tight text-muted-foreground sm:block">
+        {hint}
+      </span>
+    </Link>
   );
 }
 
@@ -413,63 +374,37 @@ function LiveHero({ match, extra }: { match: MatchWithTeams; extra: number }) {
   const teamA = match.team_a?.name ?? "Team A";
   const teamB = match.team_b?.name ?? "Team B";
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 md:p-8 mb-10">
-      <div
-        className="absolute inset-0 opacity-[0.08] pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(600px circle at 0% 0%, var(--accent-live), transparent 60%), radial-gradient(600px circle at 100% 100%, var(--tenant-brand, var(--brand)), transparent 60%)",
-        }}
-        aria-hidden
-      />
-      <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 mb-3">
-            <StatusChip tone="live" pulse>
-              LIVE
-            </StatusChip>
-            {extra > 0 && (
-              <span className="text-[11px] font-medium text-muted-foreground">
-                +{extra} more live
-              </span>
-            )}
-          </div>
-          <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground/80 mb-1">
-            {match.match_type ?? "Match"} · {match.match_format ?? ""}
-          </div>
-          <h2 className="text-2xl md:text-4xl font-bold tracking-tight truncate">
-            {teamA} <span className="text-muted-foreground">vs</span> {teamB}
-          </h2>
-          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm text-muted-foreground">
-            {match.ground_name && (
-              <span className="inline-flex items-center gap-1.5">
-                <MapPin className="size-3.5" /> {match.ground_name}
-              </span>
-            )}
-            {match.weather && (
-              <span className="inline-flex items-center gap-1.5">
-                <CloudSun className="size-3.5" /> {match.weather}
-              </span>
-            )}
-            <span className="inline-flex items-center gap-1.5">
-              <Radio className="size-3.5" /> In progress
-            </span>
-          </div>
+    <div className="overflow-hidden rounded-2xl border border-rose-500/30 bg-card">
+      <div className="flex items-center justify-between bg-rose-500/10 px-4 py-1.5">
+        <StatusChip tone="live" pulse>
+          LIVE NOW
+        </StatusChip>
+        {extra > 0 ? (
+          <span className="text-[11px] font-medium text-muted-foreground">+{extra} more live</span>
+        ) : null}
+      </div>
+      <div className="px-4 pb-3 pt-2.5">
+        <div className="text-[19px] font-bold leading-tight tracking-tight md:text-2xl">
+          {teamA} <span className="font-medium text-muted-foreground">vs</span> {teamB}
         </div>
-        <div className="flex shrink-0 items-center gap-2 md:flex-wrap">
-          <Button asChild size="sm" className="flex-1 md:flex-initial md:h-11 md:px-6 md:text-base">
+        {match.ground_name ? (
+          <div className="mt-0.5 inline-flex items-center gap-1 text-[12px] text-muted-foreground">
+            <MapPin className="size-3.5" /> {match.ground_name}
+          </div>
+        ) : null}
+        <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
+          <Button asChild className="h-12 rounded-xl text-[15px] font-semibold">
             <Link to="/scorer/$matchId" params={{ matchId: match.id }}>
-              <Radio className="size-4 mr-1.5" /> Open scorer
+              <Radio className="mr-1.5 size-4" /> Score this match
             </Link>
           </Button>
           <Button
             asChild
-            size="sm"
             variant="outline"
-            className="flex-1 md:flex-initial md:h-11 md:px-6 md:text-base"
+            className="h-12 rounded-xl px-4 text-[14px] font-semibold"
           >
             <Link to="/match-center/scorebook/$matchId" params={{ matchId: match.id }}>
-              <BookOpen className="size-4 mr-1.5" /> Scorecard
+              <BookOpen className="mr-1.5 size-4" /> Scorecard
             </Link>
           </Button>
         </div>
@@ -479,7 +414,6 @@ function LiveHero({ match, extra }: { match: MatchWithTeams; extra: number }) {
 }
 
 function WelcomeHero({
-  name,
   upcomingCount,
   todaysCount,
   nextMatch,
@@ -489,102 +423,34 @@ function WelcomeHero({
   todaysCount: number;
   nextMatch?: MatchWithTeams;
 }) {
-  const firstName = name.split(" ")[0];
-  return (
-    <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 md:p-8 mb-10">
-      <div
-        className="absolute inset-0 opacity-[0.10] pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(500px circle at 100% 0%, var(--tenant-brand, var(--brand)), transparent 55%)",
-        }}
-        aria-hidden
-      />
-      <div className="relative grid gap-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
-        <div className="min-w-0">
-          <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground/80 mb-1">
-            {greeting()}
-          </div>
-          <h2 className="text-2xl md:text-4xl font-bold tracking-tight truncate">
-            Welcome back, {firstName} 👋
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground max-w-lg">
-            {todaysCount > 0
-              ? `${todaysCount} match${todaysCount === 1 ? "" : "es"} scheduled today.`
-              : upcomingCount > 0
-                ? `${upcomingCount} upcoming match${upcomingCount === 1 ? "" : "es"} on your calendar.`
-                : "No matches scheduled — start one when you're ready."}
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button asChild>
-              <Link to="/match-center/create">
-                <Zap className="size-4 mr-1.5" /> Start match
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/match-center/matches">Browse matches</Link>
-            </Button>
-          </div>
-        </div>
-        {nextMatch && (
-          <div className="rounded-2xl border border-border bg-background/60 p-4 min-w-[240px]">
-            <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-1">
-              Next match
-            </div>
-            <div className="text-sm font-semibold truncate">
-              {nextMatch.team_a?.short_name ?? nextMatch.team_a?.name ?? "Team A"}
-              <span className="text-muted-foreground"> vs </span>
-              {nextMatch.team_b?.short_name ?? nextMatch.team_b?.name ?? "Team B"}
-            </div>
-            <div className="mt-1 text-xs text-muted-foreground">
-              {nextMatch.scheduled_date &&
-                new Date(nextMatch.scheduled_date).toLocaleString(undefined, {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                })}
-              {nextMatch.ground_name ? ` · ${nextMatch.ground_name}` : ""}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function PrimaryStartMatchCard() {
+  const line = nextMatch
+    ? `Next: ${nextMatch.team_a?.short_name ?? nextMatch.team_a?.name ?? "Team A"} vs ${
+        nextMatch.team_b?.short_name ?? nextMatch.team_b?.name ?? "Team B"
+      }`
+    : todaysCount > 0
+      ? `${todaysCount} match${todaysCount === 1 ? "" : "es"} today`
+      : upcomingCount > 0
+        ? `${upcomingCount} coming up`
+        : "No match is live right now";
   return (
     <Link
       to="/match-center/create"
-      className="group md:col-span-3 relative overflow-hidden rounded-2xl border border-border p-6 flex flex-col justify-between min-h-[168px] text-white transition-all hover:-translate-y-[1px] hover:shadow-[var(--shadow-elev)]"
+      className="flex items-center gap-3 rounded-2xl p-4 text-white transition-opacity active:opacity-90"
       style={{
         background:
           "linear-gradient(135deg, var(--tenant-brand, var(--brand, #2A7A4B)) 0%, color-mix(in oklch, var(--tenant-brand, var(--brand, #2A7A4B)) 70%, black) 100%)",
       }}
     >
-      <div
-        className="absolute inset-0 opacity-30 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(400px circle at 100% 0%, rgba(255,255,255,0.35), transparent 60%)",
-        }}
-        aria-hidden
-      />
-      <div className="relative flex items-center gap-2">
-        <div className="size-12 rounded-2xl grid place-items-center bg-white/15 backdrop-blur">
-          <span className="text-2xl">🏏</span>
-        </div>
-      </div>
-      <div className="relative">
-        <div className="text-[11px] uppercase tracking-[0.14em] opacity-80 mb-1">
-          Primary action
-        </div>
-        <div className="text-2xl font-bold tracking-tight">Start a match</div>
-        <div className="mt-1 text-sm opacity-85 max-w-sm">
-          Launch live scoring with squads, toss and format in under a minute.
-        </div>
-      </div>
-      <ChevronRight className="absolute top-6 right-6 size-5 opacity-70 transition-transform group-hover:translate-x-1" />
+      <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-white/15 text-2xl">
+        🏏
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[19px] font-bold leading-tight tracking-tight">
+          Start a match
+        </span>
+        <span className="block truncate text-[12.5px] opacity-85">{line}</span>
+      </span>
+      <ChevronRight className="size-5 shrink-0 opacity-80" />
     </Link>
   );
 }

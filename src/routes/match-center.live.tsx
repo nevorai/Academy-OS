@@ -32,7 +32,7 @@ function LivePage() {
 
   if (live.length === 0) {
     return (
-      <div className="grid min-h-[70vh] place-items-center px-4 text-center">
+      <div className="grid min-h-[50vh] place-items-center px-4 text-center">
         <div className="flex w-full max-w-sm flex-col items-center gap-5">
           <div
             className="grid size-20 place-items-center rounded-3xl text-white"
@@ -115,7 +115,7 @@ function LiveHeroCard({ match }: { match: MatchWithTeams }) {
       <div className="border-t border-border/60 bg-muted/30 px-3 py-2.5">
         <Button asChild className="h-11 w-full rounded-xl text-[14px] font-semibold">
           <Link to="/scorer/$matchId" params={{ matchId: match.id }}>
-            <Radio className="mr-1.5 size-4" /> Resume Live Match
+            <Radio className="mr-1.5 size-4" /> Score this match
             <ChevronRight className="ml-auto size-4 opacity-80" />
           </Link>
         </Button>

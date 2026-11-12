@@ -38,9 +38,12 @@ export function MobileViewportShell({
   useBodyLock(isMobileSize);
 
   const containerStyle = {
-    height: insets.height > 0 ? `${insets.height}px` : "100dvh",
+    // Only follow the visual viewport while the keyboard is open; otherwise fill the whole
+    // screen (the visual viewport can be shorter than the screen and leave a gray strip).
+    height: insets.keyboardOpen && insets.height > 0 ? `${insets.height}px` : "100dvh",
     // Offset compensation for iOS keyboard scroll
-    transform: insets.offsetTop ? `translateY(${insets.offsetTop}px)` : undefined,
+    transform:
+      insets.keyboardOpen && insets.offsetTop ? `translateY(${insets.offsetTop}px)` : undefined,
     // Safe area horizontal padding
     paddingLeft: "var(--app-safe-left)",
     paddingRight: "var(--app-safe-right)",

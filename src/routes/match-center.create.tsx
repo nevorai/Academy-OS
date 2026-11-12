@@ -1614,6 +1614,19 @@ function NewTeamBody({
   goNext: (e?: React.MouseEvent) => void;
   canContinue: boolean;
 }) {
+  const [slots, setSlots] = useState<Slot[]>(players);
+  const compact = (v: Slot[]) => v.filter((x): x is PlayerRef => !!x);
+  const sameKeys = (a: PlayerRef[], b: PlayerRef[]) =>
+    a.length === b.length && a.every((x, i) => x.key === b[i].key);
+  useEffect(() => {
+    // Team changed from outside (e.g. picked an existing team): reset the sheet.
+    if (!sameKeys(compact(slots), players)) setSlots(players);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [players]);
+  const changeSlots = (v: Slot[]) => {
+    setSlots(v);
+    onPlayers(compact(v));
+  };
   const missing = !name.trim()
     ? "Team name is required"
     : players.length < 2
@@ -1690,7 +1703,11 @@ function NewTeamBody({
                 type="button"
                 disabled={!canContinue}
                 className="h-12 flex-[2] text-sm font-bold rounded-2xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
-                onClick={() => goNext()}
+                onClick={() => {
+                  // Close the gaps: empty rows in the middle move up.
+                  setSlots(compact(slots));
+                  goNext();
+                }}
               >
                 Continue <ChevronRight className="ml-2 size-4" />
               </Button>
@@ -1702,8 +1719,8 @@ function NewTeamBody({
       {/* ROSTER: a sheet like Excel. Type a name, the next row opens by itself. */}
       <div className="p-3">
         <SquadSheet
-          players={players}
-          onPlayers={onPlayers}
+          slots={slots}
+          onSlots={changeSlots}
           studentPool={studentPool}
           studentsLoading={studentsLoading}
         />
@@ -1714,23 +1731,27 @@ function NewTeamBody({
 
 /* ==================== SQUAD SHEET (spreadsheet style) ==================== */
 
+type Slot = PlayerRef | null;
+
 function SquadSheet({
-  players,
-  onPlayers,
+  slots,
+  onSlots,
   studentPool,
   studentsLoading,
 }: {
-  players: PlayerRef[];
-  onPlayers: (v: PlayerRef[]) => void;
+  slots: Slot[];
+  onSlots: (v: Slot[]) => void;
   studentPool: PlayerRef[];
   studentsLoading?: boolean;
 }) {
   const [minRows, setMinRows] = useState(12);
-  const [draft, setDraft] = useState("");
-  const [editing, setEditing] = useState<string | null>(null); // key of the filled row being typed in
-  const activeRef = useRef<HTMLInputElement>(null);
-  const refocusRef = useRef(false);
-  const selectedKeys = useMemo(() => new Set(players.map((p) => p.key)), [players]);
+  const [draft, setDraft] = useState<{ index: number; text: string } | null>(null);
+  const [editing, setEditing] = useState<string | null>(null);
+  const listRef = useRef<HTMLOListElement>(null);
+  const selectedKeys = useMemo(
+    () => new Set(slots.filter(Boolean).map((p) => (p as PlayerRef).key)),
+    [slots],
+  );
 
   const suggest = (text: string): PlayerRef[] => {
     const term = text.trim().toLowerCase();
@@ -1739,10 +1760,9 @@ function SquadSheet({
       .filter((s) => !selectedKeys.has(s.key))
       .map((s) => {
         const n = s.name.toLowerCase();
-        const parts = n.split(/\s+/);
         let score = 0;
         if (n.startsWith(term)) score += 100;
-        else if (parts.some((x) => x.startsWith(term))) score += 60;
+        else if (n.split(/\s+/).some((x) => x.startsWith(term))) score += 60;
         else if (n.includes(term)) score += 30;
         return { p: s, score };
       })
@@ -1752,97 +1772,98 @@ function SquadSheet({
       .map((x) => x.p);
   };
 
-  // After a name is saved, the cursor jumps to the next empty row.
-  useEffect(() => {
-    if (refocusRef.current) {
-      refocusRef.current = false;
-      activeRef.current?.focus();
-    }
-  }, [players.length]);
+  const focusRow = (i: number) =>
+    requestAnimationFrame(() =>
+      listRef.current?.querySelector<HTMLInputElement>(`[data-row="${i}"]`)?.focus(),
+    );
 
-  const guest = (name: string): PlayerRef => ({
+  const setAt = (i: number, v: Slot, extra?: Partial<PlayerRef>) => {
+    const next = [...slots];
+    while (next.length <= i) next.push(null);
+    next[i] = v ? { ...v, ...extra } : null;
+    onSlots(next);
+  };
+
+  const newGuest = (name: string): PlayerRef => ({
     key: `guest-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     name,
     photo_url: null,
     athlete_profile_id: null,
   });
 
-  const commitDraft = (text: string, focusNext: boolean) => {
-    const t = text.trim();
-    if (!t) return;
-    const exact = studentPool.find(
-      (s) => !selectedKeys.has(s.key) && s.name.toLowerCase() === t.toLowerCase(),
-    );
-    refocusRef.current = focusNext;
-    onPlayers([...players, exact ?? guest(t)]);
-    setDraft("");
-  };
-
-  const pickSuggestion = (p: PlayerRef, index: number | null) => {
-    refocusRef.current = true;
-    if (index === null) {
-      onPlayers([...players, p]);
-      setDraft("");
-    } else {
-      const old = players[index];
-      const next = [...players];
-      next[index] = {
-        ...p,
-        is_captain: old.is_captain,
-        is_vice_captain: old.is_vice_captain,
-        is_keeper: old.is_keeper,
-      };
-      onPlayers(next);
+  const commitDraft = (i: number, goNext: boolean) => {
+    const t = (draft?.index === i ? draft.text : "").trim();
+    setDraft(null);
+    if (t) {
+      const exact = studentPool.find(
+        (x) => !selectedKeys.has(x.key) && x.name.toLowerCase() === t.toLowerCase(),
+      );
+      setAt(i, exact ?? newGuest(t));
     }
+    if (goNext) focusRow(i + 1);
+  };
+
+  const pick = (i: number, p: PlayerRef) => {
+    const old = slots[i];
+    setAt(
+      i,
+      p,
+      old
+        ? {
+            is_captain: old.is_captain,
+            is_vice_captain: old.is_vice_captain,
+            is_keeper: old.is_keeper,
+          }
+        : undefined,
+    );
+    setDraft(null);
     setEditing(null);
+    focusRow(i + 1);
   };
 
-  const rename = (index: number, name: string) => {
-    const old = players[index];
-    const next = [...players];
-    // Typing over an academy player makes this a guest name (the link would be wrong otherwise).
+  const rename = (i: number, name: string) => {
+    const old = slots[i];
+    if (!old) return;
     const linked = !old.key.startsWith("guest-");
-    next[index] = linked
-      ? {
-          ...old,
-          key: `guest-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          athlete_profile_id: null,
-          photo_url: null,
-          name,
-        }
-      : { ...old, name };
-    onPlayers(next);
-    if (linked) setEditing(next[index].key);
+    const key = linked ? newGuest(name).key : old.key;
+    setAt(i, {
+      ...old,
+      key,
+      name,
+      ...(linked ? { athlete_profile_id: null, photo_url: null } : {}),
+    });
+    if (linked) setEditing(key);
   };
 
-  const setRole = (key: string, role: "C" | "VC" | "WK") => {
-    onPlayers(
-      players.map((p) => {
+  const setRole = (key: string, role: "C" | "VC" | "WK") =>
+    onSlots(
+      slots.map((p) => {
+        if (!p) return p;
         if (role === "C") return { ...p, is_captain: p.key === key ? !p.is_captain : false };
         if (role === "VC")
           return { ...p, is_vice_captain: p.key === key ? !p.is_vice_captain : false };
         return { ...p, is_keeper: p.key === key ? !p.is_keeper : false };
       }),
     );
+
+  const swap = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= slots.length) return;
+    const next = [...slots];
+    [next[i], next[j]] = [next[j] ?? null, next[i] ?? null];
+    onSlots(next);
   };
 
-  const move = (index: number, dir: -1 | 1) => {
-    const j = index + dir;
-    if (j < 0 || j >= players.length) return;
-    const next = [...players];
-    [next[index], next[j]] = [next[j], next[index]];
-    onPlayers(next);
-  };
-
-  const total = Math.max(minRows, players.length + 1);
-  const draftSuggestions = suggest(draft);
+  const total = Math.max(minRows, slots.length);
 
   return (
     <div>
-      <ol className="divide-y divide-border overflow-visible rounded-2xl border border-border bg-card">
+      <ol
+        ref={listRef}
+        className="divide-y divide-border overflow-visible rounded-2xl border border-border bg-card"
+      >
         {Array.from({ length: total }, (_, i) => {
-          const p = players[i];
-          const isActive = i === players.length;
+          const p = slots[i] ?? null;
           if (p) {
             const sugg = editing === p.key ? suggest(p.name) : [];
             return (
@@ -1851,18 +1872,18 @@ function SquadSheet({
                   {i + 1}
                 </span>
                 <input
+                  data-row={i}
                   value={p.name}
                   onChange={(e) => rename(i, e.target.value)}
                   onFocus={() => setEditing(p.key)}
                   onBlur={() => {
                     setEditing(null);
-                    if (!p.name.trim()) onPlayers(players.filter((x) => x.key !== p.key));
+                    if (!p.name.trim()) setAt(i, null);
                   }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      (e.target as HTMLInputElement).blur();
-                      activeRef.current?.focus();
+                      focusRow(i + 1);
                     }
                   }}
                   autoComplete="off"
@@ -1899,89 +1920,64 @@ function SquadSheet({
                       <MoreVertical className="size-4" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-40">
-                    <DropdownMenuItem disabled={i === 0} onSelect={() => move(i, -1)}>
+                  <DropdownMenuContent align="end" className="z-[300] w-40">
+                    <DropdownMenuItem disabled={i === 0} onSelect={() => swap(i, -1)}>
                       <ArrowUp className="mr-2 size-4" /> Move up
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      disabled={i === players.length - 1}
-                      onSelect={() => move(i, 1)}
-                    >
+                    <DropdownMenuItem disabled={i >= total - 1} onSelect={() => swap(i, 1)}>
                       <ArrowDown className="mr-2 size-4" /> Move down
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className="text-destructive focus:text-destructive"
-                      onSelect={() => onPlayers(players.filter((x) => x.key !== p.key))}
+                      onSelect={() => setAt(i, null)}
                     >
                       <Trash2 className="mr-2 size-4" /> Remove
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                {sugg.length > 0 && (
-                  <SuggestList items={sugg} onPick={(x) => pickSuggestion(x, i)} />
-                )}
+                {sugg.length > 0 && <SuggestList items={sugg} onPick={(x) => pick(i, x)} />}
               </li>
             );
           }
-          if (isActive) {
-            return (
-              <li key="active" className="relative flex items-center gap-1.5 px-2 py-1.5">
-                <span className="w-5 shrink-0 text-center text-[12px] font-semibold tabular-nums text-primary">
-                  {i + 1}
-                </span>
-                <input
-                  ref={activeRef}
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  onBlur={() => commitDraft(draft, false)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      if (
-                        draftSuggestions.length > 0 &&
-                        draft.trim().toLowerCase() !== draftSuggestions[0].name.toLowerCase()
-                      )
-                        pickSuggestion(draftSuggestions[0], null);
-                      else commitDraft(draft, true);
-                    }
-                  }}
-                  placeholder="Type player name"
-                  autoComplete="off"
-                  autoCorrect="off"
-                  className="h-10 min-w-0 flex-1 rounded-lg bg-muted/50 px-2 text-[16px] font-semibold outline-none placeholder:font-normal placeholder:text-muted-foreground/70 focus:bg-muted"
-                />
-                {draft.trim() && (
-                  <button
-                    type="button"
-                    onPointerDown={(e) => e.preventDefault()}
-                    onClick={() => commitDraft(draft, true)}
-                    className="h-9 shrink-0 rounded-full bg-primary px-3.5 text-[13px] font-bold text-primary-foreground active:scale-95"
-                  >
-                    Next
-                  </button>
-                )}
-                {draft.trim() && (draftSuggestions.length > 0 || studentsLoading) && (
-                  <SuggestList
-                    items={draftSuggestions}
-                    loading={studentsLoading}
-                    onPick={(x) => pickSuggestion(x, null)}
-                  />
-                )}
-              </li>
-            );
-          }
+          const text = draft?.index === i ? draft.text : "";
+          const ds = text.trim() ? suggest(text) : [];
           return (
-            <li key={`empty-${i}`}>
-              <button
-                type="button"
-                onClick={() => activeRef.current?.focus()}
-                className="flex h-[52px] w-full items-center gap-1.5 px-2 text-left"
-                aria-label={`Row ${i + 1}`}
-              >
-                <span className="w-5 shrink-0 text-center text-[12px] font-semibold tabular-nums text-muted-foreground/40">
-                  {i + 1}
-                </span>
-              </button>
+            <li key={`empty-${i}`} className="relative flex items-center gap-1.5 px-2 py-1.5">
+              <span className="w-5 shrink-0 text-center text-[12px] font-semibold tabular-nums text-muted-foreground/50">
+                {i + 1}
+              </span>
+              <input
+                data-row={i}
+                value={text}
+                onChange={(e) => setDraft({ index: i, text: e.target.value })}
+                onFocus={() => setDraft((d) => (d?.index === i ? d : { index: i, text: "" }))}
+                onBlur={() => commitDraft(i, false)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (ds.length > 0 && text.trim().toLowerCase() !== ds[0].name.toLowerCase())
+                      pick(i, ds[0]);
+                    else commitDraft(i, true);
+                  }
+                }}
+                placeholder="Type player name"
+                autoComplete="off"
+                autoCorrect="off"
+                className="h-10 min-w-0 flex-1 rounded-lg bg-muted/40 px-2 text-[16px] font-semibold outline-none placeholder:font-normal placeholder:text-muted-foreground/60 focus:bg-muted"
+              />
+              {text.trim() && (
+                <button
+                  type="button"
+                  onPointerDown={(e) => e.preventDefault()}
+                  onClick={() => commitDraft(i, true)}
+                  className="h-9 shrink-0 rounded-full bg-primary px-3.5 text-[13px] font-bold text-primary-foreground active:scale-95"
+                >
+                  Next
+                </button>
+              )}
+              {text.trim() && (ds.length > 0 || studentsLoading) && (
+                <SuggestList items={ds} loading={studentsLoading} onPick={(x) => pick(i, x)} />
+              )}
             </li>
           );
         })}

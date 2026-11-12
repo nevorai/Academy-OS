@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { AtSign, KeyRound, Mail, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { toE164, isLikelyEmail } from "@/lib/phone";
@@ -265,8 +265,7 @@ function AuthPage() {
               spellCheck={false}
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              placeholder="Email, phone or Player ID"
-              icon={<AtSign className="size-4" aria-hidden />}
+              placeholder="you@example.com, phone or Player ID"
             />
             <PasswordInput
               id="password"
@@ -275,7 +274,6 @@ function AuthPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
-              icon={<KeyRound className="size-4" aria-hidden />}
             />
             <div className="flex justify-end">
               <button
@@ -343,7 +341,6 @@ function AuthPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                icon={<Mail className="size-4" aria-hidden />}
               />
               <AuthButton type="submit" loading={loading} loadingLabel="Sending…" showArrow={false}>
                 Send reset link
@@ -368,7 +365,6 @@ function AuthPage() {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="At least 8 characters"
-              icon={<KeyRound className="size-4" aria-hidden />}
               hint="Use at least 8 characters."
             />
             <AuthButton type="submit" loading={loading} loadingLabel="Updating…" showArrow={false}>

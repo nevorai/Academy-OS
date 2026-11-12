@@ -28,10 +28,10 @@ export const AuthInput = forwardRef<HTMLInputElement, BaseProps>(function AuthIn
         {label}
       </label>
       <div
-        className={`group flex h-12 items-center gap-2.5 rounded-lg border bg-auth-surface px-3 transition-colors duration-200 ${
+        className={`group flex h-11 items-center gap-2.5 rounded-lg border bg-auth-surface px-3 transition-colors duration-200 ${
           error
             ? "border-auth-danger"
-            : "border-auth-border focus-within:border-auth-accent focus-within:ring-2 focus-within:ring-auth-accent/25"
+            : "border-auth-border focus-within:border-auth-accent focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--auth-accent)_14%,transparent)]"
         }`}
       >
         {icon ? <span className="shrink-0 text-auth-subtle">{icon}</span> : null}
@@ -40,7 +40,7 @@ export const AuthInput = forwardRef<HTMLInputElement, BaseProps>(function AuthIn
           id={inputId}
           aria-invalid={!!error}
           aria-describedby={describedBy}
-          className="h-full w-full min-w-0 bg-transparent text-[16px] text-auth-foreground outline-none placeholder:text-auth-subtle"
+          className="h-full w-full min-w-0 bg-transparent text-[16px] text-auth-foreground outline-none ring-0 shadow-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 placeholder:text-auth-subtle"
           {...rest}
         />
       </div>
@@ -70,10 +70,10 @@ export function PasswordInput({ label, icon, error, hint, id, ...rest }: BasePro
         {label}
       </label>
       <div
-        className={`group flex h-12 items-center gap-2.5 rounded-lg border bg-auth-surface px-3 transition-colors duration-200 ${
+        className={`group flex h-11 items-center gap-2.5 rounded-lg border bg-auth-surface px-3 transition-colors duration-200 ${
           error
             ? "border-auth-danger"
-            : "border-auth-border focus-within:border-auth-accent focus-within:ring-2 focus-within:ring-auth-accent/25"
+            : "border-auth-border focus-within:border-auth-accent focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--auth-accent)_14%,transparent)]"
         }`}
       >
         {icon ? <span className="shrink-0 text-auth-subtle">{icon}</span> : null}
@@ -82,7 +82,7 @@ export function PasswordInput({ label, icon, error, hint, id, ...rest }: BasePro
           type={visible ? "text" : "password"}
           aria-invalid={!!error}
           aria-describedby={describedBy}
-          className="h-full w-full min-w-0 bg-transparent text-[16px] text-auth-foreground outline-none placeholder:text-auth-subtle"
+          className="h-full w-full min-w-0 bg-transparent text-[16px] text-auth-foreground outline-none ring-0 shadow-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 placeholder:text-auth-subtle"
           {...rest}
         />
         <button

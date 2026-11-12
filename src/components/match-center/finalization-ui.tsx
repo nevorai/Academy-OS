@@ -12,6 +12,7 @@
  */
 
 import { useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Dialog,
   DialogContent,
@@ -24,10 +25,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
-import { Loader2, Trophy, Lock, Unlock, Award } from "lucide-react";
+import { Loader2, Trophy, Lock, Unlock } from "lucide-react";
 import {
   finalizeMatch,
   unlockMatch,
@@ -79,8 +78,9 @@ export function FinalizationDialog({
   ballEvents,
   onFinalized,
 }: FinalizationDialogProps) {
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
+  const [changing, setChanging] = useState(false);
 
   const [victoryType, setVictoryType] = useState<VictoryType>(detectedResult.victoryType);
   const [winnerTeamId, setWinnerTeamId] = useState<string | null>(detectedResult.winnerTeamId);
@@ -99,12 +99,14 @@ export function FinalizationDialog({
     victoryType !== detectedResult.victoryType || winnerTeamId !== detectedResult.winnerTeamId;
 
   const runFinalize = async () => {
+    if (busy) return; // one tap, one finalize
     if (!canFinalize(role)) {
       toast.error("You do not have permission to finalize this match");
       return;
     }
     setBusy(true);
     try {
+      // 1) The part that matters: save the result and lock the match.
       await finalizeMatch({
         matchId,
         tenantId,
@@ -126,283 +128,204 @@ export function FinalizationDialog({
             }
           : undefined,
       });
+      toast.success("Match finalized");
       notifyMatchCompleted(detectedResult.summary);
       if (pomName) notifyPlayerOfMatch(pomName);
       notifyFinalResult(detectedResult.summary);
-      toast.success("Match finalized and locked");
-      // Career Engine: refresh every participant's cache from finalized matches.
-      try {
-        const [
-          { updateCareersForMatch },
-          { updateTournamentForMatch },
-          { updateAcademyRecordsForMatch },
-        ] = await Promise.all([
-          import("@/lib/mc-career-engine"),
-          import("@/lib/mc-tournament-engine"),
-          import("@/lib/mc-academy-records"),
-        ]);
-        await updateCareersForMatch(matchId);
-        await updateTournamentForMatch(matchId);
-        const rec = await updateAcademyRecordsForMatch(matchId);
-        if (rec.broken.length > 0) {
-          toast.success(`Academy record broken: ${rec.broken[0]}`);
-        }
-        // Recognition Engine: auto-suggest match awards (coach approves).
-        const { processMatchRecognitions } = await import("@/lib/mc-recognition-engine");
-        const recog = await processMatchRecognitions(matchId);
-        if (recog.inserted > 0) {
-          toast.success(
-            `${recog.inserted} recognition${recog.inserted === 1 ? "" : "s"} suggested`,
-          );
-        }
-        // AI Insights Engine: auto-generate match report (deterministic).
-        const { processMatchAI } = await import("@/lib/mc-ai-engine");
-        const ai = await processMatchAI(matchId);
-        if (ai.generated > 0) toast.success("AI match report generated");
-      } catch (careerErr) {
-        console.error("Career/records update failed", careerErr);
-        toast.error("Match finalized, but downstream update failed. Rebuild manually.");
-      }
 
+      // 2) Done for the user: close and leave straight away. No reload.
       onFinalized?.();
       onOpenChange(false);
-      setStep(1);
-      // P2 Task D: Ensure navigation away from scorer after finalization
-      window.location.href = "/match-center/matches";
+      void navigate({ to: "/match-center/matches", replace: true });
+
+      // 3) Stats, records, awards and the AI report finish quietly in the background.
+      void (async () => {
+        try {
+          const [
+            { updateCareersForMatch },
+            { updateTournamentForMatch },
+            { updateAcademyRecordsForMatch },
+            { processMatchRecognitions },
+            { processMatchAI },
+          ] = await Promise.all([
+            import("@/lib/mc-career-engine"),
+            import("@/lib/mc-tournament-engine"),
+            import("@/lib/mc-academy-records"),
+            import("@/lib/mc-recognition-engine"),
+            import("@/lib/mc-ai-engine"),
+          ]);
+          await Promise.all([updateCareersForMatch(matchId), updateTournamentForMatch(matchId)]);
+          const rec = await updateAcademyRecordsForMatch(matchId);
+          if (rec.broken.length > 0) toast.success(`Academy record broken: ${rec.broken[0]}`);
+          await Promise.all([processMatchRecognitions(matchId), processMatchAI(matchId)]);
+        } catch (careerErr) {
+          console.error("Background update after finalize failed", careerErr);
+        }
+      })();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not finalize match");
-    } finally {
       setBusy(false);
     }
   };
 
+  const outcomes = [
+    ["won", "Won"],
+    ["tie", "Tied"],
+    ["draw", "Draw"],
+    ["no_result", "No result"],
+    ["abandoned", "Abandoned"],
+    ["cancelled", "Cancelled"],
+  ] as const;
+  const editable = canOverrideResult(role);
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+    <Dialog open={open} onOpenChange={(v) => !busy && onOpenChange(v)}>
+      <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-[17px]">
             <Trophy className="size-5 text-amber-500" />
-            Finalize match — step {step} of 4
+            Finish match
           </DialogTitle>
-          <DialogDescription>
-            Finalizing is a one-way action. Once locked, only the Academy Owner can reopen this
-            match.
-          </DialogDescription>
+          <DialogDescription>The match locks after this.</DialogDescription>
         </DialogHeader>
 
-        {step === 1 && (
-          <div className="space-y-4">
-            <div className="rounded-xl border bg-card p-4">
-              <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                Final result
-              </div>
-              <div className="mt-1 text-xl font-semibold">{detectedResult.summary}</div>
-              <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <div className="text-xs text-muted-foreground">Team A</div>
-                  <div className="font-medium">{teamA.name}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Team B</div>
-                  <div className="font-medium">{teamB.name}</div>
-                </div>
-              </div>
+        <div className="space-y-3">
+          <div className="rounded-xl border bg-card px-3.5 py-3">
+            <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Result
             </div>
-            <p className="text-sm text-muted-foreground">
-              Verify the detected outcome. If something looks wrong, you can override it in the next
-              step.
-            </p>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="space-y-4">
-            <div>
-              <Label className="text-xs uppercase tracking-widest text-muted-foreground">
-                Match outcome
-              </Label>
-              <RadioGroup
-                value={victoryType}
-                onValueChange={(v) => setVictoryType(v as VictoryType)}
-                className="mt-2 grid grid-cols-2 gap-2"
-                disabled={!canOverrideResult(role)}
+            <div className="mt-0.5 text-[17px] font-semibold leading-snug">
+              {victoryType === detectedResult.victoryType &&
+              winnerTeamId === detectedResult.winnerTeamId
+                ? detectedResult.summary
+                : victoryType === "won"
+                  ? `${winnerTeamId === teamB.id ? teamB.name : teamA.name} won`
+                  : (outcomes.find(([v]) => v === victoryType)?.[1] ?? "")}
+            </div>
+            {editable && !changing && (
+              <button
+                type="button"
+                onClick={() => setChanging(true)}
+                className="mt-1 text-[12.5px] font-medium text-primary"
               >
-                {(
-                  [
-                    ["won", "Won"],
-                    ["tie", "Tied"],
-                    ["draw", "Draw"],
-                    ["no_result", "No result"],
-                    ["abandoned", "Abandoned"],
-                    ["cancelled", "Cancelled"],
-                  ] as const
-                ).map(([value, label]) => (
-                  <label
-                    key={value}
-                    className="flex items-center gap-2 rounded-lg border p-2 text-sm cursor-pointer hover:bg-accent"
-                  >
-                    <RadioGroupItem value={value} />
-                    {label}
-                  </label>
-                ))}
-              </RadioGroup>
-            </div>
-
-            {victoryType === "won" && (
-              <div>
-                <Label className="text-xs uppercase tracking-widest text-muted-foreground">
-                  Winning team
-                </Label>
-                <RadioGroup
-                  value={winnerTeamId ?? ""}
-                  onValueChange={setWinnerTeamId}
-                  className="mt-2 grid grid-cols-2 gap-2"
-                  disabled={!canOverrideResult(role)}
-                >
-                  {[teamA, teamB].map((t) => (
-                    <label
-                      key={t.id}
-                      className="flex items-center gap-2 rounded-lg border p-2 text-sm cursor-pointer hover:bg-accent"
-                    >
-                      <RadioGroupItem value={t.id} />
-                      {t.name}
-                    </label>
-                  ))}
-                </RadioGroup>
-              </div>
+                Change result
+              </button>
             )}
+          </div>
 
-            {overridden && (
-              <div>
-                <Label>Reason for override</Label>
+          {changing && (
+            <div className="space-y-2.5">
+              <div className="flex flex-wrap gap-1.5">
+                {outcomes.map(([value, label]) => (
+                  <Chip
+                    key={value}
+                    active={victoryType === value}
+                    onClick={() => setVictoryType(value)}
+                  >
+                    {label}
+                  </Chip>
+                ))}
+              </div>
+              {victoryType === "won" && (
+                <div className="flex flex-wrap gap-1.5">
+                  {[teamA, teamB].map((t) => (
+                    <Chip
+                      key={t.id}
+                      active={winnerTeamId === t.id}
+                      onClick={() => setWinnerTeamId(t.id)}
+                    >
+                      {t.name}
+                    </Chip>
+                  ))}
+                </div>
+              )}
+              {overridden && (
                 <Textarea
                   value={overrideReason}
                   onChange={(e) => setOverrideReason(e.target.value)}
-                  placeholder="e.g. DLS applied, umpire decision, forfeit…"
-                  className="mt-1"
+                  placeholder="Why? e.g. rain, umpire decision"
+                  className="min-h-[60px] text-[16px]"
                 />
+              )}
+            </div>
+          )}
+
+          <div>
+            <Label className="text-[11px] uppercase tracking-widest text-muted-foreground">
+              Player of the match
+            </Label>
+            {suggestions.length > 0 && (
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {suggestions.slice(0, 4).map((s) => (
+                  <Chip
+                    key={`${s.category}-${s.athleteId ?? s.name}`}
+                    active={pomName === s.name}
+                    onClick={() => {
+                      setPomAthleteId(s.athleteId);
+                      setPomName(s.name);
+                    }}
+                  >
+                    {s.name}
+                  </Chip>
+                ))}
               </div>
             )}
+            <Input
+              value={pomName}
+              onChange={(e) => {
+                setPomName(e.target.value);
+                setPomAthleteId(null);
+              }}
+              placeholder="Type a name (optional)"
+              className="mt-1.5 h-11 text-[16px]"
+            />
           </div>
-        )}
-
-        {step === 3 && (
-          <div className="space-y-4">
-            <div>
-              <Label className="text-xs uppercase tracking-widest text-muted-foreground">
-                Suggested candidates
-              </Label>
-              {suggestions.length === 0 ? (
-                <p className="text-sm text-muted-foreground mt-2">
-                  No candidates yet — pick manually below.
-                </p>
-              ) : (
-                <div className="mt-2 space-y-2">
-                  {suggestions.map((s) => (
-                    <button
-                      key={`${s.category}-${s.athleteId ?? s.name}`}
-                      type="button"
-                      onClick={() => {
-                        setPomAthleteId(s.athleteId);
-                        setPomName(s.name);
-                      }}
-                      className={`w-full rounded-lg border p-3 text-left text-sm transition ${
-                        pomName === s.name ? "border-primary bg-primary/5" : "hover:bg-accent"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Award className="size-4 text-amber-500" />
-                        <div className="font-semibold">{s.name}</div>
-                        <Badge variant="secondary" className="text-[10px]">
-                          {s.category}
-                        </Badge>
-                      </div>
-                      <div className="mt-0.5 text-xs text-muted-foreground">{s.reason}</div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div>
-              <Label>Or enter a name manually</Label>
-              <Input
-                value={pomName}
-                onChange={(e) => {
-                  setPomName(e.target.value);
-                  setPomAthleteId(null);
-                }}
-                placeholder="Player of the Match"
-                className="mt-1"
-              />
-            </div>
-          </div>
-        )}
-
-        {step === 4 && (
-          <div className="space-y-3 text-sm">
-            <div className="rounded-xl border bg-card p-4 space-y-2">
-              <div>
-                <div className="text-xs text-muted-foreground">Result</div>
-                <div className="font-semibold">{detectedResult.summary}</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">Winner</div>
-                <div className="font-medium">
-                  {victoryType === "won"
-                    ? winnerTeamId === teamA.id
-                      ? teamA.name
-                      : winnerTeamId === teamB.id
-                        ? teamB.name
-                        : "—"
-                    : "—"}
-                </div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">Player of the Match</div>
-                <div className="font-medium">{pomName || "—"}</div>
-              </div>
-              {overridden && (
-                <div className="rounded bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-400">
-                  Result overridden — reason will be recorded in audit log.
-                </div>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              This match will be locked. Scoring, undo, XI edits and toss edits will be disabled.
-            </p>
-          </div>
-        )}
+        </div>
 
         <DialogFooter className="gap-2">
-          {step > 1 && (
-            <Button
-              variant="outline"
-              onClick={() => setStep((s) => (s - 1) as 1 | 2 | 3 | 4)}
-              disabled={busy}
-            >
-              Back
-            </Button>
-          )}
-          {step < 4 ? (
-            <Button onClick={() => setStep((s) => (s + 1) as 1 | 2 | 3 | 4)} disabled={busy}>
-              Next
-            </Button>
-          ) : (
-            <Button onClick={runFinalize} disabled={busy}>
-              {busy ? (
-                <>
-                  <Loader2 className="size-4 mr-1.5 animate-spin" /> Finalizing…
-                </>
-              ) : (
-                <>
-                  <Lock className="size-4 mr-1.5" /> Finalize & lock
-                </>
-              )}
-            </Button>
-          )}
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
+            Cancel
+          </Button>
+          <Button onClick={runFinalize} disabled={busy}>
+            {busy ? (
+              <>
+                <Loader2 className="mr-1.5 size-4 animate-spin" /> Saving…
+              </>
+            ) : (
+              <>
+                <Lock className="mr-1.5 size-4" /> Finish match
+              </>
+            )}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function Chip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={
+        "h-9 rounded-full border px-3.5 text-[13.5px] font-semibold transition-colors " +
+        (active
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-border bg-card text-foreground hover:bg-accent")
+      }
+    >
+      {children}
+    </button>
   );
 }
 

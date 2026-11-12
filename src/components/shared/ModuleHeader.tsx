@@ -23,12 +23,15 @@ export function ModuleHeader({
   backTo = "/dashboard/academy",
   action,
   className,
+  useHistory = true,
 }: {
   title: string;
   overline?: string;
   backTo?: string;
   action?: ReactNode;
   className?: string;
+  /** false = Back always goes to `backTo` (for the top level of a module). */
+  useHistory?: boolean;
 }) {
   const navigate = useNavigate();
   const router = useRouter();
@@ -36,16 +39,16 @@ export function ModuleHeader({
   const onBack = () => {
     // Standard back behavior: try history first to preserve state, else fallback.
     const hasHistory = typeof window !== "undefined" && window.history.length > 1;
-    const isSameOrigin = typeof document !== "undefined" && 
+    const isSameOrigin =
+      typeof document !== "undefined" &&
       (document.referrer === "" || document.referrer.startsWith(window.location.origin));
 
-    if (hasHistory && isSameOrigin) {
+    if (useHistory && hasHistory && isSameOrigin) {
       router.history.back();
     } else {
       navigate({ to: backTo });
     }
   };
-
 
   return (
     <div className={cn("flex items-center gap-2 pt-1 pb-2 -mt-2", className)}>
@@ -63,7 +66,9 @@ export function ModuleHeader({
             {overline}
           </div>
         ) : null}
-        <div className="font-display text-[17px] font-bold leading-tight tracking-tight truncate">{title}</div>
+        <div className="font-display text-[17px] font-bold leading-tight tracking-tight truncate">
+          {title}
+        </div>
       </div>
       {action ? <div className="flex shrink-0 items-center gap-1.5">{action}</div> : null}
     </div>

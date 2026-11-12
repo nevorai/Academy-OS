@@ -66,7 +66,6 @@ export const Route = createFileRoute("/scorer/$matchId")({
 
 /* ---------------- helpers ---------------- */
 
-
 function ScorerPage() {
   const { matchId } = Route.useParams();
   const isDemoMatch = typeof matchId === "string" && matchId.startsWith("demo-");
@@ -78,7 +77,6 @@ function ScorerPage() {
 
 function LiveScorerPage({ matchId }: { matchId: string }) {
   const isDemo = matchId === "demo";
-
 
   // Auth user
   const userQ = useQuery({
@@ -190,7 +188,11 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         session.setNonStriker({ ...payload, onStrike: false });
       } else {
         session.setStriker({ ...payload, onStrike: true });
-        session.setNonStriker({ athleteId: survivor.athleteId, name: survivor.name, onStrike: false });
+        session.setNonStriker({
+          athleteId: survivor.athleteId,
+          name: survivor.name,
+          onStrike: false,
+        });
       }
       return;
     }
@@ -282,21 +284,39 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     }
   }, [session.matchState.inningsShouldEnd, inningsCompleteOpen]);
 
+  const navigate = useNavigate();
+  const alreadyFinalizedRef = useRef(false);
+  // The "match ended" prompts open by themselves once. After a close they only open from the End button.
+  const finalizePromptedRef = useRef(false);
+  // A finished, locked match has nothing left to score: send people to its scorecard instead.
+  const lockedNow = Boolean((session.match as { match_locked?: boolean } | null)?.match_locked);
   useEffect(() => {
-    if (session.matchState.matchShouldEnd && !matchCompleteOpen) {
-      setMatchCompleteOpen(true);
+    if (lockedNow && session.match?.id) {
+      void navigate({
+        to: "/match-center/scorebook/$matchId",
+        params: { matchId: session.match.id },
+        replace: true,
+      });
     }
-  }, [session.matchState.matchShouldEnd, matchCompleteOpen]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lockedNow, session.match?.id]);
 
   // If match just ended, auto-open the finalization dialog after a short delay
   useEffect(() => {
-    if (session.matchState.matchShouldEnd && !finalizeDialogOpen) {
+    if (
+      session.matchState.matchShouldEnd &&
+      !finalizeDialogOpen &&
+      !finalizePromptedRef.current &&
+      !alreadyFinalizedRef.current &&
+      !(session.match as { match_locked?: boolean } | null)?.match_locked
+    ) {
       const timer = setTimeout(() => {
+        finalizePromptedRef.current = true;
         setFinalizeDialogOpen(true);
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [session.matchState.matchShouldEnd, finalizeDialogOpen]);
+  }, [session.matchState.matchShouldEnd, finalizeDialogOpen, session.match]);
 
   /* Batter/bowler setup is handled from the mobile scorer rows and bottom sheets. */
 
@@ -308,15 +328,18 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         playingRules: session.match?.playing_rules ?? null,
         target: session.activeInnings?.target ?? null,
       }),
-    [session.events, session.match?.overs, session.match?.playing_rules, session.activeInnings?.target],
+    [
+      session.events,
+      session.match?.overs,
+      session.match?.playing_rules,
+      session.activeInnings?.target,
+    ],
   );
 
   const overHistory = useMemo(
     () => computeOverHistory(session.events, ballChipLabel),
     [session.events],
   );
-
-
 
   const striker = session.striker;
   const nonStriker = session.nonStriker;
@@ -537,7 +560,6 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
       } else if (totalRuns === 1) {
         requestSubmit(ballHelpers.noBall(0, 0));
       }
-
     } else if (kind === "Bye") {
       requestSubmit(ballHelpers.bye(totalRuns));
     } else if (kind === "Leg Bye") {
@@ -592,7 +614,6 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session.match?.id]);
 
-
   const confirmTossAndStart = async () => {
     if (!session.match || !tossWinnerId || !tossDecision) return;
     setTossSaving(true);
@@ -628,7 +649,6 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     }
   };
 
-
   const startSecondInnings = async () => {
     if (!session.match || !session.activeInnings) return;
     const target = session.matchState.innings.runs + 1;
@@ -638,9 +658,11 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         .from("mc_innings")
         .update({ status: "completed", completed_at: new Date().toISOString() })
         .eq("id", session.activeInnings.id);
-      
+
       if (closeError) throw closeError;
-      await syncInningsTotals(session.activeInnings.id).catch((e) => console.error("[innings] could not save totals", e));
+      await syncInningsTotals(session.activeInnings.id).catch((e) =>
+        console.error("[innings] could not save totals", e),
+      );
 
       // 2. Only if close succeeded, start next innings
       await session.startInnings({
@@ -679,7 +701,10 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         .order("innings_number");
       // the saved totals are zero until an innings is closed: derive from the ball events so the
       // suggested result (win / tie) is computed from real scores
-      const rows = ((data ?? []) as InningsRow[]).map((r) => ({ ...r, match_id: session.match!.id }));
+      const rows = ((data ?? []) as InningsRow[]).map((r) => ({
+        ...r,
+        match_id: session.match!.id,
+      }));
       return (await withDerivedTotals(rows)) as InningsRow[];
     },
     refetchInterval: 15000,
@@ -692,8 +717,14 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         teamBId: session.match?.team_b_id ?? "",
         matchStatus: session.match?.status,
         wicketLimits: {
-          [session.match?.team_a_id ?? ""]: wicketLimitForTeam(session.playingXI, session.match?.team_a_id ?? null),
-          [session.match?.team_b_id ?? ""]: wicketLimitForTeam(session.playingXI, session.match?.team_b_id ?? null),
+          [session.match?.team_a_id ?? ""]: wicketLimitForTeam(
+            session.playingXI,
+            session.match?.team_a_id ?? null,
+          ),
+          [session.match?.team_b_id ?? ""]: wicketLimitForTeam(
+            session.playingXI,
+            session.match?.team_b_id ?? null,
+          ),
         },
       }),
     [
@@ -732,8 +763,10 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         return;
       if (ev.key >= "0" && ev.key <= "6") {
         onRun(Number(ev.key) as 0 | 1 | 2 | 3 | 4 | 5 | 6);
-      } else if (ev.key.toLowerCase() === "w") { setWicketKind(null); setDismissOpen(true); }
-      else if (ev.key.toLowerCase() === "u") void session.undo();
+      } else if (ev.key.toLowerCase() === "w") {
+        setWicketKind(null);
+        setDismissOpen(true);
+      } else if (ev.key.toLowerCase() === "u") void session.undo();
       else if (ev.key.toLowerCase() === "d") setExtraKind("Wide");
       else if (ev.key.toLowerCase() === "n") setExtraKind("No Ball");
     };
@@ -743,7 +776,6 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   }, [onRun, session.undo]);
 
   /* ---------- render ---------- */
-  const navigate = useNavigate();
   const teamAShort =
     teamMap.get(session.match?.team_a_id ?? "")?.short_name ??
     teamMap
@@ -787,8 +819,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
             <div className="max-w-md space-y-3">
               <div className="text-lg font-semibold">Demo scorer</div>
               <p className="text-sm text-muted-foreground">
-                This is a placeholder route. Create a real match from Match Center → Create, then open
-                its scorer.
+                This is a placeholder route. Create a real match from Match Center → Create, then
+                open its scorer.
               </p>
               <Button asChild>
                 <Link to="/match-center/create">Create a match</Link>
@@ -800,8 +832,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
             <div className="max-w-sm space-y-3">
               <div className="text-lg font-semibold">Match is being scored</div>
               <p className="text-sm text-muted-foreground">
-                This match is currently being scored by another user. To prevent conflicting updates,
-                only one scorer is allowed at a time.
+                This match is currently being scored by another user. To prevent conflicting
+                updates, only one scorer is allowed at a time.
               </p>
               <Button onClick={() => window.history.back()} variant="outline">
                 Go back
@@ -817,8 +849,14 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
             score={`${stats.team.runs}/${stats.team.wickets}`}
             overs={currentOverLabel}
             crr={String(stats.team.runRate)}
-            rrr={stats.team.requiredRunRate != null ? String(stats.team.requiredRunRate) : undefined}
-            target={session.activeInnings?.target != null ? String(session.activeInnings.target) : undefined}
+            rrr={
+              stats.team.requiredRunRate != null ? String(stats.team.requiredRunRate) : undefined
+            }
+            target={
+              session.activeInnings?.target != null
+                ? String(session.activeInnings.target)
+                : undefined
+            }
             chase={chase}
             striker={strikerStat}
             nonStriker={nonStrikerStat}
@@ -831,25 +869,42 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
               session.setStriker({ ...session.nonStriker, onStrike: true });
               session.setNonStriker({ ...s, onStrike: false });
             }}
-            onRetiredHurt={() => { setWicketKind("retired_hurt"); setDismissOpen(true); }}
-
+            onRetiredHurt={() => {
+              setWicketKind("retired_hurt");
+              setDismissOpen(true);
+            }}
             onRun={onRun}
             onExtra={(kind) => setExtraKind(kind)}
-            onOut={() => { setWicketKind(null); setDismissOpen(true); }}
-            onUndo={() => { swapAfterBatterRef.current = false; void session.undo(); }}
+            onOut={() => {
+              setWicketKind(null);
+              setDismissOpen(true);
+            }}
+            onUndo={() => {
+              swapAfterBatterRef.current = false;
+              void session.undo();
+            }}
             onFixBall={() => setFixOpen(true)}
             fixBar={ballFix.fix ? <BallFixBar fix={ballFix} /> : null}
+            hideEndMatch={matchLocked}
             onEndMatch={() => setFinalizeDialogOpen(true)}
-            onOpenStrikerPicker={() => { setPickerRole("striker"); setPlayerPickerOpen(true); }}
-            onOpenNonStrikerPicker={() => { setPickerRole("nonStriker"); setPlayerPickerOpen(true); }}
-            onOpenBowlerPicker={() => { setPickerRole("bowler"); setPlayerPickerOpen(true); }}
+            onOpenStrikerPicker={() => {
+              setPickerRole("striker");
+              setPlayerPickerOpen(true);
+            }}
+            onOpenNonStrikerPicker={() => {
+              setPickerRole("nonStriker");
+              setPlayerPickerOpen(true);
+            }}
+            onOpenBowlerPicker={() => {
+              setPickerRole("bowler");
+              setPlayerPickerOpen(true);
+            }}
             battingOptions={battingOptions}
             bowlingOptions={bowlingOptions}
             onPickPlayer={(role, p) => setPlayer(role, p)}
             awaitingNewBatter={session.matchState.innings.awaitingNewBatter}
             awaitingNewBowler={session.matchState.innings.awaitingNewBowler}
           />
-
         )}
       </div>
     </>
@@ -857,28 +912,6 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const modals = (
     <>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
       {/* ---------- modals ---------- */}
       <BallFixSheet open={fixOpen} onOpenChange={setFixOpen} fix={ballFix} />
       <WicketSheet
@@ -1138,6 +1171,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
             detectedResult={detectedResult}
             ballEvents={session.events}
             onFinalized={() => {
+              alreadyFinalizedRef.current = true;
               setMatchCompleteOpen(false);
               setInningsCompleteOpen(false);
               // refresh handled by realtime
@@ -1165,18 +1199,10 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     </>
   );
 
-  return (
-    <MobileViewportShell
-      className="scorer-root z-40"
-      header={content}
-      children={modals}
-    />
-  );
+  return <MobileViewportShell className="scorer-root z-40" header={content} children={modals} />;
 }
 
-
 function SquadSection({ title, players }: { title: string; players: PlayerOption[] }) {
-
   return (
     <div>
       <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
@@ -1272,8 +1298,6 @@ function DemoScorerBody({
   dataset: DemoDataset;
   session: DemoSession;
 }) {
-
-
   /* ---------- modal state ---------- */
   const [dismissOpen, setDismissOpen] = useState(false);
   const [wicketKind, setWicketKind] = useState<DismissalType | null>(null);
@@ -1351,7 +1375,11 @@ function DemoScorerBody({
         session.setNonStriker({ ...payload, onStrike: false });
       } else {
         session.setStriker({ ...payload, onStrike: true });
-        session.setNonStriker({ athleteId: survivor.athleteId, name: survivor.name, onStrike: false });
+        session.setNonStriker({
+          athleteId: survivor.athleteId,
+          name: survivor.name,
+          onStrike: false,
+        });
       }
       return;
     }
@@ -1449,8 +1477,6 @@ function DemoScorerBody({
     () => computeOverHistory(session.events, ballChipLabel),
     [session.events],
   );
-
-
 
   const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
   const strikerSelected = Boolean(striker.athleteId || striker.name);
@@ -1585,7 +1611,6 @@ function DemoScorerBody({
       } else if (totalRuns === 1) {
         requestSubmit(ballHelpers.noBall(0, 0));
       }
-
     } else if (kind === "Bye") {
       requestSubmit(ballHelpers.bye(totalRuns));
     } else if (kind === "Leg Bye") {
@@ -1622,7 +1647,6 @@ function DemoScorerBody({
     // Run out after the batters crossed: the next batter picked takes the other end.
     swapAfterBatterRef.current = ok && r.crossed;
   };
-
 
   const resultLine = (() => {
     const ms = session.matchState;
@@ -1683,8 +1707,10 @@ function DemoScorerBody({
         return;
       if (ev.key >= "0" && ev.key <= "6") {
         onRun(Number(ev.key) as 0 | 1 | 2 | 3 | 4 | 5 | 6);
-      } else if (ev.key.toLowerCase() === "w") { setWicketKind(null); setDismissOpen(true); }
-      else if (ev.key.toLowerCase() === "u") void session.undo();
+      } else if (ev.key.toLowerCase() === "w") {
+        setWicketKind(null);
+        setDismissOpen(true);
+      } else if (ev.key.toLowerCase() === "u") void session.undo();
       else if (ev.key.toLowerCase() === "d") setExtraKind("Wide");
       else if (ev.key.toLowerCase() === "n") setExtraKind("No Ball");
     };
@@ -1728,11 +1754,26 @@ function DemoScorerBody({
             score={`${stats.team.runs}/${stats.team.wickets}`}
             overs={currentOverLabel}
             crr={String(stats.team.runRate)}
-            rrr={stats.team.requiredRunRate != null ? String(stats.team.requiredRunRate) : undefined}
+            rrr={
+              stats.team.requiredRunRate != null ? String(stats.team.requiredRunRate) : undefined
+            }
             target={activeInnings?.target != null ? String(activeInnings.target) : undefined}
             chase={chase}
-            striker={{ ...strikerStat, isKeeper: session.striker.athleteId ? session.playingXI.find(p => p.athlete_profile_id === session.striker.athleteId)?.is_keeper : false }}
-            nonStriker={{ ...nonStrikerStat, isKeeper: session.nonStriker.athleteId ? session.playingXI.find(p => p.athlete_profile_id === session.nonStriker.athleteId)?.is_keeper : false }}
+            striker={{
+              ...strikerStat,
+              isKeeper: session.striker.athleteId
+                ? session.playingXI.find((p) => p.athlete_profile_id === session.striker.athleteId)
+                    ?.is_keeper
+                : false,
+            }}
+            nonStriker={{
+              ...nonStrikerStat,
+              isKeeper: session.nonStriker.athleteId
+                ? session.playingXI.find(
+                    (p) => p.athlete_profile_id === session.nonStriker.athleteId,
+                  )?.is_keeper
+                : false,
+            }}
             bowler={bowlerStat}
             partnership={
               stats.team.currentPartnership
@@ -1773,8 +1814,14 @@ function DemoScorerBody({
             onOpenBowlerPicker={() => setPickBowlerOpen(true)}
             onRun={onRun}
             onExtra={(kind) => setExtraKind(kind)}
-            onOut={() => { setWicketKind(null); setDismissOpen(true); }}
-            onUndo={() => { swapAfterBatterRef.current = false; void session.undo(); }}
+            onOut={() => {
+              setWicketKind(null);
+              setDismissOpen(true);
+            }}
+            onUndo={() => {
+              swapAfterBatterRef.current = false;
+              void session.undo();
+            }}
             onFixBall={() => setFixOpen(true)}
             fixBar={ballFix.fix ? <BallFixBar fix={ballFix} /> : null}
             onSwapStrike={() => {
@@ -1782,7 +1829,10 @@ function DemoScorerBody({
               session.setStriker({ ...session.nonStriker, onStrike: true });
               session.setNonStriker({ ...s, onStrike: false });
             }}
-            onRetiredHurt={() => { setWicketKind("retired_hurt"); setDismissOpen(true); }}
+            onRetiredHurt={() => {
+              setWicketKind("retired_hurt");
+              setDismissOpen(true);
+            }}
           />
         </div>
       }
@@ -1810,7 +1860,6 @@ function DemoScorerBody({
           </div>
         ) : null}
       </div>
-
 
       {/* ---------- modals ---------- */}
       <BallFixSheet open={fixOpen} onOpenChange={setFixOpen} fix={ballFix} />
@@ -2036,4 +2085,3 @@ function DemoScorerBody({
     </MobileViewportShell>
   );
 }
-

@@ -3,15 +3,7 @@ import { type ReactNode, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
-import {
-  PlusCircle,
-  Search,
-  ChevronRight,
-  Radio,
-  Swords,
-  Users,
-  LineChart,
-} from "lucide-react";
+import { PlusCircle, Search, ChevronRight, Radio, Swords, Users, LineChart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
@@ -181,9 +173,15 @@ function ModuleSubTabs() {
         className="flex items-center gap-1 overflow-x-auto no-scrollbar py-2"
       >
         {SUB_TABS.map((tab) => {
-          const active = tab.to === "/match-center/live" 
-            ? location.pathname === "/match-center/live" || location.pathname === "/match-center" || location.pathname === "/match-center/dashboard" || location.pathname.startsWith("/scorer")
-            : tab.match.some((p) => location.pathname === p || location.pathname.startsWith(p + "/"));
+          const active =
+            tab.to === "/match-center/live"
+              ? location.pathname === "/match-center/live" ||
+                location.pathname === "/match-center" ||
+                location.pathname === "/match-center/dashboard" ||
+                location.pathname.startsWith("/scorer")
+              : tab.match.some(
+                  (p) => location.pathname === p || location.pathname.startsWith(p + "/"),
+                );
           const Icon = tab.icon;
           const showLiveDot = tab.label === "Live" && (liveMatches.data ?? 0) > 0;
           return (
@@ -224,11 +222,22 @@ function ModuleSubTabs() {
 
 function MatchCenterModuleHeader({ title, hideAction }: { title?: string; hideAction?: boolean }) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  // On a main tab, Back leaves Match Center. Deeper pages go back one step.
+  const isTabRoot = [
+    "/match-center",
+    "/match-center/dashboard",
+    "/match-center/live",
+    "/match-center/matches",
+    "/match-center/players",
+    "/match-center/insights",
+  ].includes(pathname.replace(/\/$/, ""));
   return (
     <ModuleHeader
       overline="Academy"
       title={title ?? "Match Center"}
       backTo="/dashboard/academy"
+      useHistory={!isTabRoot}
       action={
         hideAction ? null : (
           <>

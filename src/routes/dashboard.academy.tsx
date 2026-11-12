@@ -105,6 +105,13 @@ const WORKSPACE_GROUPS: Group[] = [
     title: "Cricket",
     items: [
       {
+        to: "/match-center/dashboard",
+        label: "Match Center",
+        hint: "Matches, teams, scoring",
+        icon: Swords,
+        keywords: ["cricket", "matches", "teams", "tournament", "score"],
+      },
+      {
         to: "/match-center/live",
         label: "Live scoring",
         hint: "Score a match ball by ball",

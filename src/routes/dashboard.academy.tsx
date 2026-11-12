@@ -1,3 +1,4 @@
+import { tileColor, tileStyles } from "@/lib/tile-colors";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import {
@@ -252,29 +253,25 @@ function ManageHub() {
     <div className="mx-auto w-full max-w-3xl space-y-3 pb-4">
       <h1 className="text-lg font-semibold tracking-tight">Manage</h1>
       <div className="grid grid-cols-4 gap-2 sm:gap-3">
-        {items.map((item) => (
-          <HubTile key={item.to + item.label} item={item} />
+        {items.map((item, i) => (
+          <HubTile key={item.to + item.label} item={item} index={i} />
         ))}
       </div>
     </div>
   );
 }
 
-function HubTile({ item }: { item: Item }) {
+function HubTile({ item, index }: { item: Item; index: number }) {
   const Icon = item.icon;
+  const st = tileStyles(tileColor(index));
   return (
     <Link
       to={item.to}
       aria-label={item.label}
-      className="group flex min-h-[88px] flex-col items-center justify-start gap-1.5 rounded-xl border border-border bg-card px-1.5 py-3 text-center outline-none transition-colors hover:border-foreground/40 focus-visible:ring-2 focus-visible:ring-[color:var(--brand)] active:scale-[0.97]"
+      style={st.card}
+      className="group flex min-h-[88px] flex-col items-center justify-start gap-1.5 rounded-xl border px-1.5 py-3 text-center shadow-[var(--shadow-soft)] outline-none transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-[color:var(--brand)] active:scale-[0.97]"
     >
-      <span
-        className="grid size-10 shrink-0 place-items-center rounded-xl"
-        style={{
-          backgroundColor: "color-mix(in oklab, var(--brand) 12%, transparent)",
-          color: "var(--brand)",
-        }}
-      >
+      <span style={st.chip} className="grid size-10 shrink-0 place-items-center rounded-xl">
         <Icon className="size-5" />
       </span>
       <span className="line-clamp-2 break-words text-[11.5px] font-semibold leading-tight">

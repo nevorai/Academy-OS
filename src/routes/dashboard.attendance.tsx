@@ -164,13 +164,13 @@ function AttendancePage() {
               onClick={() => a.changeRosterTab("waiting")}
               aria-pressed={rosterTab === "waiting"}
               className={
-                "shrink-0 rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors " +
+                "shrink-0 rounded-full border px-2.5 py-1.5 text-[12px] font-semibold leading-none transition-colors " +
                 (rosterTab === "waiting"
                   ? "border-amber-500 bg-amber-500/15 text-amber-700 dark:text-amber-300"
                   : "border-border bg-card hover:bg-muted")
               }
             >
-              Not arrived {groups.waiting.length}
+              Not arrived <span className="ml-0.5 tabular-nums">{groups.waiting.length}</span>
             </button>
           </div>
 

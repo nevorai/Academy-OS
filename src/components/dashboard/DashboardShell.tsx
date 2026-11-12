@@ -276,8 +276,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           {/* Desktop sidebar: resizable, folds to icons */}
           <DashboardSidebar groups={groups} />
 
-          <main className="mx-auto w-full min-w-0 max-w-[1320px] flex-1 px-4 pt-4 pb-32 md:px-[3%] md:pt-8 md:pb-8">
-            <div className="mb-4">
+          <main className="mx-auto w-full min-w-0 max-w-[1320px] flex-1 px-4 pt-2 pb-32 md:px-[3%] md:pt-8 md:pb-8">
+            <div className="mb-3 empty:hidden">
               <TrialBanner />
             </div>
             {children ?? <Outlet />}

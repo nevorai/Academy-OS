@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { cn } from "@/lib/utils";
+import { tileColor, tileStyles } from "@/lib/tile-colors";
 
 type Btn = {
   to: string;
@@ -132,38 +133,42 @@ export function HomeButtons({
         What do you want to do?
       </h2>
       <div className="grid grid-cols-4 gap-2 md:grid-cols-6 md:gap-2.5 xl:grid-cols-6">
-        {visible.map((b) => (
-          <Link
-            key={b.to}
-            // Typed router paths are strings here on purpose: the list is data, every path is a real route.
-            to={b.to as never}
-            preload="intent"
-            className={cn(
-              "group relative flex min-h-[84px] flex-col items-center justify-start gap-1.5 rounded-xl border border-border bg-card px-1 py-2.5 text-center md:min-h-[104px] md:items-stretch md:justify-between md:p-3.5 md:text-left",
-              "shadow-[var(--shadow-soft)] transition-colors hover:border-primary/50 hover:bg-accent/40",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.99]",
-            )}
-          >
-            <span className="flex items-start justify-center md:justify-between">
-              <span className="grid size-10 place-items-center rounded-lg bg-primary/10 text-primary">
-                <b.icon className="size-5" />
-              </span>
-              {b.count ? (
-                <span className="absolute right-1 top-1 min-w-5 rounded-full bg-destructive px-1 py-0.5 text-center text-[10px] font-bold leading-none text-destructive-foreground md:static">
-                  {b.count}
+        {visible.map((b, i) => {
+          const st = tileStyles(tileColor(i));
+          return (
+            <Link
+              key={b.to}
+              // Typed router paths are strings here on purpose: the list is data, every path is a real route.
+              to={b.to as never}
+              style={st.card}
+              preload="intent"
+              className={cn(
+                "group relative flex min-h-[84px] flex-col items-center justify-start gap-1.5 rounded-xl border border-border bg-card px-1 py-2.5 text-center md:min-h-[104px] md:items-stretch md:justify-between md:p-3.5 md:text-left",
+                "shadow-[var(--shadow-soft)] transition-all hover:-translate-y-0.5 hover:shadow-md",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.99]",
+              )}
+            >
+              <span className="flex items-start justify-center md:justify-between">
+                <span style={st.chip} className="grid size-10 place-items-center rounded-xl">
+                  <b.icon className="size-5" />
                 </span>
-              ) : null}
-            </span>
-            <span className="block md:mt-3">
-              <span className="block text-[11.5px] font-semibold leading-tight md:text-[15px]">
-                {b.title}
+                {b.count ? (
+                  <span className="absolute right-1 top-1 min-w-5 rounded-full bg-destructive px-1 py-0.5 text-center text-[10px] font-bold leading-none text-destructive-foreground md:static">
+                    {b.count}
+                  </span>
+                ) : null}
               </span>
-              <span className="mt-0.5 hidden text-xs leading-snug text-muted-foreground md:block">
-                {b.hint}
+              <span className="block md:mt-3">
+                <span className="block text-[11.5px] font-semibold leading-tight md:text-[15px]">
+                  {b.title}
+                </span>
+                <span className="mt-0.5 hidden text-xs leading-snug text-muted-foreground md:block">
+                  {b.hint}
+                </span>
               </span>
-            </span>
-          </Link>
-        ))}
+            </Link>
+          );
+        })}
       </div>
     </section>
   );

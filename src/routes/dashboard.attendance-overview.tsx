@@ -258,29 +258,35 @@ function AttendanceOverview() {
     ym.year === Number(today.slice(0, 4)) && ym.m0 === Number(today.slice(5, 7)) - 1;
 
   return (
-    <div className="mx-auto w-full max-w-[1320px] space-y-4 px-1 pb-24">
-      <ModuleHeader title="Attendance" overline="Who is in the academy" backTo="/dashboard" />
-
-      <div className="flex flex-wrap gap-2">
-        <Link
-          to="/dashboard/attendance"
-          className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-4 text-base font-semibold text-primary-foreground active:scale-[0.99]"
-        >
-          <ClipboardCheck className="size-5" /> Mark attendance
-        </Link>
-        <Link
-          to="/dashboard/attendance-calendar"
-          className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border bg-card px-4 text-base font-medium active:scale-[0.99]"
-        >
-          <CalendarDays className="size-5" /> Month calendar
-        </Link>
-      </div>
+    <div className="mx-auto w-full max-w-[1320px] space-y-2.5 px-1 pb-24">
+      <ModuleHeader
+        title="Attendance"
+        backTo="/dashboard"
+        className="!mb-0"
+        action={
+          <>
+            <Link
+              to="/dashboard/attendance-calendar"
+              aria-label="Month calendar"
+              className="grid size-9 place-items-center rounded-[9px] border border-border bg-card active:scale-95"
+            >
+              <CalendarDays className="size-[18px]" />
+            </Link>
+            <Link
+              to="/dashboard/attendance"
+              className="inline-flex h-9 items-center gap-1.5 rounded-[9px] bg-primary px-3 text-[13px] font-semibold text-primary-foreground active:scale-95"
+            >
+              <ClipboardCheck className="size-4" /> Mark attendance
+            </Link>
+          </>
+        }
+      />
 
       {/* Tab bar */}
       <div
         role="tablist"
         aria-label="Attendance views"
-        className="flex gap-1 overflow-x-auto rounded-xl border border-border bg-card p-1"
+        className="flex gap-0.5 overflow-x-auto rounded-xl border border-border bg-card p-0.5"
       >
         {TABS.map((t) => (
           <button
@@ -289,7 +295,7 @@ function AttendanceOverview() {
             aria-selected={tab === t.id}
             onClick={() => pick(t.id)}
             className={cn(
-              "min-h-11 flex-1 whitespace-nowrap rounded-lg px-4 text-base font-semibold transition-colors",
+              "min-h-9 flex-1 whitespace-nowrap rounded-lg px-3 text-[13.5px] font-semibold transition-colors",
               tab === t.id
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:bg-accent/50",
@@ -312,29 +318,29 @@ function AttendanceOverview() {
       ) : (
         <>
           {/* ───────────── TODAY ───────────── */}
-          <section hidden={tab !== "today"} aria-label="Today" className="space-y-4">
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              <Kpi label="In the academy now" value={groups.inNow.length} tone="green" />
-              <Kpi label="Came today" value={groups.inNow.length + groups.left.length} />
+          <section hidden={tab !== "today"} aria-label="Today" className="space-y-2.5">
+            <div className="grid grid-cols-4 gap-1.5 md:gap-3">
+              <Kpi label="In now" value={groups.inNow.length} tone="green" />
+              <Kpi label="Came" value={groups.inNow.length + groups.left.length} />
               <Kpi label="Left" value={groups.left.length} />
               <Kpi
-                label="Not come yet"
+                label="Not yet"
                 value={groups.notYet.length}
                 tone={groups.notYet.length ? "amber" : undefined}
               />
             </div>
 
             <label className="relative block">
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search a player or batch"
-                className="h-12 w-full rounded-xl border border-border bg-card pl-11 pr-3 text-base"
+                className="h-10 w-full rounded-xl border border-border bg-card pl-9 pr-3 text-[16px]"
               />
             </label>
 
-            <div className="grid gap-4 lg:grid-cols-3">
+            <div className="grid gap-2.5 lg:grid-cols-3">
               <Column
                 title="In the academy now"
                 empty="Nobody is here right now."
@@ -501,12 +507,12 @@ function AttendanceOverview() {
           {/* ───────────── PLAYERS ───────────── */}
           <section hidden={tab !== "players"} aria-label="Players" className="space-y-3">
             <label className="relative block">
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search a player"
-                className="h-12 w-full rounded-xl border border-border bg-card pl-11 pr-3 text-base"
+                className="h-10 w-full rounded-xl border border-border bg-card pl-9 pr-3 text-[16px]"
               />
             </label>
             <p className="text-sm text-muted-foreground">
@@ -599,11 +605,11 @@ function Kpi({
   tone?: "green" | "amber";
 }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
-      <div className="text-sm text-muted-foreground">{label}</div>
+    <div className="rounded-xl border border-border bg-card px-1.5 py-2 text-center md:p-4 md:text-left">
+      <div className="text-[11px] font-medium text-muted-foreground md:text-sm">{label}</div>
       <div
         className={cn(
-          "mt-1 text-3xl font-bold tabular-nums",
+          "text-[22px] font-bold leading-tight tabular-nums md:mt-1 md:text-3xl",
           tone === "green" && "text-emerald-600",
           tone === "amber" && "text-amber-600",
         )}
@@ -629,11 +635,11 @@ function Column({
 }) {
   return (
     <div className="rounded-xl border border-border bg-card">
-      <div className="flex items-center justify-between border-b border-border p-3.5">
-        <h2 className="text-lg font-semibold">{title}</h2>
+      <div className="flex items-center justify-between border-b border-border px-3 py-2">
+        <h2 className="text-[15px] font-semibold">{title}</h2>
         <span
           className={cn(
-            "rounded-full px-2.5 py-0.5 text-sm font-semibold",
+            "rounded-full px-2 py-0.5 text-[12px] font-semibold",
             tone === "green"
               ? "bg-emerald-100 text-emerald-800"
               : tone === "amber"
@@ -645,9 +651,9 @@ function Column({
         </span>
       </div>
       {count === 0 ? (
-        <p className="p-4 text-base text-muted-foreground">{empty}</p>
+        <p className="px-3 py-2.5 text-sm text-muted-foreground">{empty}</p>
       ) : (
-        <ul className="max-h-[560px] divide-y divide-border overflow-y-auto">{children}</ul>
+        <ul className="divide-y divide-border">{children}</ul>
       )}
     </div>
   );
@@ -665,14 +671,14 @@ function PlayerLine({
   note?: string;
 }) {
   return (
-    <li className="flex items-center justify-between gap-3 p-3.5">
+    <li className="flex items-center justify-between gap-3 px-3 py-2">
       <div className="min-w-0">
-        <div className="truncate text-base font-semibold">{name}</div>
-        <div className="truncate text-sm text-muted-foreground">{sub ?? "No batch"}</div>
+        <div className="truncate text-[15px] font-semibold leading-tight">{name}</div>
+        <div className="truncate text-[12.5px] text-muted-foreground">{sub ?? "No batch"}</div>
       </div>
       <div className="shrink-0 text-right">
-        <div className="text-base font-medium">{right}</div>
-        {note && <div className="text-sm text-muted-foreground">{note}</div>}
+        <div className="text-[14px] font-medium">{right}</div>
+        {note && <div className="text-[12px] text-muted-foreground">{note}</div>}
       </div>
     </li>
   );

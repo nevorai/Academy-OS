@@ -227,8 +227,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           style={{ height: "var(--app-safe-top)" }}
         />
         <div aria-hidden="true" className="bg-card" style={{ height: "var(--app-safe-top)" }} />
+        {/* Fixed (not sticky) so the top bar never slides on an iPhone while the page scrolls. */}
         <header
-          className="sticky z-40 border-b border-border bg-card"
+          className="fixed inset-x-0 z-40 border-b border-border bg-card"
           style={{ top: "var(--app-safe-top)" }}
         >
           <TooltipProvider delayDuration={0}>
@@ -271,6 +272,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             </div>
           </TooltipProvider>
         </header>
+        <div aria-hidden="true" style={{ height: "3.5rem" }} />
 
         <div
           className="flex"

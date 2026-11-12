@@ -322,9 +322,9 @@ export function CollectionsPanel({
         ) : (
           <VirtualList
             items={visible}
-            estimateSize={84}
+            estimateSize={52}
             overscan={8}
-            className="max-h-[calc(100vh-200px)] min-h-[420px]"
+            className="max-h-[calc(100dvh-210px)] min-h-[320px]"
             getKey={(r) => r.studentId}
             renderItem={(r) => (
               <div className="border-b border-border">
@@ -520,16 +520,16 @@ function FeeRow({
     : "text-emerald-600 dark:text-emerald-400";
 
   return (
-    <li className="p-3 md:px-5 md:py-3 hover:bg-accent/60 transition-colors">
-      <div className="flex items-center gap-3">
+    <li className="px-2.5 py-1.5 md:px-5 md:py-2.5 hover:bg-accent/60 transition-colors">
+      <div className="flex items-center gap-2">
         <button
           type="button"
           onClick={onOpenProfile}
-          className="flex items-center gap-3 min-w-0 flex-1 text-left"
+          className="flex items-center gap-2 min-w-0 flex-1 text-left"
           title={row.name}
         >
           <div className="relative shrink-0">
-            <PersonAvatar name={row.name} src={row.photoUrl} className="h-10 w-10" />
+            <PersonAvatar name={row.name} src={row.photoUrl} className="h-8 w-8 md:h-10 md:w-10" />
             {isOverdue && (
               <span
                 className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-card bg-rose-500"
@@ -538,15 +538,19 @@ function FeeRow({
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="font-semibold text-[15px] truncate">{row.name}</div>
-            <div className={cn("text-[11px] truncate leading-tight font-medium", secondaryClass)}>
+            <div className="font-semibold text-[13.5px] leading-tight truncate md:text-[15px]">
+              {row.name}
+            </div>
+            <div className={cn("text-[10.5px] truncate leading-tight font-medium", secondaryClass)}>
               {secondaryLine}
             </div>
           </div>
         </button>
 
         <div className="text-right shrink-0">
-          <div className="font-bold tabular-nums text-[15px]">{money(row.amount)}</div>
+          <div className="font-bold tabular-nums text-[13.5px] md:text-[15px]">
+            {money(row.amount)}
+          </div>
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
@@ -557,17 +561,17 @@ function FeeRow({
                   asChild
                   size="icon"
                   variant="ghost"
-                  className="rounded-[7px] h-9 w-9 text-[#25D366] hover:bg-[#25D366]/10"
+                  className="rounded-[7px] h-8 w-8 text-[#25D366] hover:bg-[#25D366]/10"
                   aria-label="Remind on WhatsApp"
                 >
                   <a href={remindHref} target="_blank" rel="noreferrer">
-                    <MessageCircle className="size-5" />
+                    <MessageCircle className="size-[18px]" />
                   </a>
                 </Button>
               )}
               <Button
                 onClick={onCollect}
-                className="rounded-[7px] h-9 px-4 font-semibold text-sm"
+                className="rounded-[7px] h-8 px-3 font-semibold text-[12.5px]"
                 style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
               >
                 Collect
@@ -580,18 +584,18 @@ function FeeRow({
                   asChild
                   size="icon"
                   variant="ghost"
-                  className="rounded-[7px] h-9 w-9 text-[#25D366] hover:bg-[#25D366]/10"
+                  className="rounded-[7px] h-8 w-8 text-[#25D366] hover:bg-[#25D366]/10"
                   aria-label="Send receipt on WhatsApp"
                 >
                   <a href={receiptHref} target="_blank" rel="noreferrer">
-                    <MessageCircle className="size-5" />
+                    <MessageCircle className="size-[18px]" />
                   </a>
                 </Button>
               )}
               <Button
                 size="icon"
                 variant="ghost"
-                className="rounded-[7px] h-9 w-9"
+                className="rounded-[7px] h-8 w-8"
                 aria-label="Download receipt"
                 onClick={onReceipt}
               >

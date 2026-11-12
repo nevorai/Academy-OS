@@ -34,12 +34,15 @@ import {
 
 type Pending = { id: string; name: string };
 
+/** What the player types as the ID: their phone number (the Player ID also works). */
+const loginIdOf = (r: LoginResult) => r.phone || r.username;
+
 function whatsappLink(r: LoginResult, academy: string, url: string): string | null {
   const num = toE164(r.phone ?? "") ?? toE164(r.guardianPhone ?? "");
   if (!num) return null;
   const msg =
     `Hi ${r.name}, welcome to ${academy}!\n` +
-    `Your login:\nPlayer ID: ${r.username}\nPassword: ${r.password}\n` +
+    `Your login:\nLogin ID: ${loginIdOf(r)}\nPassword: ${r.password}\n` +
     `Sign in: ${url}\nYou will choose your own password the first time.`;
   return `https://wa.me/${num.replace("+", "")}?text=${encodeURIComponent(msg)}`;
 }
@@ -50,6 +53,7 @@ function CreateLoginsInner() {
   const create = useServerFn(createStudentLogins);
   const [open, setOpen] = useState(false);
   const [sendEmail, setSendEmail] = useState(true);
+  const [sendWhatsApp, setSendWhatsApp] = useState(true);
   const [phase, setPhase] = useState<"intro" | "running" | "done">("intro");
   const [done, setDone] = useState(0);
   const [results, setResults] = useState<LoginResult[]>([]);
@@ -85,7 +89,9 @@ function CreateLoginsInner() {
     try {
       for (let i = 0; i < list.length; i += LOGIN_CHUNK) {
         const ids = list.slice(i, i + LOGIN_CHUNK).map((s) => s.id);
-        const res = await create({ data: { tenantId: tenant.id, studentIds: ids, sendEmail } });
+        const res = await create({
+          data: { tenantId: tenant.id, studentIds: ids, sendEmail, sendWhatsApp },
+        });
         all.push(...res.results);
         setResults([...all]);
         setDone(Math.min(list.length, i + LOGIN_CHUNK));
@@ -105,6 +111,7 @@ function CreateLoginsInner() {
   const created = results.filter((r) => r.status === "created");
   const failed = results.filter((r) => r.status === "failed");
   const emailed = created.filter((r) => r.emailSent).length;
+  const whatsapped = created.filter((r) => r.whatsappSent > 0).length;
 
   const download = async () => {
     const XLSX = await loadXlsx().catch((e: Error) => {
@@ -114,8 +121,10 @@ function CreateLoginsInner() {
     if (!XLSX) return;
     const rows = created.map((r) => ({
       Name: r.name,
+      "Login ID": loginIdOf(r),
       "Player ID": r.username,
       "Temporary password": r.password,
+      "WhatsApp sent": r.whatsappSent > 0 ? "Yes" : "No",
       Phone: r.phone ?? "",
       "Guardian phone": r.guardianPhone ?? "",
       Email: r.email ?? "",
@@ -130,7 +139,7 @@ function CreateLoginsInner() {
   const copyAll = async () => {
     if (!meta) return;
     const text = created
-      .map((r) => `${r.name}: Player ID ${r.username} · Password ${r.password}`)
+      .map((r) => `${r.name}: Login ID ${loginIdOf(r)} · Password ${r.password}`)
       .join("\n");
     await navigator.clipboard.writeText(`${meta.academy} logins\nSign in: ${meta.url}\n\n${text}`);
     toast.success("Copied");
@@ -162,8 +171,8 @@ function CreateLoginsInner() {
         <DialogHeader>
           <DialogTitle>Player logins</DialogTitle>
           <DialogDescription>
-            Every player gets a Player ID and a temporary password. They sign in with the Player ID,
-            their email or their phone, and choose their own password the first time.
+            Every player gets a login: their phone number is the ID, with a random password. It is
+            sent on WhatsApp by itself. They choose their own password the first time they sign in.
           </DialogDescription>
         </DialogHeader>
 
@@ -190,6 +199,21 @@ function CreateLoginsInner() {
                     {list.length > 5 ? ` and ${list.length - 5} more` : ""}
                   </span>
                 </div>
+                <label className="flex items-start gap-2 text-base">
+                  <input
+                    type="checkbox"
+                    className="mt-1 size-5"
+                    checked={sendWhatsApp}
+                    onChange={(e) => setSendWhatsApp(e.target.checked)}
+                  />
+                  <span>
+                    Send the login on WhatsApp now (to the player and the parent).
+                    <span className="block text-sm text-muted-foreground">
+                      Needs WhatsApp connected and switched on. If it is not, use the WhatsApp
+                      button beside each name afterwards.
+                    </span>
+                  </span>
+                </label>
                 <label className="flex items-start gap-2 text-sm">
                   <input
                     type="checkbox"
@@ -200,7 +224,7 @@ function CreateLoginsInner() {
                   <span>
                     Also email the login to players who have an email address.
                     <span className="block text-xs text-muted-foreground">
-                      WhatsApp is one tap per player on the next screen.
+                      Optional. Most players use WhatsApp.
                     </span>
                   </span>
                 </label>
@@ -235,6 +259,7 @@ function CreateLoginsInner() {
               <span className="inline-flex items-center gap-1 font-semibold text-emerald-600">
                 <Check className="size-4" /> {created.length} created
               </span>
+              {whatsapped > 0 && <span>{whatsapped} sent on WhatsApp</span>}
               {emailed > 0 && <span>{emailed} emailed</span>}
               {failed.length > 0 && (
                 <span className="inline-flex items-center gap-1 font-semibold text-destructive">
@@ -279,7 +304,8 @@ function CreateLoginsInner() {
                       <div className="truncate text-sm font-semibold">{r.name}</div>
                       {r.status === "created" ? (
                         <div className="truncate font-mono text-[12px] text-muted-foreground">
-                          {r.username} · {r.password}
+                          {loginIdOf(r)} · {r.password}
+                          {r.whatsappSent > 0 ? " · WhatsApp sent" : ""}
                           {r.emailSent ? " · emailed" : ""}
                         </div>
                       ) : (

@@ -395,7 +395,7 @@ export function BulkImportStudents() {
     },
     onSuccess: (n) => {
       toast.success(`Imported ${n} players`, {
-        description: "Open the Activation Center to share their magic links.",
+        description: "Next, tap Create logins to give everyone an ID and password.",
       });
       qc.invalidateQueries({ queryKey: qk.students(tenant.id) });
       clear();
@@ -638,7 +638,7 @@ export function BulkImportStudents() {
               </div>
               <p className="text-[11px] text-muted-foreground">
                 Fees follow the session automatically. You can change a player's session later from
-                the Activation Center.
+                the player's page.
               </p>
             </>
           )}
@@ -659,7 +659,7 @@ export function BulkImportStudents() {
                     onChange={(e) => setMarkImported(e.target.checked)}
                     className="size-4 accent-current"
                   />
-                  Mark as imported (activation tokens + rollback)
+                  Allow undo of this import (rollback)
                 </label>
                 {invalidCount + dupeCount > 0 && (
                   <Button size="sm" variant="ghost" onClick={downloadErrors} className="text-xs">

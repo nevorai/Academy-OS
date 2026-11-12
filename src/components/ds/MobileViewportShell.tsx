@@ -32,7 +32,7 @@ export function MobileViewportShell({
   className,
 }: MobileViewportShellProps) {
   const insets = useViewportInsets();
-  
+
   // Body lock is only active when we are in "mobile mode" (viewport width < 768)
   const isMobileSize = typeof window !== "undefined" && window.innerWidth < 768;
   useBodyLock(isMobileSize);
@@ -51,15 +51,12 @@ export function MobileViewportShell({
       className={cn(
         "fixed inset-0 z-[100] flex flex-col overflow-hidden bg-background text-foreground",
         desktopClassName,
-        className
+        className,
       )}
       style={containerStyle}
     >
       {header ? (
-        <div
-          className="flex-none"
-          style={{ paddingTop: "var(--app-safe-top)" }}
-        >
+        <div className="flex-none bg-card" style={{ paddingTop: "var(--app-safe-top)" }}>
           {header}
         </div>
       ) : (
@@ -72,11 +69,9 @@ export function MobileViewportShell({
 
       {footer ? (
         <div
-          className="flex-none"
+          className="flex-none bg-card"
           style={{
-            paddingBottom: insets.keyboardOpen
-              ? "0px"
-              : "var(--app-safe-bottom)",
+            paddingBottom: insets.keyboardOpen ? "0px" : "var(--app-safe-bottom)",
           }}
         >
           {footer}

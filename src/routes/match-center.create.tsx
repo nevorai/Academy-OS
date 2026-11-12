@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -15,7 +15,17 @@ import {
   Info,
   Users,
   RefreshCcw,
+  MoreVertical,
+  ArrowUp,
+  ArrowDown,
+  Trash2,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1460,8 +1470,6 @@ function TeamPanel({
           onName={(n) => onChange({ ...state, draftName: n })}
           players={state.players}
           onPlayers={setPlayers}
-          onAdd={addPlayer}
-          onRemove={removePlayer}
           studentPool={studentPool}
           studentsLoading={studentsLoading}
           validationError={validationError}
@@ -1594,8 +1602,6 @@ function NewTeamBody({
   onName,
   players,
   onPlayers,
-  onAdd,
-  onRemove,
   studentPool,
   studentsLoading,
   validationError,
@@ -1607,8 +1613,6 @@ function NewTeamBody({
   onName: (v: string) => void;
   players: PlayerRef[];
   onPlayers: (v: PlayerRef[]) => void;
-  onAdd: (p: PlayerRef) => void;
-  onRemove: (key: string) => void;
   studentPool: PlayerRef[];
   studentsLoading?: boolean;
   validationError: string | null;
@@ -1616,58 +1620,15 @@ function NewTeamBody({
   goNext: (e?: React.MouseEvent) => void;
   canContinue: boolean;
 }) {
-  const [q, setQ] = useState("");
-  const selectedKeys = useMemo(() => new Set(players.map((p) => p.key)), [players]);
-
-  const results = useMemo(() => {
-    const term = q.trim().toLowerCase();
-    if (!term) return [];
-    return studentPool
-      .filter((s) => !selectedKeys.has(s.key))
-      .map((s) => {
-        const n = s.name.toLowerCase();
-        const parts = n.split(/\s+/);
-        const initials = parts.map((p) => p[0] ?? "").join("");
-        let score = 0;
-        if (n.startsWith(term)) score += 100;
-        else if (parts.some((p) => p.startsWith(term))) score += 60;
-        else if (n.includes(term)) score += 30;
-        if (initials.includes(term)) score += 20;
-        return { p: s, score };
-      })
-      .filter((x) => x.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 8)
-      .map((x) => x.p);
-  }, [q, studentPool, selectedKeys]);
-
-  const trimmed = q.trim();
-  const exactAcademyMatch =
-    trimmed.length > 0 && results.some((r) => r.name.toLowerCase() === trimmed.toLowerCase());
-
-  const addGuest = () => {
-    if (!trimmed) return;
-    onAdd({
-      key: `guest-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      name: trimmed,
-      photo_url: null,
-      athlete_profile_id: null,
-    });
-    setQ("");
-  };
-
-  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key !== "Enter") return;
-    e.preventDefault();
-    if (results.length > 0) {
-      onAdd(results[0]);
-      setQ("");
-    } else if (trimmed) {
-      addGuest();
-    }
-  };
-
-  const hasRoles = players.some((p) => p.is_captain) && players.some((p) => p.is_keeper);
+  const missing = !name.trim()
+    ? "Team name is required"
+    : players.length < 2
+      ? "Add at least 2 players"
+      : !players.some((p) => p.is_captain)
+        ? "Pick a Captain (tap C)"
+        : !players.some((p) => p.is_keeper)
+          ? "Pick a Wicketkeeper (tap WK)"
+          : null;
 
   return (
     <MobileViewportShell
@@ -1703,110 +1664,20 @@ function NewTeamBody({
             </div>
           </div>
 
-          {players.length > 0 && (
-            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-              <div className="flex items-center gap-1.5 text-[10px]">
-                {players.some((p) => p.is_captain) ? (
-                  <span className="flex items-center gap-1 text-emerald-600 font-bold">
-                    <CheckCircle2 className="size-3" /> Captain
-                  </span>
-                ) : (
-                  <span className="text-amber-600 font-medium">Captain required</span>
-                )}
-              </div>
-              <div className="flex items-center gap-1.5 text-[10px]">
-                {players.some((p) => p.is_keeper) ? (
-                  <span className="flex items-center gap-1 text-emerald-600 font-bold">
-                    <CheckCircle2 className="size-3" /> WK
-                  </span>
-                ) : (
-                  <span className="text-amber-600 font-medium">WK required</span>
-                )}
-              </div>
-              {players.length < 2 && (
-                <div className="flex items-center gap-1.5 text-[10px]">
-                  <span className="text-amber-600 font-medium">Min 2 players required</span>
-                </div>
-              )}
-            </div>
+          {missing && (
+            <p
+              role="alert"
+              className="mt-2.5 rounded-lg bg-red-50 px-3 py-1.5 text-[13px] font-semibold text-red-600 dark:bg-red-500/10 dark:text-red-400"
+            >
+              {missing}
+            </p>
           )}
         </div>
       }
       footer={
         <div className="flex-none bg-card border-t shadow-[0_-8px_30px_rgb(0,0,0,0.04)] relative">
-          {/* Search suggestions (Expand Upward) */}
-          {trimmed && (
-            <div className="absolute bottom-full left-0 right-0 mx-3 mb-2 max-h-48 space-y-1 overflow-y-auto rounded-2xl border border-border bg-popover shadow-2xl p-1 z-50">
-              {studentsLoading ? (
-                <div className="p-3 text-sm text-muted-foreground animate-pulse">
-                  Searching academy...
-                </div>
-              ) : (
-                <>
-                  {results.map((p) => (
-                    <button
-                      key={p.key}
-                      type="button"
-                      onClick={() => {
-                        onAdd(p);
-                        setQ("");
-                      }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left hover:bg-accent transition-colors"
-                    >
-                      <Avatar
-                        src={p.photo_url}
-                        name={p.name}
-                        size={32}
-                        className="rounded-full shrink-0"
-                      />
-                      <span className="min-w-0 flex-1 truncate text-sm font-semibold">
-                        {p.name}
-                      </span>
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-bold text-primary shrink-0">
-                        ACADEMY
-                      </span>
-                    </button>
-                  ))}
-                  {!exactAcademyMatch && (
-                    <button
-                      type="button"
-                      onClick={addGuest}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left hover:bg-accent transition-colors border-t border-border/40 mt-1 pt-2"
-                    >
-                      <div className="size-8 rounded-full bg-muted flex items-center justify-center shrink-0">
-                        <Plus className="size-4 text-muted-foreground" />
-                      </div>
-                      <span className="min-w-0 flex-1 truncate text-sm">
-                        Add <span className="font-bold">"{trimmed}"</span>
-                      </span>
-                      <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-bold text-amber-700 dark:text-amber-400 shrink-0 uppercase">
-                        Guest
-                      </span>
-                    </button>
-                  )}
-                </>
-              )}
-            </div>
-          )}
-
-          {/* Input Column */}
-          <div className="px-4 pt-4 pb-2">
-            <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                onKeyDown={onKeyDown}
-                placeholder="Search or enter player name…"
-                className="pl-10 h-12 text-base rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/20"
-                autoComplete="off"
-                autoCorrect="off"
-              />
-            </div>
-          </div>
-
           {/* Navigation Column (Horizontal) */}
-          <div className="flex flex-col gap-2 p-4 pt-1 pb-6 md:pb-4">
+          <div className="flex flex-col gap-2 p-3 md:p-4">
             <div className="flex items-center gap-3">
               <Button
                 type="button"
@@ -1830,120 +1701,341 @@ function NewTeamBody({
                 Continue <ChevronRight className="ml-2 size-4" />
               </Button>
             </div>
-
-            {!canContinue && (
-              <div className="text-[10px] text-center text-amber-600 font-bold bg-amber-50 dark:bg-amber-900/10 rounded-lg py-1 px-2 border border-amber-100 dark:border-amber-900/20">
-                {!name.trim()
-                  ? "Team name required"
-                  : players.length < 2
-                    ? "Add at least 2 players"
-                    : !players.some((p) => p.is_captain)
-                      ? "Captain missing"
-                      : !players.some((p) => p.is_keeper)
-                        ? "Wicketkeeper missing"
-                        : "Check requirements"}
-              </div>
-            )}
           </div>
         </div>
       }
     >
-      {/* ROSTER: Scrollable list of players */}
+      {/* ROSTER: a sheet like Excel. Type a name, the next row opens by itself. */}
       <div className="p-3">
-        {players.length > 0 ? (
-          <SquadList players={players} onPlayers={onPlayers} onRemove={onRemove} />
-        ) : (
-          <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground/30">
-            <div className="relative mb-3">
-              <Users className="size-12" />
-              <Plus className="absolute -bottom-1 -right-1 size-5 text-primary" />
-            </div>
-            <p className="text-sm font-medium">Add players below</p>
-          </div>
-        )}
+        <SquadSheet
+          players={players}
+          onPlayers={onPlayers}
+          studentPool={studentPool}
+          studentsLoading={studentsLoading}
+        />
       </div>
     </MobileViewportShell>
   );
 }
 
-function SquadList({
+/* ==================== SQUAD SHEET (spreadsheet style) ==================== */
+
+function SquadSheet({
   players,
   onPlayers,
-  onRemove,
+  studentPool,
+  studentsLoading,
 }: {
   players: PlayerRef[];
   onPlayers: (v: PlayerRef[]) => void;
-  onRemove: (key: string) => void;
+  studentPool: PlayerRef[];
+  studentsLoading?: boolean;
 }) {
+  const [minRows, setMinRows] = useState(12);
+  const [draft, setDraft] = useState("");
+  const [editing, setEditing] = useState<string | null>(null); // key of the filled row being typed in
+  const activeRef = useRef<HTMLInputElement>(null);
+  const refocusRef = useRef(false);
+  const selectedKeys = useMemo(() => new Set(players.map((p) => p.key)), [players]);
+
+  const suggest = (text: string): PlayerRef[] => {
+    const term = text.trim().toLowerCase();
+    if (!term) return [];
+    return studentPool
+      .filter((s) => !selectedKeys.has(s.key))
+      .map((s) => {
+        const n = s.name.toLowerCase();
+        const parts = n.split(/\s+/);
+        let score = 0;
+        if (n.startsWith(term)) score += 100;
+        else if (parts.some((x) => x.startsWith(term))) score += 60;
+        else if (n.includes(term)) score += 30;
+        return { p: s, score };
+      })
+      .filter((x) => x.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5)
+      .map((x) => x.p);
+  };
+
+  // After a name is saved, the cursor jumps to the next empty row.
   useEffect(() => {
-    // When a player is added (length increases), scroll to the bottom to show the recent addition
-    const container = document.getElementById("squad-scroll-container");
-    if (container) {
-      container.scrollTop = container.scrollHeight;
+    if (refocusRef.current) {
+      refocusRef.current = false;
+      activeRef.current?.focus();
     }
   }, [players.length]);
 
+  const guest = (name: string): PlayerRef => ({
+    key: `guest-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    name,
+    photo_url: null,
+    athlete_profile_id: null,
+  });
+
+  const commitDraft = (text: string, focusNext: boolean) => {
+    const t = text.trim();
+    if (!t) return;
+    const exact = studentPool.find(
+      (s) => !selectedKeys.has(s.key) && s.name.toLowerCase() === t.toLowerCase(),
+    );
+    refocusRef.current = focusNext;
+    onPlayers([...players, exact ?? guest(t)]);
+    setDraft("");
+  };
+
+  const pickSuggestion = (p: PlayerRef, index: number | null) => {
+    refocusRef.current = true;
+    if (index === null) {
+      onPlayers([...players, p]);
+      setDraft("");
+    } else {
+      const old = players[index];
+      const next = [...players];
+      next[index] = {
+        ...p,
+        is_captain: old.is_captain,
+        is_vice_captain: old.is_vice_captain,
+        is_keeper: old.is_keeper,
+      };
+      onPlayers(next);
+    }
+    setEditing(null);
+  };
+
+  const rename = (index: number, name: string) => {
+    const old = players[index];
+    const next = [...players];
+    // Typing over an academy player makes this a guest name (the link would be wrong otherwise).
+    const linked = !old.key.startsWith("guest-");
+    next[index] = linked
+      ? {
+          ...old,
+          key: `guest-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          athlete_profile_id: null,
+          photo_url: null,
+          name,
+        }
+      : { ...old, name };
+    onPlayers(next);
+    if (linked) setEditing(next[index].key);
+  };
+
   const setRole = (key: string, role: "C" | "VC" | "WK") => {
-    const next = players.map((p) => {
-      if (role === "C") {
-        const willBeCap = p.key === key ? !p.is_captain : false;
-        return { ...p, is_captain: willBeCap };
-      }
-      if (role === "VC") {
-        const willBeVc = p.key === key ? !p.is_vice_captain : false;
-        return { ...p, is_vice_captain: willBeVc };
-      }
-      const willBeK = p.key === key ? !p.is_keeper : false;
-      return { ...p, is_keeper: willBeK };
-    });
+    onPlayers(
+      players.map((p) => {
+        if (role === "C") return { ...p, is_captain: p.key === key ? !p.is_captain : false };
+        if (role === "VC")
+          return { ...p, is_vice_captain: p.key === key ? !p.is_vice_captain : false };
+        return { ...p, is_keeper: p.key === key ? !p.is_keeper : false };
+      }),
+    );
+  };
+
+  const move = (index: number, dir: -1 | 1) => {
+    const j = index + dir;
+    if (j < 0 || j >= players.length) return;
+    const next = [...players];
+    [next[index], next[j]] = [next[j], next[index]];
     onPlayers(next);
   };
 
+  const total = Math.max(minRows, players.length + 1);
+  const draftSuggestions = suggest(draft);
+
   return (
-    <ol id="squad-scroll-container" className="space-y-1 overflow-y-auto pr-1 scroll-smooth">
-      {players.map((p, idx) => (
-        <li
-          key={p.key}
-          className="flex items-center gap-2 rounded-xl border border-border bg-background/60 px-2.5 py-1.5 shadow-sm"
-        >
-          <span className="w-4 text-right text-[10px] font-mono text-muted-foreground opacity-50 shrink-0">
-            {idx + 1}
-          </span>
-          <Avatar src={p.photo_url} name={p.name} size={24} className="rounded-full shrink-0" />
-          <span className="min-w-0 flex-1 truncate text-xs font-semibold text-foreground tracking-tight">
-            {p.name}
-          </span>
-          <div className="flex shrink-0 gap-1.5">
-            <RoleButton
-              active={!!p.is_captain}
-              onClick={() => setRole(p.key, "C")}
-              label="C"
-              color="amber"
-            />
-            <RoleButton
-              active={!!p.is_vice_captain}
-              onClick={() => setRole(p.key, "VC")}
-              label="VC"
-              color="sky"
-            />
-            <RoleButton
-              active={!!p.is_keeper}
-              onClick={() => setRole(p.key, "WK")}
-              label="WK"
-              color="emerald"
-            />
-          </div>
+    <div>
+      <ol className="divide-y divide-border overflow-visible rounded-2xl border border-border bg-card">
+        {Array.from({ length: total }, (_, i) => {
+          const p = players[i];
+          const isActive = i === players.length;
+          if (p) {
+            const sugg = editing === p.key ? suggest(p.name) : [];
+            return (
+              <li key={p.key} className="relative flex items-center gap-1.5 px-2 py-1.5">
+                <span className="w-5 shrink-0 text-center text-[12px] font-semibold tabular-nums text-muted-foreground">
+                  {i + 1}
+                </span>
+                <input
+                  value={p.name}
+                  onChange={(e) => rename(i, e.target.value)}
+                  onFocus={() => setEditing(p.key)}
+                  onBlur={() => {
+                    setEditing(null);
+                    if (!p.name.trim()) onPlayers(players.filter((x) => x.key !== p.key));
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      (e.target as HTMLInputElement).blur();
+                      activeRef.current?.focus();
+                    }
+                  }}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  className="h-10 min-w-0 flex-1 rounded-lg bg-transparent px-2 text-[16px] font-semibold outline-none focus:bg-muted/60"
+                />
+                <div className="flex shrink-0 items-center gap-1">
+                  <RoleButton
+                    active={!!p.is_captain}
+                    onClick={() => setRole(p.key, "C")}
+                    label="C"
+                    color="amber"
+                  />
+                  <RoleButton
+                    active={!!p.is_vice_captain}
+                    onClick={() => setRole(p.key, "VC")}
+                    label="VC"
+                    color="sky"
+                  />
+                  <RoleButton
+                    active={!!p.is_keeper}
+                    onClick={() => setRole(p.key, "WK")}
+                    label="WK"
+                    color="emerald"
+                  />
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label="Row options"
+                      className="grid size-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-accent"
+                    >
+                      <MoreVertical className="size-4" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-40">
+                    <DropdownMenuItem disabled={i === 0} onSelect={() => move(i, -1)}>
+                      <ArrowUp className="mr-2 size-4" /> Move up
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      disabled={i === players.length - 1}
+                      onSelect={() => move(i, 1)}
+                    >
+                      <ArrowDown className="mr-2 size-4" /> Move down
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onSelect={() => onPlayers(players.filter((x) => x.key !== p.key))}
+                    >
+                      <Trash2 className="mr-2 size-4" /> Remove
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                {sugg.length > 0 && (
+                  <SuggestList items={sugg} onPick={(x) => pickSuggestion(x, i)} />
+                )}
+              </li>
+            );
+          }
+          if (isActive) {
+            return (
+              <li key="active" className="relative flex items-center gap-1.5 px-2 py-1.5">
+                <span className="w-5 shrink-0 text-center text-[12px] font-semibold tabular-nums text-primary">
+                  {i + 1}
+                </span>
+                <input
+                  ref={activeRef}
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onBlur={() => commitDraft(draft, false)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      if (
+                        draftSuggestions.length > 0 &&
+                        draft.trim().toLowerCase() !== draftSuggestions[0].name.toLowerCase()
+                      )
+                        pickSuggestion(draftSuggestions[0], null);
+                      else commitDraft(draft, true);
+                    }
+                  }}
+                  placeholder="Type player name"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  className="h-10 min-w-0 flex-1 rounded-lg bg-muted/50 px-2 text-[16px] font-semibold outline-none placeholder:font-normal placeholder:text-muted-foreground/70 focus:bg-muted"
+                />
+                {draft.trim() && (
+                  <button
+                    type="button"
+                    onPointerDown={(e) => e.preventDefault()}
+                    onClick={() => commitDraft(draft, true)}
+                    className="h-9 shrink-0 rounded-full bg-primary px-3.5 text-[13px] font-bold text-primary-foreground active:scale-95"
+                  >
+                    Next
+                  </button>
+                )}
+                {draft.trim() && (draftSuggestions.length > 0 || studentsLoading) && (
+                  <SuggestList
+                    items={draftSuggestions}
+                    loading={studentsLoading}
+                    onPick={(x) => pickSuggestion(x, null)}
+                  />
+                )}
+              </li>
+            );
+          }
+          return (
+            <li key={`empty-${i}`}>
+              <button
+                type="button"
+                onClick={() => activeRef.current?.focus()}
+                className="flex h-[52px] w-full items-center gap-1.5 px-2 text-left"
+                aria-label={`Row ${i + 1}`}
+              >
+                <span className="w-5 shrink-0 text-center text-[12px] font-semibold tabular-nums text-muted-foreground/40">
+                  {i + 1}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ol>
+      <button
+        type="button"
+        onClick={() => setMinRows(total + 4)}
+        className="mt-2 flex h-11 w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border text-[13.5px] font-semibold text-muted-foreground active:bg-muted"
+      >
+        <Plus className="size-4" /> Add more rows
+      </button>
+    </div>
+  );
+}
+
+function SuggestList({
+  items,
+  loading,
+  onPick,
+}: {
+  items: PlayerRef[];
+  loading?: boolean;
+  onPick: (p: PlayerRef) => void;
+}) {
+  return (
+    <div
+      className="absolute left-8 right-2 top-full z-30 mt-0.5 overflow-hidden rounded-xl border border-border bg-popover shadow-xl"
+      onPointerDown={(e) => e.preventDefault()}
+    >
+      {loading && items.length === 0 ? (
+        <div className="px-3 py-2.5 text-sm text-muted-foreground">Searching academy…</div>
+      ) : (
+        items.map((p) => (
           <button
+            key={p.key}
             type="button"
-            onClick={() => onRemove(p.key)}
-            className="grid size-8 shrink-0 place-items-center rounded-full text-muted-foreground/60 transition-colors hover:bg-destructive/10 hover:text-destructive"
-            aria-label="Remove"
+            onClick={() => onPick(p)}
+            className="flex w-full items-center gap-2.5 px-3 py-2 text-left hover:bg-accent"
           >
-            <X className="size-4" />
+            <Avatar src={p.photo_url} name={p.name} size={28} className="shrink-0 rounded-full" />
+            <span className="min-w-0 flex-1 truncate text-[15px] font-semibold">{p.name}</span>
+            <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-bold text-primary">
+              ACADEMY
+            </span>
           </button>
-        </li>
-      ))}
-    </ol>
+        ))
+      )}
+    </div>
   );
 }
 

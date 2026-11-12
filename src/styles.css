@@ -74,7 +74,6 @@
   --color-sidebar-ring: var(--sidebar-ring);
   /* Auth / member-portal surface (always dark, brand-tinted) */
   --color-auth-bg: var(--auth-bg);
-  --color-auth-card: var(--auth-card);
   --color-auth-surface: var(--auth-surface);
   --color-auth-elevated: var(--auth-elevated);
   --color-auth-foreground: var(--auth-foreground);
@@ -188,33 +187,31 @@
 
   /* Member-portal (auth) palette: ivory ground and turf-black type in light, night turf in dark,
      one turf-green accent for the button and focus. The art panel beside the form is always green. */
-  --auth-bg: #f5f5f5;
-  --auth-card: #ffffff;
-  --auth-surface: #ffffff;
-  --auth-elevated: #fafafa;
-  --auth-foreground: #111111;
-  --auth-muted: #4b4b4b;
-  --auth-subtle: #8a8a8a;
-  --auth-border: #e4e4e4;
-  --auth-danger: #c0392b;
-  --auth-accent: #111111;
+  --auth-bg: oklch(0.985 0.006 100);
+  --auth-surface: oklch(0.955 0.01 120);
+  --auth-elevated: oklch(0.94 0.012 120 / 70%);
+  --auth-foreground: oklch(0.22 0.045 158);
+  --auth-muted: oklch(0.44 0.03 158);
+  --auth-subtle: oklch(0.58 0.02 158);
+  --auth-border: oklch(0.22 0.045 158 / 16%);
+  --auth-danger: oklch(0.52 0.19 25);
+  --auth-accent: #2a7a4b;
   --auth-accent-ink: #ffffff;
 
 }
 
 .dark {
   /* Member portal, dark: night-turf ground, ivory type. Mirror of the :root block. */
-  --auth-bg: #0b0b0b;
-  --auth-card: #151515;
-  --auth-surface: #1b1b1b;
-  --auth-elevated: #1b1b1b;
-  --auth-foreground: #f5f5f5;
-  --auth-muted: #b5b5b5;
-  --auth-subtle: #777777;
-  --auth-border: #2c2c2c;
-  --auth-danger: #ff7a6b;
-  --auth-accent: #f5f5f5;
-  --auth-accent-ink: #111111;
+  --auth-bg: oklch(0.15 0.016 160);
+  --auth-surface: oklch(0.2 0.02 160);
+  --auth-elevated: oklch(0.24 0.022 160 / 72%);
+  --auth-foreground: oklch(0.965 0.01 105);
+  --auth-muted: oklch(0.75 0.015 140);
+  --auth-subtle: oklch(0.58 0.015 150);
+  --auth-border: oklch(0.965 0.01 105 / 16%);
+  --auth-danger: oklch(0.7 0.17 25);
+  --auth-accent: #5db886;
+  --auth-accent-ink: #06130b;
 
   /* Night turf: deep green-black ground, ivory type. */
   --background: oklch(0.15 0.016 160);

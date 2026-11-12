@@ -1410,12 +1410,6 @@ function TeamPanel({
   };
 
   const setPlayers = (players: PlayerRef[]) => onChange({ ...state, players });
-  const addPlayer = (p: PlayerRef) => {
-    if (state.players.find((x) => x.key === p.key)) return;
-    onChange({ ...state, players: [...state.players, p] });
-  };
-  const removePlayer = (key: string) =>
-    onChange({ ...state, players: state.players.filter((p) => p.key !== key) });
 
   return (
     <div className="relative">

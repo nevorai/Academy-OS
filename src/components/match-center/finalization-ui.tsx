@@ -128,6 +128,14 @@ export function FinalizationDialog({
             }
           : undefined,
       });
+      try {
+        for (const k of Object.keys(window.sessionStorage)) {
+          if (k.includes(tenantId) && k.toLowerCase().includes("draft"))
+            window.sessionStorage.removeItem(k);
+        }
+      } catch {
+        /* ignore */
+      }
       toast.success("Match finalized");
       notifyMatchCompleted(detectedResult.summary);
       if (pomName) notifyPlayerOfMatch(pomName);

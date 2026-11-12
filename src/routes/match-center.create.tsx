@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -48,7 +49,11 @@ import { listStudents, createTeam, addPlayersToTeam } from "@/lib/mc-teams";
 import { useDemoData, useDemoMode, updateDemoData } from "@/lib/mc-demo/store";
 import type { TeamWithCount } from "@/lib/mc-teams";
 import { toast } from "sonner";
-import { useViewportInsets, useKeyboardOpen, useVisualViewportHeight } from "@/hooks/use-visual-viewport";
+import {
+  useViewportInsets,
+  useKeyboardOpen,
+  useVisualViewportHeight,
+} from "@/hooks/use-visual-viewport";
 import { MobileViewportShell } from "@/components/ds/MobileViewportShell";
 
 export const Route = createFileRoute("/match-center/create")({
@@ -103,7 +108,11 @@ const FORMAT_OPTIONS: { label: string; overs: number; value: string }[] = [
 const PLAYING_RULES_OPTIONS = [
   { value: "T20", label: "T20 Rules", description: "Fast limited-overs rules" },
   { value: "ODI", label: "ODI Rules", description: "One-day rules" },
-  { value: "Test", label: "Test / First-Class Rules", description: "Multi-day / traditional rules" },
+  {
+    value: "Test",
+    label: "Test / First-Class Rules",
+    description: "Multi-day / traditional rules",
+  },
 ];
 
 const DRAFT_KEY = (tenantId: string) => `mc-create-draft:${tenantId}`;
@@ -153,8 +162,6 @@ function clearDraft(tenantId: string) {
   }
 }
 
-
-
 /* ==================== PAGE ==================== */
 
 function CreateMatchPage() {
@@ -162,13 +169,35 @@ function CreateMatchPage() {
   const { tenant, profile } = useDashboard();
   const navigate = useNavigate();
 
-  // Check for active match on mount to support persistence
+  // Resume scoring only if that match is still being played. A finished or locked match must never
+  // pull you back (that made "Start match" open the old scorer).
   useEffect(() => {
     const draft = readDraft(tenant.id);
-    if (draft?.activeMatchId) {
-      toast.info("Resuming active match scoring...", { duration: 2000 });
-      navigate({ to: "/scorer/$matchId", params: { matchId: draft.activeMatchId } });
-    }
+    const id = draft?.activeMatchId;
+    if (!draft || !id) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const { data } = await supabase
+          .from("mc_matches")
+          .select("status, match_locked")
+          .eq("id", id)
+          .maybeSingle();
+        if (cancelled) return;
+        const row = data as { status?: string; match_locked?: boolean } | null;
+        if (row && row.status === "live" && !row.match_locked) {
+          toast.info("Resuming the match you were scoring", { duration: 2000 });
+          navigate({ to: "/scorer/$matchId", params: { matchId: id }, replace: true });
+        } else {
+          writeDraft(tenant.id, { ...draft, activeMatchId: undefined });
+        }
+      } catch {
+        /* offline: stay on the form */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [tenant.id, navigate]);
 
   const qc = useQueryClient();
@@ -180,16 +209,16 @@ function CreateMatchPage() {
 
   const [matchType, setMatchType] = useState(draft?.matchType ?? defaults.match_type ?? "practice");
   const [matchFormat, setMatchFormat] = useState(draft?.matchFormat ?? defaults.match_format ?? "");
-  const [playingRules, setPlayingRules] = useState(draft?.playingRules ?? defaults.playing_rules ?? "T20");
+  const [playingRules, setPlayingRules] = useState(
+    draft?.playingRules ?? defaults.playing_rules ?? "T20",
+  );
   const [overs, setOvers] = useState<number>(draft?.overs ?? defaults.overs ?? 0);
   const [scheduledDate, setScheduledDate] = useState<string>(
     draft?.scheduledDate ?? new Date().toISOString().slice(0, 10),
   );
 
-
   const [panelA, setPanelA] = useState<TeamPanelState>(draft?.panelA ?? emptyPanel("new"));
   const [panelB, setPanelB] = useState<TeamPanelState>(draft?.panelB ?? emptyPanel("new"));
-
 
   // Advanced (collapsed by default)
   const [advOpen, setAdvOpen] = useState(false);
@@ -269,7 +298,6 @@ function CreateMatchPage() {
       else setPlayingRules("T20");
     }
   }, [matchFormat]);
-
 
   /* ----- Loading Playing XI when a team is picked in "existing" mode ----- */
   const loadTeamRoster = async (teamId: string): Promise<PlayerRef[]> => {
@@ -379,8 +407,10 @@ function CreateMatchPage() {
   const createM = useMutation({
     mutationFn: async () => {
       // Resolve Team A id (creating a real/demo record if needed)
-      const teamAId = await resolveTeamId(panelA, "A");
-      const teamBId = await resolveTeamId(panelB, "B");
+      const [teamAId, teamBId] = await Promise.all([
+        resolveTeamId(panelA, "A"),
+        resolveTeamId(panelB, "B"),
+      ]);
       if (teamAId === teamBId) throw new Error("Teams must be different");
 
       const isDemoMatch = teamAId.startsWith("demo-") || teamBId.startsWith("demo-");
@@ -495,27 +525,23 @@ function CreateMatchPage() {
 
       return { id: match.id, demo: false } as const;
     },
-      onSuccess: async (res) => {
+    onSuccess: async (res) => {
       // Don't clear draft yet, mark it with the active match ID so we can resume
       const currentDraft = readDraft(tenant.id);
       if (currentDraft) {
         writeDraft(tenant.id, { ...currentDraft, activeMatchId: res.id });
       }
-      
+
       qc.invalidateQueries({ queryKey: ["mc-matches", tenant.id] });
       qc.invalidateQueries({ queryKey: ["mc-all-teams", tenant.id] });
 
       // Auto-start the match so it goes live immediately and shows up
       // in Live + Matches, and land the user on the scoring screen.
       if (!res.demo) {
-        try {
-          await updateMatchStatus(res.id, "live", tenant.id);
-        } catch (e) {
-          // If the status update fails, we still created the match — surface it
-          // but continue navigating so the user can start scoring manually.
-          console.error("Auto-start match failed", e);
-        }
-        qc.invalidateQueries({ queryKey: ["mc-matches", tenant.id] });
+        // Go live in the background; the scorer opens right away.
+        void updateMatchStatus(res.id, "live", tenant.id)
+          .catch((e) => console.error("Auto-start match failed", e))
+          .finally(() => qc.invalidateQueries({ queryKey: ["mc-matches", tenant.id] }));
         toast.success("Match started");
         navigate({ to: "/scorer/$matchId", params: { matchId: res.id } });
         return;
@@ -590,9 +616,7 @@ function CreateMatchPage() {
 
   /* ==================== WIZARD ==================== */
 
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(
-    (draft?.step as 1 | 2 | 3 | 4 | 5) ?? 1,
-  );
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>((draft?.step as 1 | 2 | 3 | 4 | 5) ?? 1);
 
   // Persist wizard state to sessionStorage on every change
   useEffect(() => {
@@ -617,9 +641,23 @@ function CreateMatchPage() {
       savedAt: Date.now(),
     });
   }, [
-    tenant.id, step, matchType, matchFormat, overs, scheduledDate,
-    panelA, panelB, ground, pitch, weather, scorer, umpire, notes,
-    visibility, streamingUrl, ballType,
+    tenant.id,
+    step,
+    matchType,
+    matchFormat,
+    overs,
+    scheduledDate,
+    panelA,
+    panelB,
+    ground,
+    pitch,
+    weather,
+    scorer,
+    umpire,
+    notes,
+    visibility,
+    streamingUrl,
+    ballType,
   ]);
 
   const resetDraft = () => {
@@ -632,12 +670,17 @@ function CreateMatchPage() {
     setScheduledDate(new Date().toISOString().slice(0, 10));
     setPanelA(emptyPanel("new"));
     setPanelB(emptyPanel("new"));
-    setGround(""); setPitch(""); setWeather("");
-    setScorer(""); setUmpire(""); setNotes("");
-    setVisibility("public"); setStreamingUrl(""); setBallType("");
+    setGround("");
+    setPitch("");
+    setWeather("");
+    setScorer("");
+    setUmpire("");
+    setNotes("");
+    setVisibility("public");
+    setStreamingUrl("");
+    setBallType("");
     setShowResumedToast(false);
   };
-
 
   const readyA =
     panelA.mode === "existing" ? !!panelA.selectedTeamId : panelA.draftName.trim().length > 0;
@@ -645,11 +688,11 @@ function CreateMatchPage() {
     panelB.mode === "existing" ? !!panelB.selectedTeamId : panelB.draftName.trim().length > 0;
 
   const step1Valid = !!matchType && !!matchFormat && overs > 0;
-  
-  const hasRolesA = panelA.players.some(p => p.is_captain) && 
-                    panelA.players.some(p => p.is_keeper);
-  const hasRolesB = panelB.players.some(p => p.is_captain) && 
-                    panelB.players.some(p => p.is_keeper);
+
+  const hasRolesA =
+    panelA.players.some((p) => p.is_captain) && panelA.players.some((p) => p.is_keeper);
+  const hasRolesB =
+    panelB.players.some((p) => p.is_captain) && panelB.players.some((p) => p.is_keeper);
 
   const step2Valid = readyA && panelA.players.length >= 2 && hasRolesA;
   const step3Valid = readyB && panelB.players.length >= 2 && hasRolesB;
@@ -664,7 +707,7 @@ function CreateMatchPage() {
       navigate({ to: "/match-center/matches" });
       return;
     }
-    setStep(((step - 1) as 1 | 2 | 3 | 4 | 5));
+    setStep((step - 1) as 1 | 2 | 3 | 4 | 5);
   };
 
   const goNext = (e?: React.MouseEvent) => {
@@ -673,21 +716,20 @@ function CreateMatchPage() {
       e.stopPropagation();
     }
     if (canContinue) {
-      setStep(((Math.min(5, step + 1)) as 1 | 2 | 3 | 4 | 5));
+      setStep(Math.min(5, step + 1) as 1 | 2 | 3 | 4 | 5);
     }
   };
-
 
   const stepTitle =
     step === 1
       ? "Match setup"
       : step === 2
-      ? "Team A"
-      : step === 3
-      ? "Team B"
-      : step === 4
-      ? "Advanced · optional"
-      : "Review & start";
+        ? "Team A"
+        : step === 3
+          ? "Team B"
+          : step === 4
+            ? "Advanced · optional"
+            : "Review & start";
 
   const canContinue =
     step === 1 ? step1Valid : step === 2 ? step2Valid : step === 3 ? step3Valid : true;
@@ -698,9 +740,7 @@ function CreateMatchPage() {
         <div className="mx-3 mb-2 flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs sm:mx-0 sm:mb-3">
           <div className="flex items-center gap-2">
             <RefreshCcw className="h-3.5 w-3.5 text-primary animate-in fade-in zoom-in duration-500" />
-            <span className="text-foreground">
-              Continue with previous draft or start afresh?
-            </span>
+            <span className="text-foreground">Continue with previous draft or start afresh?</span>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -743,7 +783,6 @@ function CreateMatchPage() {
       <div className="border-b border-border bg-card shadow-sm sm:rounded-3xl sm:border">
         <div className="px-4 py-4 sm:p-6">
           <div>
-
             {step === 1 && (
               <StepSetup
                 matchType={matchType}
@@ -790,7 +829,6 @@ function CreateMatchPage() {
                 canContinue={canContinue}
               />
             )}
-
 
             {step === 4 && (
               <StepAdvanced
@@ -885,7 +923,11 @@ function CreateMatchPage() {
             </div>
             {!canContinue && step === 1 && (
               <div className="text-[10px] text-center text-amber-600 font-bold bg-amber-50 dark:bg-amber-900/10 rounded-lg py-1 px-2 border border-amber-100 dark:border-amber-900/20">
-                {!matchFormat ? "Select match overs" : overs <= 0 ? "Invalid overs count" : "Complete setup to continue"}
+                {!matchFormat
+                  ? "Select match overs"
+                  : overs <= 0
+                    ? "Invalid overs count"
+                    : "Complete setup to continue"}
               </div>
             )}
             {!canStart && step === 5 && validationError && (
@@ -894,14 +936,11 @@ function CreateMatchPage() {
               </div>
             )}
           </div>
-
         )}
       </div>
     </div>
   );
 }
-
-
 
 /* ==================== STEP 1 · SETUP ==================== */
 
@@ -992,26 +1031,26 @@ function StepSetup({
         </p>
       </section>
 
-        {matchFormat === "Custom" && (
-          <div className="mt-4 flex items-center gap-2 rounded-2xl border border-border bg-background p-3">
-            <Label className="text-sm">Overs per side</Label>
-            <Input
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={200}
-              value={overs || ""}
-              onChange={(e) => setOvers(Math.max(1, Number(e.target.value) || 1))}
-              className="ml-auto h-11 w-24 text-center text-base"
-            />
-          </div>
-        )}
+      {matchFormat === "Custom" && (
+        <div className="mt-4 flex items-center gap-2 rounded-2xl border border-border bg-background p-3">
+          <Label className="text-sm">Overs per side</Label>
+          <Input
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={200}
+            value={overs || ""}
+            onChange={(e) => setOvers(Math.max(1, Number(e.target.value) || 1))}
+            className="ml-auto h-11 w-24 text-center text-base"
+          />
+        </div>
+      )}
 
-        {matchFormat && matchFormat !== "Custom" && (
-          <p className="mt-3 text-xs text-muted-foreground">
-            {overs} overs per side · You can change this later.
-          </p>
-        )}
+      {matchFormat && matchFormat !== "Custom" && (
+        <p className="mt-3 text-xs text-muted-foreground">
+          {overs} overs per side · You can change this later.
+        </p>
+      )}
     </div>
   );
 }
@@ -1109,7 +1148,12 @@ function StepAdvanced({
             />
             <FieldInput label="Scorer" value={scorer} onChange={setScorer} />
             <FieldInput label="Umpire" value={umpire} onChange={setUmpire} />
-            <FieldInput label="Date" type="date" value={scheduledDate} onChange={setScheduledDate} />
+            <FieldInput
+              label="Date"
+              type="date"
+              value={scheduledDate}
+              onChange={setScheduledDate}
+            />
             <FieldInput
               label="Streaming URL"
               value={streamingUrl}
@@ -1143,7 +1187,6 @@ function StepAdvanced({
     </div>
   );
 }
-
 
 /* ==================== STEP 5 · REVIEW ==================== */
 
@@ -1302,8 +1345,6 @@ function ReviewTeamCard({
 
 /* ==================== CHIPS ==================== */
 
-
-
 function ChoiceChip({
   active,
   onClick,
@@ -1362,7 +1403,6 @@ function TeamPanel({
     onChange({ ...emptyPanel(mode), draftName: state.draftName });
   };
 
-
   const setPlayers = (players: PlayerRef[]) => onChange({ ...state, players });
   const addPlayer = (p: PlayerRef) => {
     if (state.players.find((x) => x.key === p.key)) return;
@@ -1383,8 +1423,6 @@ function TeamPanel({
         </button>
       </div>
 
-
-
       {/* Body */}
       {state.mode === "existing" && (
         <div className="space-y-4">
@@ -1395,27 +1433,27 @@ function TeamPanel({
             onSelect={(id) => onChange({ ...state, selectedTeamId: id })}
             loading={teamsLoading}
           />
-          
+
           {/* Fixed footer for Existing mode to match New mode layout/behavior */}
           <div className="flex items-center gap-3 mt-6">
-             <Button 
-               type="button"
-               variant="outline" 
-               className="h-12 flex-1 text-sm font-bold rounded-2xl border-border/60 hover:bg-muted" 
-               onClick={goBack}
-             >
-               <ArrowLeft className="mr-2 size-4" />
-               Back
-             </Button>
-             <Button 
-               type="button"
-               className="h-12 flex-[2] text-sm font-bold rounded-2xl shadow-lg shadow-primary/10" 
-               disabled={!state.selectedTeamId}
-               onClick={goNext}
-             >
-               Continue
-               <ChevronRight className="ml-2 size-4" />
-             </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 flex-1 text-sm font-bold rounded-2xl border-border/60 hover:bg-muted"
+              onClick={goBack}
+            >
+              <ArrowLeft className="mr-2 size-4" />
+              Back
+            </Button>
+            <Button
+              type="button"
+              className="h-12 flex-[2] text-sm font-bold rounded-2xl shadow-lg shadow-primary/10"
+              disabled={!state.selectedTeamId}
+              onClick={goNext}
+            >
+              Continue
+              <ChevronRight className="ml-2 size-4" />
+            </Button>
           </div>
         </div>
       )}
@@ -1436,15 +1474,9 @@ function TeamPanel({
           canContinue={canContinue}
         />
       )}
-
-
-
-
     </div>
   );
 }
-
-
 
 /* --- Existing team --- */
 
@@ -1588,7 +1620,6 @@ function NewTeamBody({
   goNext: (e?: React.MouseEvent) => void;
   canContinue: boolean;
 }) {
-
   const [q, setQ] = useState("");
   const selectedKeys = useMemo(() => new Set(players.map((p) => p.key)), [players]);
 
@@ -1616,8 +1647,7 @@ function NewTeamBody({
 
   const trimmed = q.trim();
   const exactAcademyMatch =
-    trimmed.length > 0 &&
-    results.some((r) => r.name.toLowerCase() === trimmed.toLowerCase());
+    trimmed.length > 0 && results.some((r) => r.name.toLowerCase() === trimmed.toLowerCase());
 
   const addGuest = () => {
     if (!trimmed) return;
@@ -1641,7 +1671,7 @@ function NewTeamBody({
     }
   };
 
-  const hasRoles = players.some(p => p.is_captain) && players.some(p => p.is_keeper);
+  const hasRoles = players.some((p) => p.is_captain) && players.some((p) => p.is_keeper);
 
   return (
     <MobileViewportShell
@@ -1650,7 +1680,9 @@ function NewTeamBody({
         <div className="flex-none p-4 pb-3 border-b bg-card">
           <div className="flex items-center gap-4">
             <div className="flex-1">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5 block">Team name</Label>
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5 block">
+                Team name
+              </Label>
               <Input
                 value={name}
                 onChange={(e) => onName(e.target.value)}
@@ -1661,10 +1693,14 @@ function NewTeamBody({
             <div className="flex flex-col items-end gap-1.5 shrink-0 pt-5">
               <div className="flex items-center gap-1.5">
                 <span className="text-[11px] font-bold text-muted-foreground">XI</span>
-                <span className={cn(
-                  "flex h-6 min-w-8 items-center justify-center rounded-lg px-2 text-[11px] font-bold",
-                  players.length >= 11 ? "bg-emerald-500/10 text-emerald-600" : "bg-primary/10 text-primary"
-                )}>
+                <span
+                  className={cn(
+                    "flex h-6 min-w-8 items-center justify-center rounded-lg px-2 text-[11px] font-bold",
+                    players.length >= 11
+                      ? "bg-emerald-500/10 text-emerald-600"
+                      : "bg-primary/10 text-primary",
+                  )}
+                >
                   {players.length}/11
                 </span>
               </div>
@@ -1674,15 +1710,19 @@ function NewTeamBody({
           {players.length > 0 && (
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
               <div className="flex items-center gap-1.5 text-[10px]">
-                {players.some(p => p.is_captain) ? (
-                  <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> Captain</span>
+                {players.some((p) => p.is_captain) ? (
+                  <span className="flex items-center gap-1 text-emerald-600 font-bold">
+                    <CheckCircle2 className="size-3" /> Captain
+                  </span>
                 ) : (
                   <span className="text-amber-600 font-medium">Captain required</span>
                 )}
               </div>
               <div className="flex items-center gap-1.5 text-[10px]">
-                {players.some(p => p.is_keeper) ? (
-                  <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> WK</span>
+                {players.some((p) => p.is_keeper) ? (
+                  <span className="flex items-center gap-1 text-emerald-600 font-bold">
+                    <CheckCircle2 className="size-3" /> WK
+                  </span>
                 ) : (
                   <span className="text-amber-600 font-medium">WK required</span>
                 )}
@@ -1702,7 +1742,9 @@ function NewTeamBody({
           {trimmed && (
             <div className="absolute bottom-full left-0 right-0 mx-3 mb-2 max-h-48 space-y-1 overflow-y-auto rounded-2xl border border-border bg-popover shadow-2xl p-1 z-50">
               {studentsLoading ? (
-                <div className="p-3 text-sm text-muted-foreground animate-pulse">Searching academy...</div>
+                <div className="p-3 text-sm text-muted-foreground animate-pulse">
+                  Searching academy...
+                </div>
               ) : (
                 <>
                   {results.map((p) => (
@@ -1715,8 +1757,15 @@ function NewTeamBody({
                       }}
                       className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left hover:bg-accent transition-colors"
                     >
-                      <Avatar src={p.photo_url} name={p.name} size={32} className="rounded-full shrink-0" />
-                      <span className="min-w-0 flex-1 truncate text-sm font-semibold">{p.name}</span>
+                      <Avatar
+                        src={p.photo_url}
+                        name={p.name}
+                        size={32}
+                        className="rounded-full shrink-0"
+                      />
+                      <span className="min-w-0 flex-1 truncate text-sm font-semibold">
+                        {p.name}
+                      </span>
                       <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-bold text-primary shrink-0">
                         ACADEMY
                       </span>
@@ -1763,35 +1812,40 @@ function NewTeamBody({
           {/* Navigation Column (Horizontal) */}
           <div className="flex flex-col gap-2 p-4 pt-1 pb-6 md:pb-4">
             <div className="flex items-center gap-3">
-               <Button 
-                 type="button"
-                 variant="outline" 
-                 className="h-12 flex-1 text-sm font-bold rounded-2xl border-border/60 hover:bg-muted" 
-                 onClick={(e) => {
-                   e.preventDefault();
-                   e.stopPropagation();
-                   const btn = document.querySelector('[data-step-nav="back"]') as HTMLButtonElement;
-                   if (btn) btn.click();
-                 }}
-               >
-                 <ChevronLeft className="mr-2 size-4" /> Back
-               </Button>
-               <Button 
-                 type="button"
-                 disabled={!canContinue}
-                 className="h-12 flex-[2] text-sm font-bold rounded-2xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20" 
-                 onClick={() => goNext()}
-               >
-                 Continue <ChevronRight className="ml-2 size-4" />
-               </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-12 flex-1 text-sm font-bold rounded-2xl border-border/60 hover:bg-muted"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const btn = document.querySelector('[data-step-nav="back"]') as HTMLButtonElement;
+                  if (btn) btn.click();
+                }}
+              >
+                <ChevronLeft className="mr-2 size-4" /> Back
+              </Button>
+              <Button
+                type="button"
+                disabled={!canContinue}
+                className="h-12 flex-[2] text-sm font-bold rounded-2xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
+                onClick={() => goNext()}
+              >
+                Continue <ChevronRight className="ml-2 size-4" />
+              </Button>
             </div>
 
             {!canContinue && (
               <div className="text-[10px] text-center text-amber-600 font-bold bg-amber-50 dark:bg-amber-900/10 rounded-lg py-1 px-2 border border-amber-100 dark:border-amber-900/20">
-                {!name.trim() ? "Team name required" : 
-                 players.length < 2 ? "Add at least 2 players" : 
-                 !players.some(p => p.is_captain) ? "Captain missing" : 
-                 !players.some(p => p.is_keeper) ? "Wicketkeeper missing" : "Check requirements"}
+                {!name.trim()
+                  ? "Team name required"
+                  : players.length < 2
+                    ? "Add at least 2 players"
+                    : !players.some((p) => p.is_captain)
+                      ? "Captain missing"
+                      : !players.some((p) => p.is_keeper)
+                        ? "Wicketkeeper missing"
+                        : "Check requirements"}
               </div>
             )}
           </div>
@@ -1801,10 +1855,10 @@ function NewTeamBody({
       {/* ROSTER: Scrollable list of players */}
       <div className="p-3">
         {players.length > 0 ? (
-          <SquadList 
-            players={[...players].reverse()} 
-            onPlayers={(p) => onPlayers([...p].reverse())} 
-            onRemove={onRemove} 
+          <SquadList
+            players={[...players].reverse()}
+            onPlayers={(p) => onPlayers([...p].reverse())}
+            onRemove={onRemove}
           />
         ) : (
           <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground/30">
@@ -1819,13 +1873,6 @@ function NewTeamBody({
     </MobileViewportShell>
   );
 }
-
-
-
-
-
-
-
 
 function SquadList({
   players,
@@ -1871,11 +1918,28 @@ function SquadList({
             {idx + 1}
           </span>
           <Avatar src={p.photo_url} name={p.name} size={24} className="rounded-full shrink-0" />
-          <span className="min-w-0 flex-1 truncate text-xs font-semibold text-foreground tracking-tight">{p.name}</span>
+          <span className="min-w-0 flex-1 truncate text-xs font-semibold text-foreground tracking-tight">
+            {p.name}
+          </span>
           <div className="flex gap-0.5 shrink-0">
-            <RoleButton active={!!p.is_captain} onClick={() => setRole(p.key, "C")} label="C" color="amber" />
-            <RoleButton active={!!p.is_vice_captain} onClick={() => setRole(p.key, "VC")} label="VC" color="sky" />
-            <RoleButton active={!!p.is_keeper} onClick={() => setRole(p.key, "WK")} label="WK" color="emerald" />
+            <RoleButton
+              active={!!p.is_captain}
+              onClick={() => setRole(p.key, "C")}
+              label="C"
+              color="amber"
+            />
+            <RoleButton
+              active={!!p.is_vice_captain}
+              onClick={() => setRole(p.key, "VC")}
+              label="VC"
+              color="sky"
+            />
+            <RoleButton
+              active={!!p.is_keeper}
+              onClick={() => setRole(p.key, "WK")}
+              label="WK"
+              color="emerald"
+            />
           </div>
           <button
             type="button"
@@ -1891,11 +1955,25 @@ function SquadList({
   );
 }
 
-function RoleButton({ active, onClick, label, color }: { active: boolean; onClick: () => void; label: string; color: "amber" | "sky" | "emerald" }) {
+function RoleButton({
+  active,
+  onClick,
+  label,
+  color,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  color: "amber" | "sky" | "emerald";
+}) {
   const colors = {
-    amber: active ? "border-amber-500 bg-amber-500 text-white" : "border-border text-muted-foreground",
+    amber: active
+      ? "border-amber-500 bg-amber-500 text-white"
+      : "border-border text-muted-foreground",
     sky: active ? "border-sky-500 bg-sky-500 text-white" : "border-border text-muted-foreground",
-    emerald: active ? "border-emerald-500 bg-emerald-500 text-white" : "border-border text-muted-foreground",
+    emerald: active
+      ? "border-emerald-500 bg-emerald-500 text-white"
+      : "border-border text-muted-foreground",
   };
   return (
     <button
@@ -1903,7 +1981,7 @@ function RoleButton({ active, onClick, label, color }: { active: boolean; onClic
       onClick={onClick}
       className={cn(
         "rounded-lg border px-1 py-0.5 text-[9px] font-black transition-all active:scale-95 shrink-0 min-w-[24px] text-center",
-        colors[color]
+        colors[color],
       )}
     >
       {label}
@@ -1912,8 +1990,6 @@ function RoleButton({ active, onClick, label, color }: { active: boolean; onClic
 }
 
 /* SummaryCard removed — replaced by wizard StepReview + sticky footer. */
-
-
 
 /* ==================== SHARED FIELD ==================== */
 

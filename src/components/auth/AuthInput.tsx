@@ -24,17 +24,14 @@ export const AuthInput = forwardRef<HTMLInputElement, BaseProps>(function AuthIn
 
   return (
     <div>
-      <label
-        htmlFor={inputId}
-        className="mb-1.5 block text-[13px] font-medium text-auth-muted"
-      >
+      <label htmlFor={inputId} className="mb-1.5 block text-[13px] font-medium text-auth-muted">
         {label}
       </label>
       <div
         className={`group flex h-12 items-center gap-2.5 rounded-lg border bg-auth-surface/70 px-3 transition-colors duration-200 ${
           error
             ? "border-auth-danger"
-            : "border-auth-border focus-within:border-auth-accent focus-within:ring-2 focus-within:ring-auth-accent/25"
+            : "border-auth-border focus-within:border-auth-accent focus-within:bg-auth-surface focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--auth-accent)_16%,transparent)]"
         }`}
       >
         {icon ? <span className="shrink-0 text-auth-subtle">{icon}</span> : null}
@@ -61,14 +58,7 @@ export const AuthInput = forwardRef<HTMLInputElement, BaseProps>(function AuthIn
 });
 
 /** Password field with a show/hide toggle that keeps focus and stays screen-reader labelled. */
-export function PasswordInput({
-  label,
-  icon,
-  error,
-  hint,
-  id,
-  ...rest
-}: BaseProps) {
+export function PasswordInput({ label, icon, error, hint, id, ...rest }: BaseProps) {
   const [visible, setVisible] = useState(false);
   const generated = useId();
   const inputId = id ?? generated;
@@ -83,7 +73,7 @@ export function PasswordInput({
         className={`group flex h-12 items-center gap-2.5 rounded-lg border bg-auth-surface/70 px-3 transition-colors duration-200 ${
           error
             ? "border-auth-danger"
-            : "border-auth-border focus-within:border-auth-accent focus-within:ring-2 focus-within:ring-auth-accent/25"
+            : "border-auth-border focus-within:border-auth-accent focus-within:bg-auth-surface focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--auth-accent)_16%,transparent)]"
         }`}
       >
         {icon ? <span className="shrink-0 text-auth-subtle">{icon}</span> : null}

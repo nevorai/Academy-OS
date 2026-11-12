@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { AtSign, KeyRound, Mail, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { toE164, isLikelyEmail } from "@/lib/phone";
@@ -22,8 +22,7 @@ function safeNext(value: unknown): string | undefined {
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (s: Record<string, unknown>): AuthSearch => ({
-    mode:
-      s.mode === "forgot" || s.mode === "reset" || s.mode === "signin" ? s.mode : undefined,
+    mode: s.mode === "forgot" || s.mode === "reset" || s.mode === "signin" ? s.mode : undefined,
     next: safeNext(s.next),
   }),
   head: () => ({
@@ -167,12 +166,18 @@ function AuthPage() {
         setFormError("Incorrect password. Please check and try again.");
       } else if (msg.includes("user not found")) {
         setFormError(
-          <div className="space-y-2">
-            <p>Your account is not created. Please first do registration.</p>
-            <Button asChild variant="outline" className="w-full border-red-200 bg-red-50 text-red-900 hover:bg-red-100">
-              <Link to="/register">Do Registration</Link>
-            </Button>
-          </div> as any
+          (
+            <div className="space-y-2">
+              <p>Your account is not created. Please first do registration.</p>
+              <Button
+                asChild
+                variant="outline"
+                className="w-full border-red-200 bg-red-50 text-red-900 hover:bg-red-100"
+              >
+                <Link to="/register">Do Registration</Link>
+              </Button>
+            </div>
+          ) as any,
         );
       } else {
         setFormError("Check your details and try again. Make sure your email or phone is correct.");
@@ -227,7 +232,11 @@ function AuthPage() {
   }
 
   const title =
-    mode === "reset" ? "Set a new password" : mode === "forgot" ? "Forgot password" : "Welcome back";
+    mode === "reset"
+      ? "Set a new password"
+      : mode === "forgot"
+        ? "Forgot password"
+        : "Welcome back";
   const subtitle =
     mode === "reset"
       ? "Choose a new password to finish signing in."
@@ -248,7 +257,6 @@ function AuthPage() {
         <p className="mt-2.5 text-[14px] leading-relaxed text-auth-muted">{subtitle}</p>
 
         {/* Moved Register CTA to the pill in the layout header per Task C */}
-        
 
         {mode === "signin" && (
           <form onSubmit={onSignIn} className="mt-6 space-y-4" noValidate>
@@ -264,7 +272,6 @@ function AuthPage() {
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               placeholder="Email, phone or Player ID"
-              icon={<AtSign className="size-4" aria-hidden />}
             />
             <PasswordInput
               id="password"
@@ -273,7 +280,6 @@ function AuthPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
-              icon={<KeyRound className="size-4" aria-hidden />}
             />
             <div className="flex justify-end">
               <button
@@ -297,7 +303,11 @@ function AuthPage() {
               </div>
             </div>
 
-            <Button asChild variant="outline" className="h-[50px] w-full rounded-lg border-auth-border bg-transparent text-[15px] font-semibold tracking-tight text-auth-foreground hover:bg-auth-foreground/5">
+            <Button
+              asChild
+              variant="outline"
+              className="h-[50px] w-full rounded-lg border-auth-border bg-transparent text-[15px] font-semibold tracking-tight text-auth-foreground hover:bg-auth-foreground/5"
+            >
               <Link to="/register">Create an account</Link>
             </Button>
           </form>
@@ -337,7 +347,6 @@ function AuthPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                icon={<Mail className="size-4" aria-hidden />}
               />
               <AuthButton type="submit" loading={loading} loadingLabel="Sending…" showArrow={false}>
                 Send reset link
@@ -362,20 +371,13 @@ function AuthPage() {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="At least 8 characters"
-              icon={<KeyRound className="size-4" aria-hidden />}
               hint="Use at least 8 characters."
             />
-            <AuthButton
-              type="submit"
-              loading={loading}
-              loadingLabel="Updating…"
-              showArrow={false}
-            >
+            <AuthButton type="submit" loading={loading} loadingLabel="Updating…" showArrow={false}>
               Update password
             </AuthButton>
           </form>
         )}
-
       </motion.div>
     </AcademyAuthLayout>
   );

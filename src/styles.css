@@ -952,3 +952,12 @@ main:has(> .pub-inner) + footer {
     transition: none;
   }
 }
+
+/* Member-portal fields: the whole box highlights (see AuthInput). Kill the global inner focus ring
+   (outline + box-shadow + radius from :focus-visible) that drew a second blue box inside the field. */
+.auth-surface input:focus,
+.auth-surface input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}

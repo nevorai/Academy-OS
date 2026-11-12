@@ -20,7 +20,7 @@ export function AuthButton({
       {...rest}
       disabled={disabled || loading}
       aria-busy={loading}
-      className="flex h-[50px] w-full items-center justify-center gap-2 rounded-lg bg-auth-accent text-[15px] font-semibold tracking-tight text-auth-accent-ink transition-all duration-200 hover:opacity-90 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40 motion-reduce:transition-none motion-reduce:active:scale-100"
+      className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-auth-accent text-[15px] font-semibold tracking-tight text-auth-accent-ink transition-all duration-200 hover:opacity-90 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40 motion-reduce:transition-none motion-reduce:active:scale-100"
     >
       {loading ? (
         <>

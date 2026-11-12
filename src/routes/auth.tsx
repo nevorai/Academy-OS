@@ -251,15 +251,13 @@ function AuthPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.28, ease: "easeOut" }}
       >
-        <h1 className="text-[30px] font-semibold leading-[1.1] tracking-tight sm:text-[34px]">
-          {title}
-        </h1>
-        <p className="mt-2.5 text-[14px] leading-relaxed text-auth-muted">{subtitle}</p>
+        <h1 className="text-[24px] font-semibold leading-tight tracking-tight">{title}</h1>
+        <p className="mt-1 text-[13.5px] leading-snug text-auth-subtle">{subtitle}</p>
 
         {/* Moved Register CTA to the pill in the layout header per Task C */}
 
         {mode === "signin" && (
-          <form onSubmit={onSignIn} className="mt-6 space-y-4" noValidate>
+          <form onSubmit={onSignIn} className="mt-5 space-y-3.5" noValidate>
             <AuthError message={formError} />
             <AuthInput
               id="identifier"
@@ -285,7 +283,7 @@ function AuthPage() {
               <button
                 type="button"
                 onClick={() => switchMode("forgot")}
-                className="-my-1 py-2 text-[13px] font-medium text-auth-accent transition-opacity hover:opacity-80"
+                className="-mt-1 py-1 text-[13px] font-medium text-auth-accent transition-opacity hover:opacity-80"
               >
                 Forgot password?
               </button>
@@ -294,7 +292,7 @@ function AuthPage() {
               Sign in
             </AuthButton>
 
-            <div className="relative py-4">
+            <div className="relative py-2">
               <div className="absolute inset-0 flex items-center" aria-hidden="true">
                 <div className="w-full border-t border-auth-border" />
               </div>
@@ -306,7 +304,7 @@ function AuthPage() {
             <Button
               asChild
               variant="outline"
-              className="h-[50px] w-full rounded-lg border-auth-border bg-transparent text-[15px] font-semibold tracking-tight text-auth-foreground hover:bg-auth-foreground/5"
+              className="h-11 w-full rounded-lg border-auth-border bg-transparent text-[15px] font-semibold tracking-tight text-auth-foreground hover:bg-auth-foreground/5"
             >
               <Link to="/register">Create an account</Link>
             </Button>
@@ -315,7 +313,7 @@ function AuthPage() {
 
         {mode === "forgot" &&
           (sentTo ? (
-            <div className="mt-6 space-y-4">
+            <div className="mt-5 space-y-3.5">
               <div className="rounded-lg border border-auth-border p-4">
                 <div className="flex items-center gap-2 text-[15px] font-semibold">
                   <ShieldCheck className="size-4 text-auth-accent" aria-hidden />
@@ -334,7 +332,7 @@ function AuthPage() {
               </button>
             </div>
           ) : (
-            <form onSubmit={onForgot} className="mt-6 space-y-4" noValidate>
+            <form onSubmit={onForgot} className="mt-5 space-y-3.5" noValidate>
               <AuthError message={formError} />
               <AuthInput
                 id="forgot-email"
@@ -362,7 +360,7 @@ function AuthPage() {
           ))}
 
         {mode === "reset" && (
-          <form onSubmit={onReset} className="mt-6 space-y-4" noValidate>
+          <form onSubmit={onReset} className="mt-5 space-y-3.5" noValidate>
             <AuthError message={formError} />
             <PasswordInput
               id="new-password"

@@ -52,8 +52,13 @@ export function useAcademyBrand(): AcademyBrand {
     const name = tenant.name ?? "Nevorai Academy";
     const initials =
       (tenant.short_name?.trim() ||
-        name.split(/\s+/).slice(0, 2).map((w) => w[0]).join("")) ?? "A";
-    
+        name
+          .split(/\s+/)
+          .slice(0, 2)
+          .map((w) => w[0])
+          .join("")) ??
+      "A";
+
     // Owner-uploaded login artwork wins; otherwise reuse the homepage hero.
     const login = getPageHeroImages(tenant, "login");
     const heroImages = login.length > 0 ? login : getPageHeroImages(tenant, "home");
@@ -108,7 +113,7 @@ export function AcademyAuthLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="auth-surface relative min-h-dvh w-full overflow-x-clip bg-auth-bg text-auth-foreground lg:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
-      <aside className="relative isolate flex h-[184px] flex-col justify-between overflow-hidden bg-[#0b2616] px-5 pb-9 pt-[max(1.25rem,var(--app-safe-top))] text-white lg:sticky lg:top-0 lg:h-dvh lg:px-12 lg:py-12">
+      <aside className="relative isolate flex h-[120px] flex-col justify-between overflow-hidden bg-[#0b2616] px-5 pb-6 pt-[max(1.25rem,var(--app-safe-top))] text-white lg:sticky lg:top-0 lg:h-dvh lg:px-12 lg:py-12">
         <div className="absolute inset-0 -z-30 bg-[linear-gradient(160deg,#0b2616_0%,#0f3a22_55%,#145232_100%)]" />
         {wide && hasArt ? (
           <div className="absolute inset-0 -z-20 opacity-30">
@@ -136,7 +141,9 @@ export function AcademyAuthLayout({ children }: { children: ReactNode }) {
             className="size-10 border-white/25! bg-white! lg:size-11"
           />
           <span className="min-w-0">
-            <span className="block truncate text-[15px] font-semibold tracking-tight">{brand.name}</span>
+            <span className="block truncate text-[15px] font-semibold tracking-tight">
+              {brand.name}
+            </span>
             <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-[#E2B857]">
               Member portal
             </span>
@@ -162,8 +169,8 @@ export function AcademyAuthLayout({ children }: { children: ReactNode }) {
 
       <ThemeSwitch />
 
-      <div className="relative z-10 -mt-5 flex min-h-[calc(100dvh-164px)] flex-col rounded-t-[20px] bg-auth-bg lg:mt-0 lg:min-h-dvh lg:rounded-none">
-        <main className="flex flex-1 items-center justify-center px-5 pb-8 pt-8 sm:px-8 lg:py-14">
+      <div className="relative z-10 -mt-5 flex min-h-[calc(100dvh-100px)] flex-col rounded-t-[20px] bg-auth-bg lg:mt-0 lg:min-h-dvh lg:rounded-none">
+        <main className="flex flex-1 items-start justify-center lg:items-center px-5 pb-6 pt-6 sm:px-8 lg:py-14">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -175,7 +182,10 @@ export function AcademyAuthLayout({ children }: { children: ReactNode }) {
         </main>
 
         <footer className="px-5 pb-[max(1.5rem,var(--app-safe-bottom))] text-center sm:px-8">
-          <Link to="/" className="inline-block py-2 text-[12px] text-auth-subtle transition-colors hover:text-auth-foreground">
+          <Link
+            to="/"
+            className="inline-block py-2 text-[12px] text-auth-subtle transition-colors hover:text-auth-foreground"
+          >
             ← Back to {brand.resolved ? "academy website" : "home"}
           </Link>
         </footer>

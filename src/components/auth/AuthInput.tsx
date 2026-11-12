@@ -10,7 +10,7 @@ interface BaseProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "classNa
 
 /** The field itself is the box (see `.auth-field` in styles.css): one border, one soft highlight on focus. */
 const FIELD =
-  "auth-field block h-12 w-full min-w-0 rounded-lg border border-auth-border bg-auth-surface px-3.5 text-[16px] text-auth-foreground transition-[border-color,box-shadow] duration-150 placeholder:text-auth-subtle";
+  "auth-field block h-11 w-full min-w-0 rounded-lg border border-auth-border bg-auth-surface px-3.5 text-[16px] text-auth-foreground transition-[border-color,box-shadow] duration-150 placeholder:text-auth-subtle";
 
 function Message({ id, error, hint }: { id: string; error?: string | null; hint?: string }) {
   if (error)
@@ -38,7 +38,7 @@ export const AuthInput = forwardRef<HTMLInputElement, BaseProps>(function AuthIn
   const describedBy = error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined;
   return (
     <div>
-      <label htmlFor={inputId} className="mb-1.5 block text-[13px] font-medium text-auth-muted">
+      <label htmlFor={inputId} className="mb-1 block text-[12.5px] font-medium text-auth-muted">
         {label}
       </label>
       <input
@@ -62,7 +62,7 @@ export function PasswordInput({ label, error, hint, id, icon: _icon, ...rest }: 
   const describedBy = error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined;
   return (
     <div>
-      <label htmlFor={inputId} className="mb-1.5 block text-[13px] font-medium text-auth-muted">
+      <label htmlFor={inputId} className="mb-1 block text-[12.5px] font-medium text-auth-muted">
         {label}
       </label>
       <div className="relative">

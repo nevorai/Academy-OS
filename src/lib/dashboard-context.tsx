@@ -1,3 +1,4 @@
+import { SplashScreen } from "@/components/ds/SplashScreen";
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -28,6 +29,33 @@ export function useDashboardOptional() {
   return useContext(Ctx);
 }
 
+/** Last-known copies kept on this phone, so the dashboard opens instantly and refreshes in the background. */
+function readCache<T>(key: string): T | undefined {
+  try {
+    if (typeof window === "undefined") return undefined;
+    const raw = window.localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+function writeCache(key: string, value: unknown) {
+  try {
+    if (value) window.localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* storage full or blocked: fine */
+  }
+}
+function clearCaches() {
+  try {
+    for (const k of Object.keys(window.localStorage))
+      if (k.startsWith("acad.profile.") || k.startsWith("acad.tenant."))
+        window.localStorage.removeItem(k);
+  } catch {
+    /* ignore */
+  }
+}
+
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const [session, setSession] = useState<Session | null | undefined>(undefined);
@@ -39,7 +67,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s);
-      if (!s) navigate({ to: "/auth" });
+      if (!s) {
+        clearCaches();
+        navigate({ to: "/auth" });
+      }
     });
     return () => {
       active = false;
@@ -52,6 +83,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const profileQ = useQuery({
     enabled: !!uid,
     queryKey: ["dashboard-profile", uid],
+    initialData: () => (uid ? readCache<Profile>(`acad.profile.${uid}`) : undefined),
+    initialDataUpdatedAt: 0,
     queryFn: async (): Promise<Profile | null> => {
       const { data, error } = await supabase
         .from("profiles")
@@ -59,6 +92,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         .eq("user_id", uid!)
         .maybeSingle();
       if (error) throw error;
+      writeCache(`acad.profile.${uid}`, data);
       return data;
     },
   });
@@ -72,6 +106,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const tenantQ = useQuery({
     enabled: !!tenantId,
     queryKey: ["dashboard-tenant", tenantId],
+    initialData: () => (tenantId ? readCache<Tenant>(`acad.tenant.${tenantId}`) : undefined),
+    initialDataUpdatedAt: 0,
     queryFn: async (): Promise<Tenant | null> => {
       // Explicit column list — avoids `select('*')` so column-level GRANT
       // changes or newly added columns can't silently break tenant reads.
@@ -88,6 +124,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         .eq("id", tenantId!)
         .maybeSingle();
       if (error) throw error;
+      writeCache(`acad.tenant.${tenantId}`, data);
       return data as Tenant | null;
     },
   });
@@ -124,14 +161,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     }
   }, [tenantQ.data]);
 
-  if (session === undefined) return null; // Root pendingComponent handles the splash
+  if (session === undefined) return <SplashScreen />;
   if (session === null) {
     // redirect happens via effect; we return null to avoid flashing content
     return null;
   }
 
-
-  if (profileQ.isLoading || tenantQ.isLoading) return null;
+  if (profileQ.isLoading || tenantQ.isLoading) return <SplashScreen />;
   if (!profileQ.data) {
     // When a platform admin is impersonating, synthesize a "viewer" profile
     // scoped to the impersonated tenant so the dashboard can render.

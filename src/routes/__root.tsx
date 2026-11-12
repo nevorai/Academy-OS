@@ -17,6 +17,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { TenantProvider } from "../lib/tenant-context";
 import { ImpersonationBanner } from "../components/platform/ImpersonationBanner";
 import { PLATFORM_OG_IMAGE, requestHostname } from "../lib/seo";
+import { SplashScreen } from "../components/ds/SplashScreen";
 import { getPublicSite } from "../lib/public-site.functions";
 import type { PublicSiteBundle } from "../lib/public-site";
 
@@ -192,72 +193,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function AppSplash() {
-  return (
-    <div className="fixed inset-0 grid place-items-center bg-background text-foreground animate-in fade-in duration-300">
-      <div className="flex flex-col items-center gap-6">
-        <div
-          className="grid h-20 w-20 place-items-center rounded-3xl text-4xl"
-          style={{ backgroundColor: "transparent" }}
-        >
-          <img
-            src="/api/public/tenant-icon"
-            alt=""
-            className="size-20 object-contain"
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
-              if (e.currentTarget.parentElement) e.currentTarget.parentElement.innerText = "🏏";
-            }}
-          />
-        </div>
-        <div className="flex flex-col items-center gap-2">
-          <div className="h-1 w-32 overflow-hidden rounded-full bg-muted">
-            <div className="h-full w-full origin-left animate-progress bg-primary" />
-          </div>
-          <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground font-semibold">
-            Nevorai Academy
-          </p>
-        </div>
-      </div>
-    </div>
-  );
+  return <SplashScreen />;
 }
 
 /**
  * Logo + spinner that paints with the very first HTML, so the app never opens as a blank page
  * while its code downloads. It fades away as soon as the app has taken over.
  */
-const SPLASH_CSS = `#boot-splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#f4f3ec;transition:opacity .25s ease}
-#boot-splash.hide{opacity:0;pointer-events:none}
-#boot-splash .mark{width:68px;height:68px;border-radius:20px;background:#2a7a4b;display:grid;place-items:center;box-shadow:0 10px 28px -8px rgba(42,122,75,.55)}
-#boot-splash .name{font:600 15px/1.2 system-ui,-apple-system,sans-serif;color:#1c2a22;letter-spacing:.01em}
-#boot-splash .spin{width:26px;height:26px;border-radius:50%;border:3px solid rgba(42,122,75,.18);border-top-color:#2a7a4b;animation:bs 0.8s linear infinite}
+const SPLASH_CSS = `.boot-splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#f4f3ec;transition:opacity .25s ease}
+.boot-splash.hide{opacity:0;pointer-events:none}
+.boot-splash .mark{width:68px;height:68px;border-radius:20px;background:#2a7a4b;display:grid;place-items:center;box-shadow:0 10px 28px -8px rgba(42,122,75,.55)}
+.boot-splash .name{font:600 15px/1.2 system-ui,-apple-system,sans-serif;color:#1c2a22;letter-spacing:.01em}
+.boot-splash .spin{width:26px;height:26px;border-radius:50%;border:3px solid rgba(42,122,75,.18);border-top-color:#2a7a4b;animation:bs 0.8s linear infinite}
 @keyframes bs{to{transform:rotate(360deg)}}
-html.dark #boot-splash{background:#101512}html.dark #boot-splash .name{color:#e8efe9}`;
+html.dark .boot-splash{background:#101512}html.dark .boot-splash .name{color:#e8efe9}`;
 
 function BootSplash() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: SPLASH_CSS }} />
-      <div id="boot-splash" suppressHydrationWarning>
-        <div className="mark">
-          <svg
-            width="38"
-            height="38"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#fff"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 3c2.5 3 2.5 15 0 18M3 12c3-2.5 15-2.5 18 0" />
-          </svg>
-        </div>
-        <div className="name">Nevorai Academy</div>
-        <div className="spin" />
-      </div>
+      <SplashScreen id="boot-splash" />
       <SplashHider />
     </>
   );

@@ -969,3 +969,10 @@ main:has(> .pub-inner) + footer {
 .auth-surface input.auth-field[aria-invalid="true"] {
   border-color: var(--auth-danger);
 }
+
+/* Desktop has no notch: no spare strip above the top bar (the 12px minimum is for phones). */
+@media (min-width: 768px) {
+  :root {
+    --app-safe-top: env(safe-area-inset-top, 0px);
+  }
+}

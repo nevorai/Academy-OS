@@ -117,7 +117,11 @@ const LIT_ALSO: Record<string, string[]> = {
     "/dashboard/nevorai-health",
     "/dashboard/subscription",
   ],
-  "/dashboard/profile": ["/dashboard/settings", "/dashboard/notifications", "/dashboard/payment-settings"],
+  "/dashboard/profile": [
+    "/dashboard/settings",
+    "/dashboard/notifications",
+    "/dashboard/payment-settings",
+  ],
   "/match-center": ["/scorer"],
 };
 
@@ -134,9 +138,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (autoOpen) setTourOpen(true);
   }, [autoOpen]);
-  const canSeeTour = (profile.role ?? "").toLowerCase() === "owner" ||
+  const canSeeTour =
+    (profile.role ?? "").toLowerCase() === "owner" ||
     (profile.role ?? "").toLowerCase() === "admin";
-
 
   // Single source of truth for the "new registration" badge — status='new'.
   const newRegCount = useNewRegistrationsCount(tenant.id);
@@ -173,87 +177,84 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       });
 
   const groups: SideGroup[] = navGroups
-    .map((g) => ({ title: g.title ? t(g.title) : null, bottom: g.bottom, items: withBadges(g.items) }))
+    .map((g) => ({
+      title: g.title ? t(g.title) : null,
+      bottom: g.bottom,
+      items: withBadges(g.items),
+    }))
     .filter((g) => g.items.length > 0);
 
   return (
     <NevorAIProvider>
-    <div className="owner-app min-h-dvh bg-background text-foreground">
-      {/* Top bar */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-x-0 top-0 z-40 bg-background"
-        style={{ height: "var(--app-safe-top)" }}
-      />
-      <div
-        aria-hidden="true"
-        className="bg-background"
-        style={{ height: "var(--app-safe-top)" }}
-      />
-      <header
-        className="sticky z-40 border-b border-border bg-card"
-        style={{ top: "var(--app-safe-top)" }}
-      >
-        <TooltipProvider delayDuration={0}>
-          <div className="flex h-14 items-center gap-3 px-4 md:px-5">
-            <TenantMark tenant={tenant} />
-            <div className="ml-auto flex items-center gap-1.5">
-              <a
-                href={tenantSiteUrl(tenant)}
-                target="_blank"
-                rel="noreferrer"
-                className="mr-1 hidden items-center gap-1 text-xs text-muted-foreground hover:text-foreground sm:inline-flex"
-              >
-                {t("View site")} <ExternalLink className="size-3" />
-              </a>
+      <div className="owner-app min-h-dvh bg-background text-foreground">
+        {/* Top bar */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed inset-x-0 top-0 z-40 bg-card"
+          style={{ height: "var(--app-safe-top)" }}
+        />
+        <div aria-hidden="true" className="bg-card" style={{ height: "var(--app-safe-top)" }} />
+        <header
+          className="sticky z-40 border-b border-border bg-card"
+          style={{ top: "var(--app-safe-top)" }}
+        >
+          <TooltipProvider delayDuration={0}>
+            <div className="flex h-14 items-center gap-2 px-3 md:gap-3 md:px-5">
+              <TenantMark tenant={tenant} />
+              <div className="ml-auto flex items-center gap-1.5">
+                <a
+                  href={tenantSiteUrl(tenant)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mr-1 hidden items-center gap-1 text-xs text-muted-foreground hover:text-foreground sm:inline-flex"
+                >
+                  {t("View site")} <ExternalLink className="size-3" />
+                </a>
 
-              <ThemeButton />
-              <NotificationBell />
-              {/* Kaizen assistant button hidden for now: <NevorAIButton /> */}
+                <ThemeButton />
+                <NotificationBell />
+                {/* Kaizen assistant button hidden for now: <NevorAIButton /> */}
 
-              {canSeeTour ? (
-                <Tip label={t("Take the tour")} side="bottom">
-                  <button
-                    type="button"
-                    onClick={() => setTourOpen(true)}
-                    aria-label={t("Take the tour")}
-                    className={cn(ICON_BTN, "hidden md:grid")}
-                  >
-                    <HelpCircle className="size-4" />
-                  </button>
-                </Tip>
-              ) : null}
+                {canSeeTour ? (
+                  <Tip label={t("Take the tour")} side="bottom">
+                    <button
+                      type="button"
+                      onClick={() => setTourOpen(true)}
+                      aria-label={t("Take the tour")}
+                      className={cn(ICON_BTN, "hidden md:grid")}
+                    >
+                      <HelpCircle className="size-4" />
+                    </button>
+                  </Tip>
+                ) : null}
 
-              <UserChip
-                name={userName(session.user)}
-                role={profile.role}
-                onSignOut={signOut}
-                signOutLabel={t("Sign out")}
-              />
+                <UserChip
+                  name={userName(session.user)}
+                  role={profile.role}
+                  onSignOut={signOut}
+                  signOutLabel={t("Sign out")}
+                />
+              </div>
             </div>
-          </div>
-        </TooltipProvider>
-      </header>
+          </TooltipProvider>
+        </header>
 
+        <div className="flex">
+          {/* Desktop sidebar: resizable, folds to icons */}
+          <DashboardSidebar groups={groups} />
 
-      <div className="flex">
-        {/* Desktop sidebar: resizable, folds to icons */}
-        <DashboardSidebar groups={groups} />
+          <main className="mx-auto w-full min-w-0 max-w-[1320px] flex-1 px-4 pt-4 pb-32 md:px-[3%] md:pt-8 md:pb-8">
+            <div className="mb-4">
+              <TrialBanner />
+            </div>
+            {children ?? <Outlet />}
+          </main>
+        </div>
 
-        <main className="mx-auto w-full min-w-0 max-w-[1320px] flex-1 px-4 pt-4 pb-32 md:px-[3%] md:pt-8 md:pb-8">
-          <div className="mb-4">
-            <TrialBanner />
-          </div>
-          {children ?? <Outlet />}
-        </main>
+        {/* Unified mobile bottom nav — shared with Match Center for a seamless experience. */}
+        <GlobalBottomNav />
+        {canSeeTour ? <ProductTour open={tourOpen} onClose={() => setTourOpen(false)} /> : null}
       </div>
-
-      {/* Unified mobile bottom nav — shared with Match Center for a seamless experience. */}
-      <GlobalBottomNav />
-      {canSeeTour ? (
-        <ProductTour open={tourOpen} onClose={() => setTourOpen(false)} />
-      ) : null}
-    </div>
     </NevorAIProvider>
   );
 }
@@ -284,7 +285,10 @@ function TenantMark({ tenant }: { tenant: { name: string; logo_url: string | nul
 const ICON_BTN =
   "grid size-8 place-items-center rounded-md text-muted-foreground outline-none transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]";
 
-function userName(user: { email?: string | null; user_metadata?: Record<string, unknown> }): string {
+function userName(user: {
+  email?: string | null;
+  user_metadata?: Record<string, unknown>;
+}): string {
   const meta = user.user_metadata ?? {};
   const full = (meta.full_name ?? meta.name) as string | undefined;
   return full?.trim() || user.email?.split("@")[0] || "You";

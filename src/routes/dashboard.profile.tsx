@@ -27,7 +27,13 @@ import {
 } from "lucide-react";
 import { StoragedImage } from "@/components/site/StoragedImage";
 import { tenantSiteUrl } from "@/lib/tenant";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/profile")({
@@ -62,26 +68,20 @@ function ProfilePage() {
     rows: [
       {
         to: "/dashboard/settings",
-        label: "My Profile",
-        hint: "Name and personal details",
+        label: "My profile & password",
+        hint: "Name, details, password",
         icon: UserCircle,
-      },
-      {
-        to: "/dashboard/settings",
-        label: "Password",
-        hint: "Change your password",
-        icon: KeyRound,
       },
       {
         to: "/dashboard/notifications",
         label: "Notifications",
-        hint: "Delivery history & alerts",
+        hint: "Alerts and history",
         icon: BellRing,
       },
       {
         to: "/dashboard/students",
-        label: "Left players and recovery",
-        hint: "Move players to Left, recover or delete a profile",
+        label: "Left players",
+        hint: "Recover or delete a profile",
         icon: Database,
       },
     ],
@@ -94,7 +94,7 @@ function ProfilePage() {
       rows: [
         {
           to: "/dashboard/settings",
-          label: "Academy Profile",
+          label: "Academy details",
           hint: "Name, hours, contact, address",
           icon: Settings2,
         },
@@ -113,13 +113,13 @@ function ProfilePage() {
         {
           to: "/dashboard/payment-settings",
           label: "Payment Settings",
-          hint: "Providers, offline payments & receipts",
+          hint: "UPI, bank, receipts",
           icon: CreditCard,
         },
         {
           to: "/dashboard/automation-settings",
           label: "Automation",
-          hint: "Rules, triggers & scheduled workflows",
+          hint: "Rules and schedules",
           icon: Zap,
         },
         {
@@ -130,53 +130,37 @@ function ProfilePage() {
         },
       ],
     });
-
-    sections.push({
-      title: "Data",
-      rows: [
-        {
-          to: "/dashboard/students",
-          label: "Import & Export Students",
-          hint: "Bulk upload, downloads & backup",
-          icon: Database,
-        },
-      ],
-    });
   }
 
   sections.push({
-    title: "Support",
+    title: "More",
     rows: [
-      {
-        to: "/dashboard/settings",
-        label: "Help & Support",
-        hint: "Contact us and get help",
-        icon: LifeBuoy,
-      },
-    ],
-  });
-
-  sections.push({
-    title: "Account Control",
-    rows: [
+      ...(isOwner
+        ? [
+            {
+              to: "/dashboard/students",
+              label: "Import & export players",
+              hint: "Bulk upload and backup",
+              icon: Database,
+            },
+          ]
+        : []),
+      { to: "/dashboard/settings", label: "Help & support", hint: "Contact us", icon: LifeBuoy },
       {
         to: "/dashboard/profile",
         label: "Sign out",
-        hint: "Safely sign out of your account",
+        hint: "Sign out of this device",
         icon: LogOut,
         danger: true,
       },
     ],
   });
 
-
-
   return (
-    <div className="space-y-5 pb-6">
+    <div className="mx-auto w-full max-w-3xl space-y-3 pb-6">
       <header className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Profile</h1>
-          <p className="text-sm text-muted-foreground">Your account and academy configuration.</p>
+          <h1 className="text-lg font-semibold tracking-tight">Profile</h1>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -199,17 +183,17 @@ function ProfilePage() {
       </header>
 
       {/* Identity card */}
-      <Card className="p-5">
-        <div className="flex items-center gap-4">
+      <Card className="p-3.5">
+        <div className="flex items-center gap-3">
           <div
-            className="size-14 rounded-xl grid place-items-center text-white text-lg font-bold shrink-0"
+            className="size-11 rounded-xl grid place-items-center text-white text-base font-bold shrink-0"
             style={{ backgroundColor: "var(--brand, #0ea5e9)" }}
           >
             {tenant.logo_url ? (
               <StoragedImage
                 path={tenant.logo_url}
                 alt={tenant.name}
-                className="size-14 rounded-xl object-cover"
+                className="size-11 rounded-xl object-cover"
                 fallback={<span>{tenant.name.slice(0, 2).toUpperCase()}</span>}
               />
             ) : (
@@ -224,49 +208,51 @@ function ProfilePage() {
           </div>
         </div>
 
-        <div className="mt-5 space-y-2 text-sm">
-          {tenant.phone ? (
-            <a
-              href={`tel:${tenant.phone}`}
-              className="flex items-center gap-2 text-foreground hover:opacity-80"
-            >
-              <Phone className="h-4 w-4" style={{ color: "var(--brand)" }} /> {tenant.phone}
-            </a>
-          ) : null}
-          {wa ? (
-            <a
-              href={`https://wa.me/${wa}`}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-2 text-foreground hover:opacity-80"
-            >
-              <MessageCircle className="h-4 w-4" style={{ color: "var(--brand)" }} /> WhatsApp
-            </a>
-          ) : null}
-          {tenant.email ? (
-            <a
-              href={`mailto:${tenant.email}`}
-              className="flex items-center gap-2 text-foreground hover:opacity-80"
-            >
-              <Mail className="h-4 w-4" style={{ color: "var(--brand)" }} /> {tenant.email}
-            </a>
-          ) : null}
-          {tenant.address ? (
-            <div className="flex items-start gap-2 text-foreground">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "var(--brand)" }} />{" "}
-              {tenant.address}
-            </div>
-          ) : null}
-        </div>
-
-        <div className="mt-5 flex flex-wrap gap-2">
-        </div>
-
+        <details className="group mt-3 border-t border-border pt-2 text-sm">
+          <summary className="flex cursor-pointer list-none items-center justify-between py-1 text-[13px] font-medium text-muted-foreground">
+            Contact details
+            <ChevronRight className="size-4 transition-transform group-open:rotate-90" />
+          </summary>
+          <div className="mt-2 space-y-2">
+            {tenant.phone ? (
+              <a
+                href={`tel:${tenant.phone}`}
+                className="flex items-center gap-2 text-foreground hover:opacity-80"
+              >
+                <Phone className="h-4 w-4" style={{ color: "var(--brand)" }} /> {tenant.phone}
+              </a>
+            ) : null}
+            {wa ? (
+              <a
+                href={`https://wa.me/${wa}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 text-foreground hover:opacity-80"
+              >
+                <MessageCircle className="h-4 w-4" style={{ color: "var(--brand)" }} /> WhatsApp
+              </a>
+            ) : null}
+            {tenant.email ? (
+              <a
+                href={`mailto:${tenant.email}`}
+                className="flex items-center gap-2 text-foreground hover:opacity-80"
+              >
+                <Mail className="h-4 w-4" style={{ color: "var(--brand)" }} /> {tenant.email}
+              </a>
+            ) : null}
+            {tenant.address ? (
+              <div className="flex items-start gap-2 text-foreground">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "var(--brand)" }} />{" "}
+                {tenant.address}
+              </div>
+            ) : null}
+          </div>
+        </details>
       </Card>
 
       {/* Grouped settings sections */}
       {sections.map((section) => (
-        <section key={section.title} className="space-y-2">
+        <section key={section.title} className="space-y-1.5">
           <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground px-1">
             {section.title}
           </h2>
@@ -277,11 +263,15 @@ function ProfilePage() {
                 <Link
                   key={section.title + row.label}
                   to={row.to}
-                  onClick={row.label === "Sign out" ? (e) => {
-                    e.preventDefault();
-                    signOut();
-                  } : undefined}
-                  className="flex items-center gap-3 px-4 py-3.5 hover:bg-muted/60 active:bg-muted/80 transition-colors"
+                  onClick={
+                    row.label === "Sign out"
+                      ? (e) => {
+                          e.preventDefault();
+                          signOut();
+                        }
+                      : undefined
+                  }
+                  className="flex items-center gap-3 px-3.5 py-2.5 hover:bg-muted/60 active:bg-muted/80 transition-colors"
                 >
                   <span
                     className={
@@ -306,7 +296,6 @@ function ProfilePage() {
                   </div>
                   <ChevronRight className="size-4 text-muted-foreground" />
                 </Link>
-
               );
             })}
           </Card>
@@ -359,7 +348,9 @@ function ShareWebsiteDialog({
             </span>
             <div className="min-w-0">
               <div className="text-sm font-semibold">Copy link</div>
-              <div className="text-[11px] text-muted-foreground truncate">Copy the public site URL</div>
+              <div className="text-[11px] text-muted-foreground truncate">
+                Copy the public site URL
+              </div>
             </div>
           </button>
           <a
@@ -374,7 +365,9 @@ function ShareWebsiteDialog({
             </span>
             <div className="min-w-0">
               <div className="text-sm font-semibold">Share on WhatsApp</div>
-              <div className="text-[11px] text-muted-foreground truncate">Send with a pre-filled message</div>
+              <div className="text-[11px] text-muted-foreground truncate">
+                Send with a pre-filled message
+              </div>
             </div>
           </a>
         </div>

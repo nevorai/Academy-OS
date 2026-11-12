@@ -13,6 +13,17 @@ import {
   UserPlus,
   Zap,
   CreditCard,
+  BadgeCheck,
+  BellRing,
+  Receipt,
+  Wallet,
+  BarChart3,
+  Lightbulb,
+  QrCode,
+  Palette,
+  Globe,
+  Inbox,
+  CalendarDays,
 } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { useCurrentRole } from "@/hooks/use-current-role";
@@ -122,8 +133,40 @@ const PROFILE_ITEM: Item = {
     "tour",
   ],
 };
+// Small shortcuts for things an owner opens now and then. Fees pages open inside the Fees screen.
+const SHORTCUTS: Item[] = [
+  { to: "/dashboard/registrations", label: "Enquiries", hint: "New applications", icon: Inbox },
+  { to: "/dashboard/reports", label: "Reports", hint: "Reports and exports", icon: BarChart3 },
+  {
+    to: "/dashboard/insights",
+    label: "Insights",
+    hint: "How the academy is doing",
+    icon: Lightbulb,
+  },
+  { to: "/dashboard/attendance-qr", label: "QR attendance", hint: "Scan to mark", icon: QrCode },
+  {
+    to: "/dashboard/attendance-calendar",
+    label: "Calendar",
+    hint: "Attendance by day",
+    icon: CalendarDays,
+  },
+  { to: "/dashboard/branding", label: "Branding", hint: "Logo and colours", icon: Palette },
+  { to: "/dashboard/site", label: "Website", hint: "Your public site", icon: Globe },
+];
+const FEE_SHORTCUTS: Item[] = [
+  {
+    to: "/dashboard/payment-verification",
+    label: "Approvals",
+    hint: "Verify payments",
+    icon: BadgeCheck,
+  },
+  { to: "/dashboard/reminders", label: "Reminders", hint: "Fee reminders", icon: BellRing },
+  { to: "/dashboard/fee-plans", label: "Sessions & fees", hint: "Plans and prices", icon: Receipt },
+  { to: "/dashboard/payment-settings", label: "Payment setup", hint: "UPI and bank", icon: Wallet },
+];
 const OWNER_GROUPS: Group[] = [
   ...WORKSPACE_GROUPS,
+  { title: "Shortcuts", items: [...FEE_SHORTCUTS, ...SHORTCUTS] },
   {
     title: "Account",
     items: [
@@ -140,7 +183,11 @@ const OWNER_GROUPS: Group[] = [
 ];
 
 // Admin — same workspaces as Owner, without the owner-only Account tools.
-const ADMIN_GROUPS: Group[] = [...WORKSPACE_GROUPS, { title: "Account", items: [PROFILE_ITEM] }];
+const ADMIN_GROUPS: Group[] = [
+  ...WORKSPACE_GROUPS,
+  { title: "Shortcuts", items: SHORTCUTS },
+  { title: "Account", items: [PROFILE_ITEM] },
+];
 
 // Player / Parent — personal workspaces only.
 const PLAYER_GROUPS: Group[] = [

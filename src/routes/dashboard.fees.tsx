@@ -24,7 +24,13 @@ import { SessionFeesPanel } from "@/components/fees/SessionFeesPanel";
 import { SetupPanel } from "@/components/fees/SetupPanel";
 import { RemindersPanel } from "@/components/fees/RemindersPanel";
 import { cn } from "@/lib/utils";
-import { BellRing } from "lucide-react";
+import { BellRing, ChevronLeft, Menu } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export type FeesTab = "collections" | "approvals" | "plans" | "setup" | "reminders";
 type Filter = "all" | "pending" | "paid" | "overdue";
@@ -82,52 +88,56 @@ function FeesHub() {
 
   return (
     <div className="-mt-4 md:-mt-8">
-      {/* Sticky, always-identical header. Nothing below it ever shifts it. */}
-      <div className="sticky top-0 z-20 -mx-4 bg-background/95 px-4 pt-2 backdrop-blur md:-mx-6 md:px-6">
-        <h1 className="text-base font-bold tracking-tight md:text-xl">Fees</h1>
-        <p className="mb-2 hidden text-[11px] text-muted-foreground md:block">
-          Collections, approvals, plans and payment setup — all in one place.
-        </p>
-
-        <nav
-          aria-label="Fees sections"
-          className="scrollbar-none -mx-4 mt-1.5 flex gap-1.5 overflow-x-auto px-4 pb-1.5 md:-mx-6 md:mt-0 md:px-6 md:pb-2"
-        >
-          {TABS.map((t) => {
-            const active = t.key === tab;
-            return (
-              <button
-                key={t.key}
-                type="button"
-                onClick={() => go(t.key)}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "shrink-0 rounded-[7px] border px-3.5 py-1.5 text-[13px] font-semibold transition-colors",
-                  active
-                    ? "border-[color:var(--brand)] bg-[color:var(--brand)] text-[color:var(--brand-ink)]"
-                    : "border-border bg-card text-muted-foreground hover:text-foreground",
-                )}
-              >
-                <span className="inline-flex items-center gap-1.5">
-                  {t.label}
-                  {t.key === "approvals" && pendingCount > 0 && (
-                    <span
-                      className={cn(
-                        "inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold",
-                        active ? "bg-background text-foreground" : "bg-destructive text-destructive-foreground",
-                      )}
-                    >
-                      {pendingCount}
-                    </span>
-                  )}
+      {/* One slim header row: title (or the section you are in) and a menu holding every section. */}
+      <div className="sticky top-0 z-20 -mx-4 flex items-center gap-2 bg-background/95 px-4 pb-1 pt-2 backdrop-blur md:-mx-6 md:px-6">
+        {tab !== "collections" && (
+          <button
+            type="button"
+            onClick={() => go("collections")}
+            aria-label="Back to collections"
+            className="-ml-1 grid size-8 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-muted"
+          >
+            <ChevronLeft className="size-5" />
+          </button>
+        )}
+        <h1 className="min-w-0 flex-1 truncate text-base font-bold tracking-tight md:text-xl">
+          {tab === "collections" ? "Fees" : TABS.find((t) => t.key === tab)?.label}
+        </h1>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              aria-label="Fees menu"
+              className="relative grid size-9 shrink-0 place-items-center rounded-lg border border-border bg-card text-foreground"
+            >
+              <Menu className="size-4" />
+              {pendingCount > 0 && (
+                <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                  {pendingCount}
                 </span>
-              </button>
-            );
-          })}
-        </nav>
+              )}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            {TABS.map((t) => (
+              <DropdownMenuItem
+                key={t.key}
+                onSelect={() => go(t.key)}
+                className={cn("justify-between", t.key === tab && "font-semibold")}
+              >
+                {t.label}
+                {t.key === "approvals" && pendingCount > 0 ? (
+                  <span className="rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">
+                    {pendingCount}
+                  </span>
+                ) : null}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      <div className="pt-2 pb-24">
+      <div className="pb-24">
         {tab === "collections" && (
           <>
             {pendingCount > 0 && (

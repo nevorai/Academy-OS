@@ -738,213 +738,218 @@ function CreateMatchPage() {
   const canContinue =
     step === 1 ? step1Valid : step === 2 ? step2Valid : step === 3 ? step3Valid : true;
 
-  return (
-    <div className="mx-auto w-full max-w-2xl px-0 pb-32 sm:px-4 sm:pt-3 md:pb-6">
-      {showResumedToast && (
-        <div className="mx-3 mb-2 flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs sm:mx-0 sm:mb-3">
-          <div className="flex items-center gap-2">
-            <RefreshCcw className="h-3.5 w-3.5 text-primary animate-in fade-in zoom-in duration-500" />
-            <span className="text-foreground">Continue with previous draft or start afresh?</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="shrink-0 rounded-full bg-primary/10 px-3 py-1.5 text-[11px] font-bold text-primary active:scale-95 transition-transform"
-              onClick={() => setShowResumedToast(false)}
-            >
-              Continue
-            </button>
-            <button
-              type="button"
-              className="shrink-0 rounded-full bg-destructive/10 px-3 py-1.5 text-[11px] font-bold text-destructive active:scale-95 transition-transform"
-              onClick={resetDraft}
-            >
-              Start afresh
-            </button>
-          </div>
-        </div>
+  const content = (
+    <div>
+      {step === 1 && (
+        <StepSetup
+          matchType={matchType}
+          setMatchType={setMatchType}
+          matchFormat={matchFormat}
+          setMatchFormat={setMatchFormat}
+          playingRules={playingRules}
+          setPlayingRules={setPlayingRules}
+          overs={overs}
+          setOvers={setOvers}
+        />
       )}
 
-      {/* Sticky step header — progress + title stay pinned while body scrolls */}
-      <div className="sticky top-[calc(var(--app-safe-top)+3.5rem)] z-20 -mx-0 border-b border-border/60 bg-background/95 px-4 pb-3 pt-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-0 sm:backdrop-blur-none">
-        <div className="mb-3 flex items-center gap-3">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full rounded-full transition-[width] duration-300 ease-out"
-              style={{
-                width: `${(step / 4) * 100}%`,
-                backgroundColor: "var(--tenant-brand, var(--brand, hsl(var(--primary))))",
-              }}
-            />
-          </div>
-          <div className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
-            {step}/4
-          </div>
+      {step === 2 && (
+        <TeamPanel
+          side="A"
+          state={panelA}
+          onChange={setPanelA}
+          teams={teams}
+          excludeTeamId={panelB.selectedTeamId}
+          teamsLoading={teamsQ.isLoading && !demo}
+          studentPool={studentPool}
+          studentsLoading={studentsQ.isLoading && !demo}
+          validationError={validationError}
+          goBack={goBack}
+          goNext={goNext}
+          canContinue={canContinue}
+        />
+      )}
+
+      {step === 3 && (
+        <TeamPanel
+          side="B"
+          state={panelB}
+          onChange={setPanelB}
+          teams={teams}
+          excludeTeamId={panelA.selectedTeamId}
+          teamsLoading={teamsQ.isLoading && !demo}
+          studentPool={studentPool}
+          studentsLoading={studentsQ.isLoading && !demo}
+          validationError={validationError}
+          goBack={goBack}
+          goNext={goNext}
+          canContinue={canContinue}
+        />
+      )}
+
+      {step === 4 && (
+        <StepReview
+          matchTypeLabel={MATCH_TYPES.find((t) => t.value === matchType)?.label ?? matchType}
+          matchFormat={matchFormat}
+          overs={overs}
+          teamAName={teamAName}
+          teamBName={teamBName}
+          playersA={panelA.players}
+          playersB={panelB.players}
+          error={validationError}
+          onEditStep={(s) => setStep(s as 1 | 2 | 3 | 4)}
+        />
+      )}
+
+      {step === 4 && (
+        <div className="mt-4">
+          <StepAdvanced
+            open={advOpen}
+            setOpen={setAdvOpen}
+            ground={ground}
+            setGround={setGround}
+            pitch={pitch}
+            setPitch={setPitch}
+            weather={weather}
+            setWeather={setWeather}
+            scorer={scorer}
+            setScorer={setScorer}
+            umpire={umpire}
+            setUmpire={setUmpire}
+            ballType={ballType}
+            setBallType={setBallType}
+            scheduledDate={scheduledDate}
+            setScheduledDate={setScheduledDate}
+            streamingUrl={streamingUrl}
+            setStreamingUrl={setStreamingUrl}
+            visibility={visibility}
+            setVisibility={setVisibility}
+            notes={notes}
+            setNotes={setNotes}
+            advFilled={advFilled}
+          />
         </div>
-        <h1 className="text-lg font-bold tracking-tight sm:text-2xl">{stepTitle}</h1>
-      </div>
+      )}
+    </div>
+  );
 
-      <div className="border-b border-border bg-card shadow-sm sm:rounded-3xl sm:border">
-        <div className="px-4 py-4 sm:p-6">
-          <div>
-            {step === 1 && (
-              <StepSetup
-                matchType={matchType}
-                setMatchType={setMatchType}
-                matchFormat={matchFormat}
-                setMatchFormat={setMatchFormat}
-                playingRules={playingRules}
-                setPlayingRules={setPlayingRules}
-                overs={overs}
-                setOvers={setOvers}
-              />
-            )}
+  if (step === 2 || step === 3) return content;
 
-            {step === 2 && (
-              <TeamPanel
-                side="A"
-                state={panelA}
-                onChange={setPanelA}
-                teams={teams}
-                excludeTeamId={panelB.selectedTeamId}
-                teamsLoading={teamsQ.isLoading && !demo}
-                studentPool={studentPool}
-                studentsLoading={studentsQ.isLoading && !demo}
-                validationError={validationError}
-                goBack={goBack}
-                goNext={goNext}
-                canContinue={canContinue}
-              />
+  const actionBar = (
+    <div className="flex flex-col gap-2 border-t border-border/60 bg-card px-4 py-3 sm:px-6">
+      <div className="flex items-center gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          className="h-11 flex-1 text-sm font-semibold"
+          onClick={goBack}
+          disabled={createM.isPending}
+          data-step-nav="back"
+        >
+          <ArrowLeft className="mr-1 size-4" />
+          Back
+        </Button>
+        {step < 4 ? (
+          <Button
+            type="button"
+            className="h-11 flex-1 text-sm font-semibold"
+            disabled={!canContinue}
+            onClick={goNext}
+            data-step-nav="next"
+          >
+            Continue
+            <ChevronRight className="ml-1 size-4" />
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            className="h-11 flex-1 text-sm font-semibold"
+            disabled={!canStart || createM.isPending}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              createM.mutate();
+            }}
+            data-step-nav="start"
+          >
+            {createM.isPending ? (
+              <Loader2 className="mr-1.5 size-4 animate-spin" />
+            ) : (
+              <Swords className="mr-1.5 size-4" />
             )}
-
-            {step === 3 && (
-              <TeamPanel
-                side="B"
-                state={panelB}
-                onChange={setPanelB}
-                teams={teams}
-                excludeTeamId={panelA.selectedTeamId}
-                teamsLoading={teamsQ.isLoading && !demo}
-                studentPool={studentPool}
-                studentsLoading={studentsQ.isLoading && !demo}
-                validationError={validationError}
-                goBack={goBack}
-                goNext={goNext}
-                canContinue={canContinue}
-              />
-            )}
-
-            {step === 4 && (
-              <StepReview
-                matchTypeLabel={MATCH_TYPES.find((t) => t.value === matchType)?.label ?? matchType}
-                matchFormat={matchFormat}
-                overs={overs}
-                teamAName={teamAName}
-                teamBName={teamBName}
-                playersA={panelA.players}
-                playersB={panelB.players}
-                error={validationError}
-                onEditStep={(s) => setStep(s as 1 | 2 | 3 | 4)}
-              />
-            )}
-
-            {step === 4 && (
-              <div className="mt-4">
-                <StepAdvanced
-                  open={advOpen}
-                  setOpen={setAdvOpen}
-                  ground={ground}
-                  setGround={setGround}
-                  pitch={pitch}
-                  setPitch={setPitch}
-                  weather={weather}
-                  setWeather={setWeather}
-                  scorer={scorer}
-                  setScorer={setScorer}
-                  umpire={umpire}
-                  setUmpire={setUmpire}
-                  ballType={ballType}
-                  setBallType={setBallType}
-                  scheduledDate={scheduledDate}
-                  setScheduledDate={setScheduledDate}
-                  streamingUrl={streamingUrl}
-                  setStreamingUrl={setStreamingUrl}
-                  visibility={visibility}
-                  setVisibility={setVisibility}
-                  notes={notes}
-                  setNotes={setNotes}
-                  advFilled={advFilled}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Global action bar — hidden on Team steps (2 and 3) as they have their own fixed bar */}
-        {step !== 2 && step !== 3 && (
-          <div className="flex flex-col gap-2 border-t border-border/60 bg-card px-4 py-4 sm:rounded-b-3xl sm:px-6">
-            <div className="flex items-center gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                className="h-11 flex-1 text-sm font-semibold"
-                onClick={goBack}
-                disabled={createM.isPending}
-                data-step-nav="back"
-              >
-                <ArrowLeft className="mr-1 size-4" />
-                Back
-              </Button>
-              {step < 4 ? (
-                <Button
-                  type="button"
-                  className="h-11 flex-1 text-sm font-semibold"
-                  disabled={!canContinue}
-                  onClick={goNext}
-                  data-step-nav="next"
-                >
-                  Continue
-                  <ChevronRight className="ml-1 size-4" />
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  className="h-11 flex-1 text-sm font-semibold"
-                  disabled={!canStart || createM.isPending}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    createM.mutate();
-                  }}
-                  data-step-nav="start"
-                >
-                  {createM.isPending ? (
-                    <Loader2 className="mr-1.5 size-4 animate-spin" />
-                  ) : (
-                    <Swords className="mr-1.5 size-4" />
-                  )}
-                  Start match
-                </Button>
-              )}
-            </div>
-            {!canContinue && step === 1 && (
-              <div className="text-[10px] text-center text-amber-600 font-bold bg-amber-50 dark:bg-amber-900/10 rounded-lg py-1 px-2 border border-amber-100 dark:border-amber-900/20">
-                {!matchFormat
-                  ? "Select match overs"
-                  : overs <= 0
-                    ? "Invalid overs count"
-                    : "Complete setup to continue"}
-              </div>
-            )}
-            {!canStart && step === 4 && validationError && (
-              <div className="text-[10px] text-center text-amber-600 font-bold bg-amber-50 dark:bg-amber-900/10 rounded-lg py-1 px-2 border border-amber-100 dark:border-amber-900/20">
-                {validationError}
-              </div>
-            )}
-          </div>
+            Start match
+          </Button>
         )}
       </div>
+      {!canContinue && step === 1 && (
+        <div className="text-[10px] text-center text-amber-600 font-bold bg-amber-50 dark:bg-amber-900/10 rounded-lg py-1 px-2 border border-amber-100 dark:border-amber-900/20">
+          {!matchFormat
+            ? "Select match overs"
+            : overs <= 0
+              ? "Invalid overs count"
+              : "Complete setup to continue"}
+        </div>
+      )}
+      {!canStart && step === 4 && validationError && (
+        <div className="text-[10px] text-center text-amber-600 font-bold bg-amber-50 dark:bg-amber-900/10 rounded-lg py-1 px-2 border border-amber-100 dark:border-amber-900/20">
+          {validationError}
+        </div>
+      )}
     </div>
+  );
+
+  return (
+    <MobileViewportShell
+      desktopClassName="md:relative md:inset-auto md:z-0 md:mx-auto md:my-4 md:h-auto md:max-w-2xl md:rounded-3xl md:border md:shadow-sm"
+      header={
+        <div className="border-b border-border/60 px-4 pb-3 pt-3">
+          <div className="mb-2.5 flex items-center gap-3">
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full transition-[width] duration-300 ease-out"
+                style={{
+                  width: `${(step / 4) * 100}%`,
+                  backgroundColor: "var(--tenant-brand, var(--brand, hsl(var(--primary))))",
+                }}
+              />
+            </div>
+            <div className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
+              {step}/4
+            </div>
+          </div>
+          <h1 className="text-lg font-bold tracking-tight">{stepTitle}</h1>
+        </div>
+      }
+      footer={actionBar}
+    >
+      <div className="px-4 py-4 sm:p-6">
+        {showResumedToast && (
+          <div className="mb-4 rounded-2xl border border-primary/30 bg-primary/5 p-3">
+            <div className="mb-2.5 flex items-center gap-2 text-[13px] font-medium">
+              <RefreshCcw className="size-4 shrink-0 text-primary" />
+              You have an unfinished match. Continue it?
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                className="h-10 rounded-xl bg-primary text-[13px] font-bold text-primary-foreground active:scale-95"
+                onClick={() => setShowResumedToast(false)}
+              >
+                Continue
+              </button>
+              <button
+                type="button"
+                className="h-10 rounded-xl bg-destructive/10 text-[13px] font-bold text-destructive active:scale-95"
+                onClick={resetDraft}
+              >
+                Start fresh
+              </button>
+            </div>
+          </div>
+        )}
+        {content}
+      </div>
+    </MobileViewportShell>
   );
 }
 
@@ -1717,7 +1722,7 @@ function NewTeamBody({
       }
     >
       {/* ROSTER: a sheet like Excel. Type a name, the next row opens by itself. */}
-      <div className="p-3">
+      <div className="px-1 pt-2 pb-2">
         <SquadSheet
           slots={slots}
           onSlots={changeSlots}
@@ -1745,8 +1750,7 @@ function SquadSheet({
   studentsLoading?: boolean;
 }) {
   const [minRows, setMinRows] = useState(12);
-  const [draft, setDraft] = useState<{ index: number; text: string } | null>(null);
-  const [editing, setEditing] = useState<string | null>(null);
+  const [activeRow, setActiveRow] = useState<number | null>(null);
   const listRef = useRef<HTMLOListElement>(null);
   const selectedKeys = useMemo(
     () => new Set(slots.filter(Boolean).map((p) => (p as PlayerRef).key)),
@@ -1774,65 +1778,67 @@ function SquadSheet({
 
   const focusRow = (i: number) =>
     requestAnimationFrame(() =>
-      listRef.current?.querySelector<HTMLInputElement>(`[data-row="${i}"]`)?.focus(),
+      listRef.current
+        ?.querySelector<HTMLInputElement>(`[data-row="${i}"]`)
+        ?.focus({ preventScroll: true }),
     );
 
-  const setAt = (i: number, v: Slot, extra?: Partial<PlayerRef>) => {
+  const setAt = (i: number, v: Slot) => {
     const next = [...slots];
     while (next.length <= i) next.push(null);
-    next[i] = v ? { ...v, ...extra } : null;
+    next[i] = v;
     onSlots(next);
   };
 
-  const newGuest = (name: string): PlayerRef => ({
-    key: `guest-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-    name,
-    photo_url: null,
-    athlete_profile_id: null,
-  });
+  const newKey = () => `guest-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 
-  const commitDraft = (i: number, goNext: boolean) => {
-    const t = (draft?.index === i ? draft.text : "").trim();
-    setDraft(null);
-    if (t) {
+  // Typing in any row (empty or filled) edits that row's name straight away.
+  const onType = (i: number, name: string) => {
+    const old = slots[i];
+    if (!name.trim() && !name) return setAt(i, null);
+    if (!old) return setAt(i, { key: newKey(), name, photo_url: null, athlete_profile_id: null });
+    const linked = !old.key.startsWith("guest-");
+    setAt(i, {
+      ...old,
+      name,
+      ...(linked ? { key: newKey(), athlete_profile_id: null, photo_url: null } : {}),
+    });
+  };
+
+  // Leaving a row: a blank name empties it; a name that exactly matches an academy player links to it.
+  const onLeave = (i: number) => {
+    const cur = slots[i];
+    if (!cur) return;
+    if (!cur.name.trim()) return setAt(i, null);
+    if (cur.key.startsWith("guest-")) {
       const exact = studentPool.find(
-        (x) => !selectedKeys.has(x.key) && x.name.toLowerCase() === t.toLowerCase(),
+        (x) => !selectedKeys.has(x.key) && x.name.toLowerCase() === cur.name.trim().toLowerCase(),
       );
-      setAt(i, exact ?? newGuest(t));
+      if (exact)
+        setAt(i, {
+          ...exact,
+          is_captain: cur.is_captain,
+          is_vice_captain: cur.is_vice_captain,
+          is_keeper: cur.is_keeper,
+        });
     }
-    if (goNext) focusRow(i + 1);
   };
 
   const pick = (i: number, p: PlayerRef) => {
     const old = slots[i];
     setAt(
       i,
-      p,
       old
         ? {
+            ...p,
             is_captain: old.is_captain,
             is_vice_captain: old.is_vice_captain,
             is_keeper: old.is_keeper,
           }
-        : undefined,
+        : p,
     );
-    setDraft(null);
-    setEditing(null);
+    setActiveRow(null);
     focusRow(i + 1);
-  };
-
-  const rename = (i: number, name: string) => {
-    const old = slots[i];
-    if (!old) return;
-    const linked = !old.key.startsWith("guest-");
-    const key = linked ? newGuest(name).key : old.key;
-    setAt(i, {
-      ...old,
-      key,
-      name,
-      ...(linked ? { athlete_profile_id: null, photo_url: null } : {}),
-    });
-    if (linked) setEditing(key);
   };
 
   const setRole = (key: string, role: "C" | "VC" | "WK") =>
@@ -1848,8 +1854,9 @@ function SquadSheet({
 
   const swap = (i: number, dir: -1 | 1) => {
     const j = i + dir;
-    if (j < 0 || j >= slots.length) return;
+    if (j < 0) return;
     const next = [...slots];
+    while (next.length <= j) next.push(null);
     [next[i], next[j]] = [next[j] ?? null, next[i] ?? null];
     onSlots(next);
   };
@@ -1858,125 +1865,96 @@ function SquadSheet({
 
   return (
     <div>
-      <ol
-        ref={listRef}
-        className="divide-y divide-border overflow-visible rounded-2xl border border-border bg-card"
-      >
+      <div className="flex items-center gap-1.5 border-b border-border px-2 pb-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+        <span className="w-5 shrink-0 text-center">#</span>
+        <span className="flex-1 px-2">Player name</span>
+      </div>
+      <ol ref={listRef} className="divide-y divide-border border-b border-border bg-card">
         {Array.from({ length: total }, (_, i) => {
           const p = slots[i] ?? null;
-          if (p) {
-            const sugg = editing === p.key ? suggest(p.name) : [];
-            return (
-              <li key={p.key} className="relative flex items-center gap-1.5 px-2 py-1.5">
-                <span className="w-5 shrink-0 text-center text-[12px] font-semibold tabular-nums text-muted-foreground">
-                  {i + 1}
-                </span>
-                <input
-                  data-row={i}
-                  value={p.name}
-                  onChange={(e) => rename(i, e.target.value)}
-                  onFocus={() => setEditing(p.key)}
-                  onBlur={() => {
-                    setEditing(null);
-                    if (!p.name.trim()) setAt(i, null);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      focusRow(i + 1);
-                    }
-                  }}
-                  autoComplete="off"
-                  autoCorrect="off"
-                  className="h-10 min-w-0 flex-1 rounded-lg bg-transparent px-2 text-[16px] font-semibold outline-none focus:bg-muted/60"
-                />
-                <div className="flex shrink-0 items-center gap-1">
-                  <RoleButton
-                    active={!!p.is_captain}
-                    onClick={() => setRole(p.key, "C")}
-                    label="C"
-                    color="amber"
-                  />
-                  <RoleButton
-                    active={!!p.is_vice_captain}
-                    onClick={() => setRole(p.key, "VC")}
-                    label="VC"
-                    color="sky"
-                  />
-                  <RoleButton
-                    active={!!p.is_keeper}
-                    onClick={() => setRole(p.key, "WK")}
-                    label="WK"
-                    color="emerald"
-                  />
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      type="button"
-                      aria-label="Row options"
-                      className="grid size-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-accent"
-                    >
-                      <MoreVertical className="size-4" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="z-[300] w-40">
-                    <DropdownMenuItem disabled={i === 0} onSelect={() => swap(i, -1)}>
-                      <ArrowUp className="mr-2 size-4" /> Move up
-                    </DropdownMenuItem>
-                    <DropdownMenuItem disabled={i >= total - 1} onSelect={() => swap(i, 1)}>
-                      <ArrowDown className="mr-2 size-4" /> Move down
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-destructive focus:text-destructive"
-                      onSelect={() => setAt(i, null)}
-                    >
-                      <Trash2 className="mr-2 size-4" /> Remove
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                {sugg.length > 0 && <SuggestList items={sugg} onPick={(x) => pick(i, x)} />}
-              </li>
-            );
-          }
-          const text = draft?.index === i ? draft.text : "";
-          const ds = text.trim() ? suggest(text) : [];
+          const sugg = activeRow === i && p ? suggest(p.name) : [];
           return (
-            <li key={`empty-${i}`} className="relative flex items-center gap-1.5 px-2 py-1.5">
-              <span className="w-5 shrink-0 text-center text-[12px] font-semibold tabular-nums text-muted-foreground/50">
+            <li key={i} className="relative flex h-12 items-center gap-1.5 px-2">
+              <span className="w-5 shrink-0 text-center text-[12px] font-semibold tabular-nums text-muted-foreground">
                 {i + 1}
               </span>
               <input
                 data-row={i}
-                value={text}
-                onChange={(e) => setDraft({ index: i, text: e.target.value })}
-                onFocus={() => setDraft((d) => (d?.index === i ? d : { index: i, text: "" }))}
-                onBlur={() => commitDraft(i, false)}
+                value={p?.name ?? ""}
+                onChange={(e) => onType(i, e.target.value)}
+                onFocus={() => setActiveRow(i)}
+                onBlur={() => {
+                  setActiveRow((r) => (r === i ? null : r));
+                  onLeave(i);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
-                    if (ds.length > 0 && text.trim().toLowerCase() !== ds[0].name.toLowerCase())
-                      pick(i, ds[0]);
-                    else commitDraft(i, true);
+                    if (
+                      sugg.length > 0 &&
+                      p &&
+                      p.name.trim().toLowerCase() !== sugg[0].name.toLowerCase()
+                    )
+                      pick(i, sugg[0]);
+                    else focusRow(i + 1);
                   }
                 }}
-                placeholder="Type player name"
+                enterKeyHint="next"
                 autoComplete="off"
                 autoCorrect="off"
-                className="h-10 min-w-0 flex-1 rounded-lg bg-muted/40 px-2 text-[16px] font-semibold outline-none placeholder:font-normal placeholder:text-muted-foreground/60 focus:bg-muted"
+                className="h-10 min-w-0 flex-1 rounded-lg bg-transparent px-2 text-[16px] font-semibold outline-none focus:bg-muted/60"
               />
-              {text.trim() && (
-                <button
-                  type="button"
-                  onPointerDown={(e) => e.preventDefault()}
-                  onClick={() => commitDraft(i, true)}
-                  className="h-9 shrink-0 rounded-full bg-primary px-3.5 text-[13px] font-bold text-primary-foreground active:scale-95"
-                >
-                  Next
-                </button>
+              {p && (
+                <>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <RoleButton
+                      active={!!p.is_captain}
+                      onClick={() => setRole(p.key, "C")}
+                      label="C"
+                      color="amber"
+                    />
+                    <RoleButton
+                      active={!!p.is_vice_captain}
+                      onClick={() => setRole(p.key, "VC")}
+                      label="VC"
+                      color="sky"
+                    />
+                    <RoleButton
+                      active={!!p.is_keeper}
+                      onClick={() => setRole(p.key, "WK")}
+                      label="WK"
+                      color="emerald"
+                    />
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        aria-label="Row options"
+                        className="grid size-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-accent"
+                      >
+                        <MoreVertical className="size-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="z-[300] w-40">
+                      <DropdownMenuItem disabled={i === 0} onSelect={() => swap(i, -1)}>
+                        <ArrowUp className="mr-2 size-4" /> Move up
+                      </DropdownMenuItem>
+                      <DropdownMenuItem disabled={i >= total - 1} onSelect={() => swap(i, 1)}>
+                        <ArrowDown className="mr-2 size-4" /> Move down
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onSelect={() => setAt(i, null)}
+                      >
+                        <Trash2 className="mr-2 size-4" /> Remove
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
               )}
-              {text.trim() && (ds.length > 0 || studentsLoading) && (
-                <SuggestList items={ds} loading={studentsLoading} onPick={(x) => pick(i, x)} />
+              {(sugg.length > 0 || (p && activeRow === i && studentsLoading && p.name.trim())) && (
+                <SuggestList items={sugg} loading={studentsLoading} onPick={(x) => pick(i, x)} />
               )}
             </li>
           );

@@ -8,81 +8,70 @@ interface BaseProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "classNa
   hint?: string;
 }
 
-/**
- * Member-portal text field: a boxed field with an 8 px radius (the Metrol shape) and a turf-green focus ring.
- * The inner <input> stays transparent, and the .auth-surface autofill reset in styles.css keeps Safari from
- * painting its own rectangle inside the box; keep the two together. 16px text so iOS Safari does not
- * auto-zoom on focus.
- */
+/** The field itself is the box (see `.auth-field` in styles.css): one border, one soft highlight on focus. */
+const FIELD =
+  "auth-field block h-12 w-full min-w-0 rounded-lg border border-auth-border bg-auth-surface px-3.5 text-[16px] text-auth-foreground transition-[border-color,box-shadow] duration-150 placeholder:text-auth-subtle";
+
+function Message({ id, error, hint }: { id: string; error?: string | null; hint?: string }) {
+  if (error)
+    return (
+      <p id={`${id}-error`} role="alert" className="mt-1.5 text-xs text-auth-danger">
+        {error}
+      </p>
+    );
+  if (hint)
+    return (
+      <p id={`${id}-hint`} className="mt-1.5 text-xs text-auth-subtle">
+        {hint}
+      </p>
+    );
+  return null;
+}
+
+/** Member-portal text field. 16px text so iOS Safari does not auto-zoom on focus. */
 export const AuthInput = forwardRef<HTMLInputElement, BaseProps>(function AuthInput(
-  { label, icon, error, hint, id, ...rest },
+  { label, error, hint, id, icon: _icon, ...rest },
   ref,
 ) {
   const generated = useId();
   const inputId = id ?? generated;
   const describedBy = error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined;
-
   return (
     <div>
       <label htmlFor={inputId} className="mb-1.5 block text-[13px] font-medium text-auth-muted">
         {label}
       </label>
-      <div
-        className={`group flex h-12 items-center gap-2.5 rounded-lg border bg-auth-surface/70 px-3 transition-colors duration-200 ${
-          error
-            ? "border-auth-danger"
-            : "border-auth-border focus-within:border-auth-accent focus-within:bg-auth-surface focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--auth-accent)_16%,transparent)]"
-        }`}
-      >
-        {icon ? <span className="shrink-0 text-auth-subtle">{icon}</span> : null}
-        <input
-          ref={ref}
-          id={inputId}
-          aria-invalid={!!error}
-          aria-describedby={describedBy}
-          className="h-full w-full min-w-0 bg-transparent text-[16px] text-auth-foreground outline-none placeholder:text-auth-subtle"
-          {...rest}
-        />
-      </div>
-      {error ? (
-        <p id={`${inputId}-error`} role="alert" className="mt-1.5 text-xs text-auth-danger">
-          {error}
-        </p>
-      ) : hint ? (
-        <p id={`${inputId}-hint`} className="mt-1.5 text-xs text-auth-subtle">
-          {hint}
-        </p>
-      ) : null}
+      <input
+        ref={ref}
+        id={inputId}
+        aria-invalid={!!error}
+        aria-describedby={describedBy}
+        className={FIELD}
+        {...rest}
+      />
+      <Message id={inputId} error={error} hint={hint} />
     </div>
   );
 });
 
-/** Password field with a show/hide toggle that keeps focus and stays screen-reader labelled. */
-export function PasswordInput({ label, icon, error, hint, id, ...rest }: BaseProps) {
+/** Password field with a show/hide toggle. */
+export function PasswordInput({ label, error, hint, id, icon: _icon, ...rest }: BaseProps) {
   const [visible, setVisible] = useState(false);
   const generated = useId();
   const inputId = id ?? generated;
   const describedBy = error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined;
-
   return (
     <div>
       <label htmlFor={inputId} className="mb-1.5 block text-[13px] font-medium text-auth-muted">
         {label}
       </label>
-      <div
-        className={`group flex h-12 items-center gap-2.5 rounded-lg border bg-auth-surface/70 px-3 transition-colors duration-200 ${
-          error
-            ? "border-auth-danger"
-            : "border-auth-border focus-within:border-auth-accent focus-within:bg-auth-surface focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--auth-accent)_16%,transparent)]"
-        }`}
-      >
-        {icon ? <span className="shrink-0 text-auth-subtle">{icon}</span> : null}
+      <div className="relative">
         <input
           id={inputId}
           type={visible ? "text" : "password"}
           aria-invalid={!!error}
           aria-describedby={describedBy}
-          className="h-full w-full min-w-0 bg-transparent text-[16px] text-auth-foreground outline-none placeholder:text-auth-subtle"
+          className={`${FIELD} pr-11`}
           {...rest}
         />
         <button
@@ -90,20 +79,12 @@ export function PasswordInput({ label, icon, error, hint, id, ...rest }: BasePro
           onClick={() => setVisible((v) => !v)}
           aria-label={visible ? "Hide password" : "Show password"}
           aria-pressed={visible}
-          className="shrink-0 rounded-md p-1.5 text-auth-subtle transition-colors hover:text-auth-foreground"
+          className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-md p-2 text-auth-subtle transition-colors hover:text-auth-foreground"
         >
           {visible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
         </button>
       </div>
-      {error ? (
-        <p id={`${inputId}-error`} role="alert" className="mt-1.5 text-xs text-auth-danger">
-          {error}
-        </p>
-      ) : hint ? (
-        <p id={`${inputId}-hint`} className="mt-1.5 text-xs text-auth-subtle">
-          {hint}
-        </p>
-      ) : null}
+      <Message id={inputId} error={error} hint={hint} />
     </div>
   );
 }

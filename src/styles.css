@@ -953,11 +953,19 @@ main:has(> .pub-inner) + footer {
   }
 }
 
-/* Member-portal fields: the whole box highlights (see AuthInput). Kill the global inner focus ring
-   (outline + box-shadow + radius from :focus-visible) that drew a second blue box inside the field. */
-.auth-surface input:focus,
-.auth-surface input:focus-visible {
+/* Member-portal fields (AuthInput): the <input> itself is the one bordered box, like Metrol's .input.
+   The global :focus-visible ring (outline + box-shadow + radius) is replaced by a single soft highlight. */
+.auth-surface input.auth-field {
+  border-radius: 8px !important;
   outline: none !important;
   box-shadow: none !important;
-  border-radius: 0 !important;
+}
+.auth-surface input.auth-field:focus,
+.auth-surface input.auth-field:focus-visible {
+  border-color: var(--auth-accent);
+  outline: none !important;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--auth-accent) 18%, transparent) !important;
+}
+.auth-surface input.auth-field[aria-invalid="true"] {
+  border-color: var(--auth-danger);
 }

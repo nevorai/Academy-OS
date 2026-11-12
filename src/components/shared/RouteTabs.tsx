@@ -48,15 +48,12 @@ export function RouteTabs({ tabs, label }: { tabs: RouteTab[]; label: string }) 
   );
 }
 
-/** Registrations and Activation: one Admissions area, one menu row. */
+/** Admissions: enquiries from the website. New players are added from "New admission"; the old Activation tab is hidden. */
 export function AdmissionsTabs({ newCount }: { newCount?: number }) {
   return (
     <RouteTabs
       label="Admissions"
-      tabs={[
-        { to: "/dashboard/registrations", label: "Registrations", count: newCount },
-        { to: "/dashboard/activation", label: "Activation" },
-      ]}
+      tabs={[{ to: "/dashboard/registrations", label: "Enquiries", count: newCount }]}
     />
   );
 }

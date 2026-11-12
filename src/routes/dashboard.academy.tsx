@@ -1,29 +1,23 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
-  Users,
   Swords,
   Activity,
-  BarChart3,
   ShieldCheck,
-  ChevronRight,
   Search,
   IndianRupee,
-  Send,
+  Megaphone,
   UserCircle,
   LineChart,
   ClipboardCheck,
   Layers,
   UserPlus,
   Zap,
-  Link2 as LinkIcon,
-  Sparkles,
   CreditCard,
 } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { useCurrentRole } from "@/hooks/use-current-role";
 import { getFeatures } from "@/lib/tenant";
-import { Card } from "@/components/ds/Card";
 import { SearchBar } from "@/components/ds/SearchBar";
 
 export const Route = createFileRoute("/dashboard/academy")({
@@ -50,69 +44,51 @@ type Group = { title: string; items: Item[] };
 /* Settings/config lives in Profile.                                  */
 /* ------------------------------------------------------------------ */
 
+// Only what the sidebar and Home do NOT already show. One place per thing: Players, Fees, Reports,
+// Attendance, Admissions, Match Center and Broadcasts live in the sidebar; Kaizen is not shown to owners.
 const WORKSPACE_GROUPS: Group[] = [
   {
-    title: "Students",
+    title: "Academy",
     items: [
       {
-        to: "/dashboard/students",
-        label: "Players",
-        hint: "Roster, batches, documents, medical, performance, ID cards",
-        icon: Users,
-        keywords: [
-          "players",
-          "athletes",
-          "roster",
-          "registrations",
-          "signups",
-          "documents",
-          "medical",
-          "performance",
-          "id cards",
-        ],
+        to: "/dashboard/new-admission",
+        label: "New admission",
+        hint: "Add a player and send the login",
+        icon: UserPlus,
+        keywords: ["admit", "add player", "join", "register"],
       },
       {
         to: "/dashboard/batches",
-        label: "Batches",
-        hint: "Training groups, timings & coach assignments",
+        label: "Batches & timings",
+        hint: "Training groups and times",
         icon: Layers,
         keywords: ["groups", "schedule", "timings", "sessions"],
       },
       {
-        to: "/dashboard/activation",
-        label: "Activation Center",
-        hint: "Share magic links & QR so players create their own login",
-        icon: LinkIcon,
-        keywords: ["magic link", "invite", "activate", "login", "qr", "whatsapp", "onboarding"],
+        to: "/dashboard/staff",
+        label: "Coaches & team",
+        hint: "Members and roles",
+        icon: ShieldCheck,
+        keywords: ["staff", "coach", "invite", "access"],
       },
-
     ],
   },
   {
-    title: "Finance",
+    title: "Messages",
     items: [
       {
-        to: "/dashboard/fees",
-        label: "Fees",
-        hint: "Collections, approvals, fee plans, setup & reminders",
-        icon: IndianRupee,
-        requiresFeature: "fee_tracking",
-        keywords: [
-          "invoices",
-          "collections",
-          "dues",
-          "pending",
-          "plans",
-          "pricing",
-          "manual",
-          "offline",
-          "cash",
-          "approve",
-          "verify",
-          "utr",
-          "reminders",
-          "overdue",
-        ],
+        to: "/dashboard/auto-messages",
+        label: "WhatsApp messages",
+        hint: "Automatic messages to parents",
+        icon: Megaphone,
+        keywords: ["whatsapp", "parents", "reminder", "receipt"],
+      },
+      {
+        to: "/dashboard/automation",
+        label: "Automation",
+        hint: "Rules and scheduled workflows",
+        icon: Zap,
+        keywords: ["rules", "triggers", "workflows", "auto", "scheduled"],
       },
     ],
   },
@@ -120,77 +96,11 @@ const WORKSPACE_GROUPS: Group[] = [
     title: "Cricket",
     items: [
       {
-        to: "/match-center",
-        label: "Tournament Center",
-        hint: "Tournaments, fixtures, teams, stats",
-        icon: Swords,
-        keywords: [
-          "fixtures",
-          "teams",
-          "scorecards",
-          "statistics",
-          "officials",
-          "venues",
-          "groups",
-          "points",
-          "bracket",
-        ],
-      },
-      {
         to: "/match-center/live",
-        label: "Live Scoring",
-        hint: "Score matches in real time",
+        label: "Live scoring",
+        hint: "Score a match ball by ball",
         icon: Activity,
-        keywords: ["ball", "score"],
-      },
-    ],
-  },
-  {
-    title: "Communication",
-    items: [
-      {
-        to: "/dashboard/communications",
-        label: "Broadcasts",
-        hint: "Templates, history, scheduled messages",
-        icon: Send,
-        keywords: ["whatsapp", "sms", "email", "announcements", "templates", "notifications"],
-      },
-      {
-        to: "/dashboard/automation",
-        label: "Automation",
-        hint: "Rules, triggers & scheduled workflows",
-        icon: Zap,
-        keywords: ["rules", "triggers", "workflows", "auto", "scheduled"],
-      },
-    ],
-  },
-  {
-    title: "Reports",
-    items: [
-      {
-        to: "/dashboard/reports",
-        label: "Reports",
-        hint: "Decision center, insights & AI signals",
-        icon: BarChart3,
-        keywords: ["insights", "ai", "decision", "analytics"],
-      },
-      {
-        to: "/dashboard/nevorai",
-        label: "Kaizen Assistant",
-        hint: "AI manager for attendance, fees & insights",
-        icon: Sparkles,
-        keywords: ["ai", "assistant", "nevorai", "help", "insights", "chat"],
-      },
-    ],
-  },
-  {
-    title: "Team",
-    items: [
-      {
-        to: "/dashboard/staff",
-        label: "Team & Access",
-        hint: "Members, invitations & role assignments",
-        icon: ShieldCheck,
+        keywords: ["ball", "score", "match"],
       },
     ],
   },
@@ -202,7 +112,17 @@ const PROFILE_ITEM: Item = {
   label: "Profile & settings",
   hint: "Your details, theme, notifications, payment setup and branding",
   icon: UserCircle,
-  keywords: ["account", "password", "theme", "dark", "branding", "payments", "upi", "notifications", "tour"],
+  keywords: [
+    "account",
+    "password",
+    "theme",
+    "dark",
+    "branding",
+    "payments",
+    "upi",
+    "notifications",
+    "tour",
+  ],
 };
 const OWNER_GROUPS: Group[] = [
   ...WORKSPACE_GROUPS,
@@ -216,13 +136,6 @@ const OWNER_GROUPS: Group[] = [
         hint: "Your Nevorai Academy plan, invoices and usage",
         icon: CreditCard,
         keywords: ["plan", "subscription", "invoice", "gst", "pay", "renew"],
-      },
-      {
-        to: "/dashboard/nevorai-health",
-        label: "Kaizen health",
-        hint: "How the AI assistant is doing: answers, tools and errors",
-        icon: Activity,
-        keywords: ["ai", "assistant", "errors", "status"],
       },
     ],
   },
@@ -313,11 +226,7 @@ function ManageHub() {
         </div>
       </header>
 
-      <SearchBar
-        value={q}
-        onChange={setQ}
-        placeholder="Search operations — players, matches, fees, reports…"
-      />
+      <SearchBar value={q} onChange={setQ} placeholder="Search…" />
 
       {groups.length === 0 ? (
         <div className="grid place-items-center py-16 text-center text-muted-foreground">
@@ -327,7 +236,7 @@ function ManageHub() {
       ) : (
         groups.map((group) => (
           <Section key={group.title} title={group.title}>
-            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+            <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 sm:gap-3 lg:grid-cols-8">
               {group.items.map((item) => (
                 <HubTile key={group.title + item.to + item.label} item={item} />
               ))}
@@ -355,33 +264,21 @@ function HubTile({ item }: { item: Item }) {
   return (
     <Link
       to={item.to}
-      className="block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]"
+      aria-label={item.label}
+      className="group flex min-h-[88px] flex-col items-center justify-start gap-1.5 rounded-xl border border-border bg-card px-1.5 py-3 text-center outline-none transition-colors hover:border-foreground/40 focus-visible:ring-2 focus-visible:ring-[color:var(--brand)] active:scale-[0.97]"
     >
-      <Card className="group h-full p-3.5 min-h-[64px]">
-        <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
-          <div
-            className="grid size-10 shrink-0 place-items-center rounded-xl"
-            style={{
-              backgroundColor: "color-mix(in oklab, var(--brand) 12%, transparent)",
-              color: "var(--brand)",
-            }}
-          >
-            <Icon className="size-[18px]" />
-          </div>
-          <div className="min-w-0">
-            <div
-              className="font-semibold leading-tight text-[14px] break-words line-clamp-2"
-              title={item.label}
-            >
-              {item.label}
-            </div>
-            <p className="text-[11.5px] text-muted-foreground leading-snug mt-0.5 break-words line-clamp-2">
-              {item.hint}
-            </p>
-          </div>
-          <ChevronRight className="size-4 text-muted-foreground/60 shrink-0 transition-transform group-hover:translate-x-0.5" />
-        </div>
-      </Card>
+      <span
+        className="grid size-10 shrink-0 place-items-center rounded-xl"
+        style={{
+          backgroundColor: "color-mix(in oklab, var(--brand) 12%, transparent)",
+          color: "var(--brand)",
+        }}
+      >
+        <Icon className="size-5" />
+      </span>
+      <span className="line-clamp-2 break-words text-[11.5px] font-semibold leading-tight">
+        {item.label}
+      </span>
     </Link>
   );
 }

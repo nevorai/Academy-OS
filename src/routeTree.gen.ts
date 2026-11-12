@@ -72,6 +72,7 @@ import { Route as DashboardInsightsRouteImport } from './routes/dashboard.insigh
 import { Route as DashboardLeadsRouteImport } from './routes/dashboard.leads'
 import { Route as DashboardNevoraiRouteImport } from './routes/dashboard.nevorai'
 import { Route as DashboardNevoraiHealthRouteImport } from './routes/dashboard.nevorai-health'
+import { Route as DashboardNewAdmissionRouteImport } from './routes/dashboard.new-admission'
 import { Route as DashboardNotificationsRouteImport } from './routes/dashboard.notifications'
 import { Route as DashboardPaymentSettingsRouteImport } from './routes/dashboard.payment-settings'
 import { Route as DashboardPaymentVerificationRouteImport } from './routes/dashboard.payment-verification'
@@ -483,6 +484,11 @@ const DashboardNevoraiRoute = DashboardNevoraiRouteImport.update({
 const DashboardNevoraiHealthRoute = DashboardNevoraiHealthRouteImport.update({
   id: '/nevorai-health',
   path: '/nevorai-health',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardNewAdmissionRoute = DashboardNewAdmissionRouteImport.update({
+  id: '/new-admission',
+  path: '/new-admission',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardNotificationsRoute = DashboardNotificationsRouteImport.update({
@@ -1036,6 +1042,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/leads': typeof DashboardLeadsRoute
   '/dashboard/nevorai': typeof DashboardNevoraiRoute
   '/dashboard/nevorai-health': typeof DashboardNevoraiHealthRoute
+  '/dashboard/new-admission': typeof DashboardNewAdmissionRoute
   '/dashboard/notifications': typeof DashboardNotificationsRoute
   '/dashboard/payment-settings': typeof DashboardPaymentSettingsRoute
   '/dashboard/payment-verification': typeof DashboardPaymentVerificationRoute
@@ -1188,6 +1195,7 @@ export interface FileRoutesByTo {
   '/dashboard/leads': typeof DashboardLeadsRoute
   '/dashboard/nevorai': typeof DashboardNevoraiRoute
   '/dashboard/nevorai-health': typeof DashboardNevoraiHealthRoute
+  '/dashboard/new-admission': typeof DashboardNewAdmissionRoute
   '/dashboard/notifications': typeof DashboardNotificationsRoute
   '/dashboard/payment-settings': typeof DashboardPaymentSettingsRoute
   '/dashboard/payment-verification': typeof DashboardPaymentVerificationRoute
@@ -1347,6 +1355,7 @@ export interface FileRoutesById {
   '/dashboard/leads': typeof DashboardLeadsRoute
   '/dashboard/nevorai': typeof DashboardNevoraiRoute
   '/dashboard/nevorai-health': typeof DashboardNevoraiHealthRoute
+  '/dashboard/new-admission': typeof DashboardNewAdmissionRoute
   '/dashboard/notifications': typeof DashboardNotificationsRoute
   '/dashboard/payment-settings': typeof DashboardPaymentSettingsRoute
   '/dashboard/payment-verification': typeof DashboardPaymentVerificationRoute
@@ -1507,6 +1516,7 @@ export interface FileRouteTypes {
     | '/dashboard/leads'
     | '/dashboard/nevorai'
     | '/dashboard/nevorai-health'
+    | '/dashboard/new-admission'
     | '/dashboard/notifications'
     | '/dashboard/payment-settings'
     | '/dashboard/payment-verification'
@@ -1659,6 +1669,7 @@ export interface FileRouteTypes {
     | '/dashboard/leads'
     | '/dashboard/nevorai'
     | '/dashboard/nevorai-health'
+    | '/dashboard/new-admission'
     | '/dashboard/notifications'
     | '/dashboard/payment-settings'
     | '/dashboard/payment-verification'
@@ -1817,6 +1828,7 @@ export interface FileRouteTypes {
     | '/dashboard/leads'
     | '/dashboard/nevorai'
     | '/dashboard/nevorai-health'
+    | '/dashboard/new-admission'
     | '/dashboard/notifications'
     | '/dashboard/payment-settings'
     | '/dashboard/payment-verification'
@@ -2416,6 +2428,13 @@ declare module '@tanstack/react-router' {
       path: '/nevorai-health'
       fullPath: '/dashboard/nevorai-health'
       preLoaderRoute: typeof DashboardNevoraiHealthRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/new-admission': {
+      id: '/dashboard/new-admission'
+      path: '/new-admission'
+      fullPath: '/dashboard/new-admission'
+      preLoaderRoute: typeof DashboardNewAdmissionRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/notifications': {
@@ -3123,6 +3142,7 @@ interface DashboardRouteChildren {
   DashboardLeadsRoute: typeof DashboardLeadsRoute
   DashboardNevoraiRoute: typeof DashboardNevoraiRoute
   DashboardNevoraiHealthRoute: typeof DashboardNevoraiHealthRoute
+  DashboardNewAdmissionRoute: typeof DashboardNewAdmissionRoute
   DashboardNotificationsRoute: typeof DashboardNotificationsRoute
   DashboardPaymentSettingsRoute: typeof DashboardPaymentSettingsRoute
   DashboardPaymentVerificationRoute: typeof DashboardPaymentVerificationRoute
@@ -3162,6 +3182,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardLeadsRoute: DashboardLeadsRoute,
   DashboardNevoraiRoute: DashboardNevoraiRoute,
   DashboardNevoraiHealthRoute: DashboardNevoraiHealthRoute,
+  DashboardNewAdmissionRoute: DashboardNewAdmissionRoute,
   DashboardNotificationsRoute: DashboardNotificationsRoute,
   DashboardPaymentSettingsRoute: DashboardPaymentSettingsRoute,
   DashboardPaymentVerificationRoute: DashboardPaymentVerificationRoute,

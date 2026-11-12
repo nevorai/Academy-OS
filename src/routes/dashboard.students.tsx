@@ -12,7 +12,6 @@ import { SlidersHorizontal } from "lucide-react";
 import { DashboardSearch } from "@/components/dashboard-ui";
 import { FilterTabs } from "@/components/shared/FilterTabs";
 import { Button } from "@/components/ui/button";
-import { AddStudentSheet } from "@/components/students/AddStudentSheet";
 import { DeleteArchivedButton } from "@/components/students/DeleteArchivedButton";
 import { RegistrationsBanner } from "@/components/students/RegistrationsBanner";
 import { MyBatchesToggle, StudentsFilterPanel } from "@/components/students/StudentsFilterPanel";
@@ -42,9 +41,8 @@ function StudentsPage() {
   const { filters, counts } = p;
 
   const [showFilters, setShowFilters] = useState(false);
-  const [addOpen, setAddOpen] = useState(false);
   const navigate = useNavigate();
-  const openAdd = () => setAddOpen(true);
+  const openAdd = () => void navigate({ to: "/dashboard/new-admission" });
 
   return (
     <div className="space-y-5">
@@ -135,8 +133,6 @@ function StudentsPage() {
         }}
         onStatusChanged={() => void p.refreshStudents()}
       />
-
-      <AddStudentSheet open={addOpen} onOpenChange={setAddOpen} />
     </div>
   );
 }

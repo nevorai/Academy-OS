@@ -15,6 +15,7 @@ import {
   QrCode,
   Swords,
   Users,
+  UserPlus,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { cn } from "@/lib/utils";
@@ -66,9 +67,16 @@ export function HomeButtons({
       show: true,
     },
     {
+      to: "/dashboard/new-admission",
+      title: "New admission",
+      hint: "Add a player, send login",
+      icon: UserPlus,
+      show: true,
+    },
+    {
       to: "/dashboard/registrations",
-      title: "New admissions",
-      hint: "Approve new players",
+      title: "Enquiries",
+      hint: "People who applied online",
       icon: Inbox,
       count: newRegs,
       show: true,

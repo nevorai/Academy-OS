@@ -20,6 +20,9 @@ export const TEMPLATE_FOR = {
   match_result: "academy_match_result",
   progress: "academy_progress",
 } as const;
+
+/** Template for a new player's login. Sent straight away and never saved (the password must not sit in a table). */
+export const CREDENTIALS_TEMPLATE = "academy_credentials";
 export type MessageKind = keyof typeof TEMPLATE_FOR;
 
 const CONNECT_URL = () => process.env.CONNECT_BASE_URL || "https://connect.nevorai.com";
@@ -603,4 +606,52 @@ export async function runParentMessages(db: Db) {
     summary.skipped += r.skipped;
   }
   return summary;
+}
+
+/**
+ * Sends a new player's login (ID, temporary password, sign-in link) on WhatsApp through Connect.
+ * Goes to the player's own number and the parent's. Nothing is stored; the password lives only in this call.
+ * Returns how many numbers it was sent to (0 when WhatsApp is not connected or switched off).
+ */
+export async function sendCredentialsWhatsApp(
+  db: Db,
+  input: {
+    tenantId: string;
+    studentId: string;
+    academy: string;
+    loginId: string;
+    password: string;
+    url: string;
+    student: Pick<StudentLite, "name" | "guardian_name" | "guardian_phone" | "phone">;
+  },
+): Promise<number> {
+  const { data: link } = await db
+    .from("connect_links")
+    .select("api_key, enabled")
+    .eq("tenant_id", input.tenantId)
+    .maybeSingle();
+  const key = (link as { api_key: string | null; enabled: boolean } | null)?.api_key;
+  if (!key || !(link as { enabled: boolean }).enabled) return 0;
+  let sent = 0;
+  for (const r of recipientsFor(input.student)) {
+    const cap = await consumeUsage(input.tenantId, "whatsapp");
+    if (!cap.ok) break;
+    try {
+      const res = await fetch(`${CONNECT_URL()}/api/v1/send`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: r.phone,
+          template: CREDENTIALS_TEMPLATE,
+          variables: [r.greeting, input.academy, input.loginId, input.password, input.url],
+          ref: `${input.tenantId.slice(0, 8)}:cred:${input.studentId}:${r.phone}:${Date.now()}`,
+        }),
+        signal: AbortSignal.timeout(15000),
+      });
+      if (res.ok) sent++;
+    } catch {
+      /* the owner still sees the login on screen and can send it by hand */
+    }
+  }
+  return sent;
 }

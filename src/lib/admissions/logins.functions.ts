@@ -22,12 +22,15 @@ const createInput = z.object({
   tenantId: uuid,
   studentIds: z.array(uuid).min(1).max(LOGIN_CHUNK),
   sendEmail: z.boolean().default(true),
+  /** Send the login on WhatsApp to the player's and parent's numbers (needs WhatsApp connected and switched on). */
+  sendWhatsApp: z.boolean().default(false),
 });
 
 const resetInput = z.object({
   tenantId: uuid,
   studentId: uuid,
   sendEmail: z.boolean().default(true),
+  sendWhatsApp: z.boolean().default(false),
 });
 
 export interface LoginResult {
@@ -43,6 +46,8 @@ export interface LoginResult {
   email: string | null;
   status: "created" | "failed";
   emailSent: boolean;
+  /** How many WhatsApp numbers got the login. */
+  whatsappSent: number;
   error?: string;
 }
 
@@ -58,7 +63,11 @@ function tempPassword(): string {
 function usernameFrom(playerId: string | null, slug: string, fallback: string): string {
   const base = (playerId ?? "").toLowerCase().replace(/[^a-z0-9._]/g, "");
   if (base.length >= 3) return base.slice(0, 20);
-  const s = slug.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 6) || "p";
+  const s =
+    slug
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "")
+      .slice(0, 6) || "p";
   return `${s}${fallback}`.slice(0, 20);
 }
 
@@ -83,7 +92,8 @@ async function sendCredentialsEmail(opts: {
   const { consumeUsage } = await import("@/lib/usage-cap.server");
   if (!(await consumeUsage(opts.tenantId, "email")).ok) return false;
   const from = process.env.RESEND_FROM || "Nevorai Academy <noreply@nevorai.com>";
-  const esc = (v: string) => v.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+  const esc = (v: string) =>
+    v.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
   const html = `<div style="font-family:system-ui,sans-serif;max-width:480px">
 <h2 style="margin:0 0 8px">Welcome to ${esc(opts.academy)}</h2>
 <p>Hi ${esc(opts.name)}, your account is ready.</p>
@@ -118,7 +128,9 @@ async function getAdmin() {
 async function saveUsername(admin: AdminClient, userId: string, wanted: string): Promise<string> {
   let candidate = wanted;
   for (let i = 0; i < 4; i++) {
-    const { error } = await admin.from("user_usernames").insert({ user_id: userId, username: candidate } as never);
+    const { error } = await admin
+      .from("user_usernames")
+      .insert({ user_id: userId, username: candidate } as never);
     if (!error) return candidate;
     const taken = /duplicate|unique|already/i.test(error.message);
     if (!taken) throw new Error(error.message);
@@ -169,6 +181,7 @@ export const createStudentLogins = createServerFn({ method: "POST" })
         email: s.email ?? null,
         status: "failed",
         emailSent: false,
+        whatsappSent: 0,
       };
       try {
         const meta = { full_name: s.name, tenant_id: data.tenantId, must_change_password: true };
@@ -236,6 +249,23 @@ export const createStudentLogins = createServerFn({ method: "POST" })
             url,
           });
         }
+        if (data.sendWhatsApp) {
+          const { sendCredentialsWhatsApp } = await import("@/lib/parent-messages.server");
+          base.whatsappSent = await sendCredentialsWhatsApp(admin as never, {
+            tenantId: data.tenantId,
+            studentId: s.id,
+            academy: tenant.name,
+            loginId: s.phone || username,
+            password,
+            url,
+            student: {
+              name: s.name,
+              phone: s.phone ?? null,
+              guardian_phone: s.guardian_phone ?? null,
+              guardian_name: null,
+            },
+          });
+        }
       } catch (e) {
         base.error = e instanceof Error ? e.message : "Failed";
       }
@@ -247,7 +277,13 @@ export const createStudentLogins = createServerFn({ method: "POST" })
       results.push(...(await Promise.all(todo.slice(i, i + 5).map(one))));
     }
     const skipped = (students ?? []).length - todo.length;
-    return { results, skippedHaveLogin: skipped, emailConfigured, loginUrl: url, academy: tenant.name };
+    return {
+      results,
+      skippedHaveLogin: skipped,
+      emailConfigured,
+      loginUrl: url,
+      academy: tenant.name,
+    };
   });
 
 /** New temporary password for a player who forgot theirs (owner/admin only). */
@@ -267,9 +303,14 @@ export const resetStudentLogin = createServerFn({ method: "POST" })
     // Only logins this academy made itself can be reset here. A person who signed up on their
     // own (or who has Nevorai accounts elsewhere under the same email) resets their own password.
     const { data: target } = await admin.auth.admin.getUserById(s.user_id);
-    const meta = (target?.user?.user_metadata ?? {}) as { must_change_password?: unknown; tenant_id?: unknown };
+    const meta = (target?.user?.user_metadata ?? {}) as {
+      must_change_password?: unknown;
+      tenant_id?: unknown;
+    };
     if (typeof meta.must_change_password !== "boolean" || meta.tenant_id !== data.tenantId) {
-      throw new Error("This player set up their own login. Ask them to use Forgot password on the sign-in page.");
+      throw new Error(
+        "This player set up their own login. Ask them to use Forgot password on the sign-in page.",
+      );
     }
     const { data: uname } = await admin
       .from("user_usernames")
@@ -301,9 +342,28 @@ export const resetStudentLogin = createServerFn({ method: "POST" })
         url,
       });
     }
+    let whatsappSent = 0;
+    if (data.sendWhatsApp && tenant) {
+      const { sendCredentialsWhatsApp } = await import("@/lib/parent-messages.server");
+      whatsappSent = await sendCredentialsWhatsApp(admin as never, {
+        tenantId: data.tenantId,
+        studentId: s.id,
+        academy: tenant.name,
+        loginId: s.phone || username,
+        password,
+        url,
+        student: {
+          name: s.name,
+          phone: s.phone ?? null,
+          guardian_phone: s.guardian_phone ?? null,
+          guardian_name: null,
+        },
+      });
+    }
     return {
       name: s.name,
       username,
+      whatsappSent,
       playerId: s.player_id ?? username.toUpperCase(),
       password,
       phone: s.phone ?? null,

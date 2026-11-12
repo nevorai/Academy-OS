@@ -1,4 +1,5 @@
-import { type ReactNode, useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useViewportInsets } from "@/hooks/use-visual-viewport";
 import { useBodyLock } from "@/hooks/use-body-lock";
 import { cn } from "@/lib/utils";
@@ -49,7 +50,13 @@ export function MobileViewportShell({
     paddingRight: "var(--app-safe-right)",
   };
 
-  return (
+  // Render straight into <body>: inside the page, a parent with a transform or animation makes
+  // "fixed" mean "fixed to that parent", which left a gap at the bottom of the screen on iPhone.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+
+  return createPortal(
     <div
       className={cn(
         "fixed inset-0 z-[100] flex flex-col overflow-hidden bg-background text-foreground",
@@ -82,6 +89,7 @@ export function MobileViewportShell({
       ) : (
         <div style={{ paddingBottom: insets.keyboardOpen ? "0px" : "var(--app-safe-bottom)" }} />
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }

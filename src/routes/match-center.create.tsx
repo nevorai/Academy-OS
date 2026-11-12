@@ -1230,7 +1230,7 @@ function StepReview({
   const keeperB = playersB.find((p) => p.is_keeper)?.name;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2.5">
       {/* Match meta */}
       <button
         type="button"
@@ -1249,7 +1249,7 @@ function StepReview({
       </button>
 
       {/* Teams */}
-      <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-[1fr_auto_1fr]">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-stretch gap-1.5">
         <ReviewTeamCard
           title="Team A"
           name={teamAName}
@@ -1259,8 +1259,8 @@ function StepReview({
           keeper={keeperA}
           onEdit={() => onEditStep(2)}
         />
-        <div className="grid place-items-center sm:px-1">
-          <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-black uppercase tracking-widest text-primary">
+        <div className="grid place-items-center">
+          <span className="rounded-full bg-primary/10 px-1.5 py-1 text-[10px] font-black uppercase tracking-wider text-primary">
             vs
           </span>
         </div>
@@ -1310,7 +1310,7 @@ function ReviewTeamCard({
     <button
       type="button"
       onClick={onEdit}
-      className="flex flex-col rounded-2xl border border-border bg-card p-4 text-left transition-colors hover:bg-accent/40"
+      className="flex min-w-0 flex-col rounded-2xl border border-border bg-card p-3 text-left transition-colors hover:bg-accent/40"
     >
       <div className="flex items-center justify-between">
         <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
@@ -1318,7 +1318,7 @@ function ReviewTeamCard({
         </div>
         <span className="text-[11px] font-semibold text-primary">Edit</span>
       </div>
-      <div className="mt-1 truncate text-base font-bold tracking-tight">{name}</div>
+      <div className="mt-1 truncate text-[15px] font-bold tracking-tight">{name}</div>
       <div className="mt-0.5 text-xs text-muted-foreground">
         {players.length} {players.length === 1 ? "player" : "players"}
       </div>

@@ -65,7 +65,7 @@ import { Skeleton } from "@/components/ds/States";
 import { PersonAvatar } from "@/components/site/PersonAvatar";
 import { HomeButtons } from "@/components/dashboard/HomeButtons";
 import { useLiveMatches, type MatchWithTeams } from "@/lib/match-feeds";
-import { Radio } from "lucide-react";
+import { LiveMatchStrip } from "@/components/dashboard/LiveMatchStrip";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard/")({
@@ -305,7 +305,13 @@ function DashboardHome() {
       </div>
 
       {/* Live match jump-in · single most time-sensitive action */}
-      {canScoreMatch && liveMatch ? <LiveMatchBanner match={liveMatch} /> : null}
+      {canScoreMatch && liveMatch ? (
+        <LiveMatchStrip
+          match={liveMatch}
+          tenantId={tenant.id}
+          canEnd={role === "owner" || role === "admin"}
+        />
+      ) : null}
 
       <section aria-label="Today at a glance">
         <div className={cn("grid gap-2.5", tileGrid)}>{tiles}</div>
@@ -330,44 +336,6 @@ function DashboardHome() {
 // Live match banner — one-tap jump into scoring when a match is in progress.
 // Rendered only when the tenant has Match Center enabled AND a match is live.
 // ---------------------------------------------------------------------------
-
-function LiveMatchBanner({ match }: { match: MatchWithTeams }) {
-  const a = match.team_a?.short_name ?? match.team_a?.name ?? "Team A";
-  const b = match.team_b?.short_name ?? match.team_b?.name ?? "Team B";
-  return (
-    <Link
-      to="/scorer/$matchId"
-      params={{ matchId: match.id }}
-      className={cn(
-        "flex items-center justify-between gap-3 rounded-[7px] px-4 py-3",
-        "border border-t-2 border-border border-t-red-500 bg-card",
-        "transition-colors hover:border-red-500/60",
-      )}
-      aria-label={`Live match ${a} versus ${b} — open scoring`}
-    >
-      <div className="flex items-center gap-3 min-w-0">
-        <span className="relative inline-flex size-2.5 shrink-0">
-          <span className="absolute inline-flex size-full rounded-full bg-red-500 opacity-70 animate-ping" />
-          <span className="relative inline-flex size-2.5 rounded-full bg-red-500" />
-        </span>
-        <div className="min-w-0">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-red-600 dark:text-red-400">
-            Live now
-          </div>
-          <div className="mt-0.5 text-sm font-semibold tracking-tight truncate">
-            {a} vs {b} · Tap to score
-          </div>
-        </div>
-      </div>
-      <span
-        className="grid size-9 shrink-0 place-items-center rounded-xl bg-red-500 text-white"
-        aria-hidden
-      >
-        <Radio className="size-4" />
-      </span>
-    </Link>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // UI primitives (page-scoped) — small, purposeful, no oversized cards.

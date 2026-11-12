@@ -272,7 +272,13 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           </TooltipProvider>
         </header>
 
-        <div className="flex">
+        <div
+          className="flex"
+          style={{
+            backgroundImage:
+              "linear-gradient(180deg, color-mix(in oklab, var(--brand, #2A7A4B) 9%, transparent) 0%, transparent 260px)",
+          }}
+        >
           {/* Desktop sidebar: resizable, folds to icons */}
           <DashboardSidebar groups={groups} />
 

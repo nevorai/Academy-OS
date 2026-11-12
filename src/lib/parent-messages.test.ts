@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  attendanceSummary,
+  monthRangeIst,
+  previousMonthKey,
   greetName,
   istTime,
   monthLabel,
@@ -52,5 +55,31 @@ describe("parent messages helpers", () => {
     expect(
       recipientsFor({ name: "A", guardian_name: null, guardian_phone: null, phone: null }),
     ).toEqual([]);
+  });
+
+  it("finds last month, including January", () => {
+    expect(previousMonthKey("2026-12-02")).toBe("2026-11");
+    expect(previousMonthKey("2027-01-01")).toBe("2026-12");
+  });
+  it("month range is India midnight to India midnight", () => {
+    expect(monthRangeIst("2026-11")).toEqual({
+      from: "2026-10-31T18:30:00.000Z",
+      to: "2026-11-30T18:30:00.000Z",
+    });
+    expect(monthRangeIst("2026-12").to).toBe("2026-12-31T18:30:00.000Z");
+  });
+  it("counts training days and days each player came (India dates)", () => {
+    const r = attendanceSummary([
+      { student_id: "a", check_in_at: "2026-11-02T00:30:00Z" },
+      { student_id: "a", check_in_at: "2026-11-02T10:00:00Z" }, // same India day
+      { student_id: "a", check_in_at: "2026-11-03T01:00:00Z" },
+      { student_id: "b", check_in_at: "2026-11-03T01:00:00Z" },
+      { student_id: "b", check_in_at: "2026-11-04T01:00:00Z" },
+      { student_id: "c", check_in_at: null },
+    ]);
+    expect(r.total).toBe(3);
+    expect(r.rows.find((x) => x.studentId === "a")).toMatchObject({ came: 2, percent: 67 });
+    expect(r.rows.find((x) => x.studentId === "b")).toMatchObject({ came: 2, total: 3 });
+    expect(r.rows.some((x) => x.studentId === "c")).toBe(false);
   });
 });

@@ -10,6 +10,8 @@ import {
   IndianRupee,
   Megaphone,
   MessageCircle,
+  Trophy,
+  CalendarCheck,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
@@ -32,10 +34,12 @@ type Settings = {
   fee_reminder: boolean;
   fee_received: boolean;
   fee_from_day: number;
+  match_result: boolean;
+  progress: boolean;
 };
 type Recent = {
   id: string;
-  kind: "checkin" | "checkout" | "fee_due" | "fee_received";
+  kind: "checkin" | "checkout" | "fee_due" | "fee_received" | "match_result" | "progress";
   status: "queued" | "sent" | "failed" | "skipped";
   student_name: string | null;
   phone_tail: string;
@@ -74,6 +78,18 @@ const ROWS = [
     title: "Fee received",
     hint: "Receipt message after you record or verify a payment",
   },
+  {
+    key: "match_result",
+    icon: Trophy,
+    title: "Match result",
+    hint: "When a match ends, parents of the players in it get the result",
+  },
+  {
+    key: "progress",
+    icon: CalendarCheck,
+    title: "Monthly attendance report",
+    hint: "On the 1st, each player's days attended last month",
+  },
 ] as const;
 
 const KIND_WORDS: Record<Recent["kind"], string> = {
@@ -81,6 +97,8 @@ const KIND_WORDS: Record<Recent["kind"], string> = {
   checkout: "Left",
   fee_due: "Fee reminder",
   fee_received: "Fee received",
+  match_result: "Match result",
+  progress: "Monthly report",
 };
 const STATUS_WORDS: Record<Recent["status"], string> = {
   queued: "Sending soon",
@@ -127,6 +145,8 @@ function AutoMessages() {
         _fee_reminder: next.fee_reminder,
         _fee_received: next.fee_received,
         _fee_from_day: next.fee_from_day,
+        _match_result: next.match_result,
+        _progress: next.progress,
       });
       if (error) throw new Error(error.message);
     },

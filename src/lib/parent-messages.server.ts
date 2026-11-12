@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { consumeUsage } from "@/lib/usage-cap.server";
 import { publicMediaUrl } from "@/lib/media-paths";
+import { fetchAllRows } from "@/lib/fetch-all";
 
 /**
  * Automatic WhatsApp messages to parents, sent through Nevorai Connect (https://connect.nevorai.com/api/v1/send).
@@ -16,6 +17,8 @@ export const TEMPLATE_FOR = {
   checkout: "academy_checkout",
   fee_due: "academy_fee_due",
   fee_received: "academy_fee_received",
+  match_result: "academy_match_result",
+  progress: "academy_progress",
 } as const;
 export type MessageKind = keyof typeof TEMPLATE_FOR;
 
@@ -31,6 +34,8 @@ type Link = {
   on_checkout: boolean;
   on_fee_reminder: boolean;
   on_fee_received: boolean;
+  on_match_result: boolean;
+  on_progress: boolean;
   fee_remind_from_day: number;
   fee_cycle: string | null;
 };
@@ -95,6 +100,48 @@ export function monthLabel(period: string): string {
 }
 
 const inr = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
+
+/** "YYYY-MM" of the month before the given India date ("YYYY-MM-DD"). */
+export function previousMonthKey(istToday: string): string {
+  const y = Number(istToday.slice(0, 4));
+  const m = Number(istToday.slice(5, 7));
+  return m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, "0")}`;
+}
+
+/** Start and end (UTC instants) of an India calendar month "YYYY-MM". */
+export function monthRangeIst(period: string): { from: string; to: string } {
+  const [y, m] = period.split("-").map(Number);
+  const start = Date.UTC(y, m - 1, 1) - 330 * 60 * 1000;
+  const end = Date.UTC(m === 12 ? y + 1 : y, m === 12 ? 0 : m, 1) - 330 * 60 * 1000;
+  return { from: new Date(start).toISOString(), to: new Date(end).toISOString() };
+}
+
+const istDate = (iso: string) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date(iso));
+
+/**
+ * Attendance report from check-in times: how many training days the academy ran that month
+ * (a day counts if anyone checked in) and how many of those each player came. Players with no check-in are left out.
+ */
+export function attendanceSummary(marks: { student_id: string; check_in_at: string | null }[]) {
+  const academyDays = new Set<string>();
+  const byStudent = new Map<string, Set<string>>();
+  for (const m of marks) {
+    if (!m.check_in_at) continue;
+    const d = istDate(m.check_in_at);
+    academyDays.add(d);
+    if (!byStudent.has(m.student_id)) byStudent.set(m.student_id, new Set());
+    byStudent.get(m.student_id)!.add(d);
+  }
+  const total = academyDays.size;
+  const rows = [...byStudent.entries()].map(([studentId, days]) => ({
+    studentId,
+    came: days.size,
+    total,
+    percent: total ? Math.round((days.size / total) * 100) : 0,
+  }));
+  return { total, rows };
+}
 
 async function studentsById(
   db: Db,
@@ -296,6 +343,115 @@ export async function enqueueForTenant(
     }
     queued += await insertRows(db, rows);
   }
+
+  // Match result: when a match is finished, tell the parents of every player in either team.
+  if (link.on_match_result) {
+    const { data: ms } = await db
+      .from("mc_matches")
+      .select("id, team_a_id, team_b_id, result, completed_at")
+      .eq("tenant_id", link.tenant_id)
+      .not("completed_at", "is", null)
+      .not("result", "is", null)
+      .gte("completed_at", from)
+      .limit(100);
+    const matches = (ms ?? []) as {
+      id: string;
+      team_a_id: string;
+      team_b_id: string;
+      result: string;
+    }[];
+    if (matches.length) {
+      const teamIds = [...new Set(matches.flatMap((m) => [m.team_a_id, m.team_b_id]))];
+      const [{ data: teams }, { data: roster }] = await Promise.all([
+        db.from("mc_teams").select("id, name").in("id", teamIds),
+        db
+          .from("mc_team_players")
+          .select("team_id, student_id")
+          .eq("tenant_id", link.tenant_id)
+          .in("team_id", teamIds),
+      ]);
+      const teamName = new Map(
+        ((teams ?? []) as { id: string; name: string }[]).map((t) => [t.id, t.name]),
+      );
+      const players = (roster ?? []) as { team_id: string; student_id: string }[];
+      const kids = await studentsById(
+        db,
+        link.tenant_id,
+        players.map((p) => p.student_id),
+      );
+      const rows: Row[] = [];
+      for (const m of matches) {
+        const title = `${teamName.get(m.team_a_id) ?? "Team A"} vs ${teamName.get(m.team_b_id) ?? "Team B"}`;
+        const text = `${title}: ${m.result}`.replace(/\s+/g, " ").slice(0, 300);
+        const seen = new Set<string>();
+        for (const p of players) {
+          if (p.team_id !== m.team_a_id && p.team_id !== m.team_b_id) continue;
+          if (seen.has(p.student_id)) continue;
+          seen.add(p.student_id);
+          const s = kids.get(p.student_id);
+          if (!s) continue;
+          for (const to of recipientsFor(s))
+            rows.push({
+              tenant_id: link.tenant_id,
+              student_id: s.id,
+              kind: "match_result",
+              ref: `match:${m.id}:${s.id}:${to.phone}`,
+              to_phone: to.phone,
+              variables: [to.greeting, s.name, text, academyName],
+            });
+        }
+      }
+      queued += await insertRows(db, rows);
+    }
+  }
+
+  // Monthly attendance report: on the 1st to 3rd, for the month that just ended.
+  if (link.on_progress && istDay <= 3) {
+    const period = previousMonthKey(istToday);
+    const range = monthRangeIst(period);
+    const marks = await fetchAllRows(() =>
+      db
+        .from("attendance_marks")
+        .select("id, student_id, check_in_at")
+        .eq("tenant_id", link.tenant_id)
+        .is("superseded_by", null)
+        .gte("check_in_at", range.from)
+        .lt("check_in_at", range.to)
+        .order("id"),
+    );
+    if (!marks.error) {
+      const sum = attendanceSummary(
+        marks.data as { student_id: string; check_in_at: string | null }[],
+      );
+      const kids = await studentsById(
+        db,
+        link.tenant_id,
+        sum.rows.map((r) => r.studentId),
+      );
+      const rows: Row[] = [];
+      for (const r of sum.rows) {
+        const s = kids.get(r.studentId);
+        if (!s) continue;
+        for (const to of recipientsFor(s))
+          rows.push({
+            tenant_id: link.tenant_id,
+            student_id: s.id,
+            kind: "progress",
+            ref: `prog:${period}:${s.id}:${to.phone}`,
+            to_phone: to.phone,
+            variables: [
+              to.greeting,
+              s.name,
+              monthLabel(period),
+              `${r.came} of ${r.total}`,
+              `${r.percent}%`,
+              academyName,
+            ],
+          });
+      }
+      queued += await insertRows(db, rows);
+    }
+  }
   return queued;
 }
 
@@ -416,7 +572,7 @@ export async function runParentMessages(db: Db) {
   const { data: links } = await db
     .from("connect_links")
     .select(
-      "tenant_id, api_key, enabled_at, on_checkin, on_checkout, on_fee_reminder, on_fee_received, fee_remind_from_day",
+      "tenant_id, api_key, enabled_at, on_checkin, on_checkout, on_fee_reminder, on_fee_received, on_match_result, on_progress, fee_remind_from_day",
     )
     .eq("enabled", true)
     .not("api_key", "is", null)

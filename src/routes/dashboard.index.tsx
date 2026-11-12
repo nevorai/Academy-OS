@@ -222,8 +222,8 @@ function DashboardHome() {
         value={kpisQ.isLoading ? null : `${paidCount} of ${total} paid`}
         hint={
           pendingFees > 0
-            ? `${pendingFees} pending · ${money(collectedMonth)} collected · ${money(kpis?.pendingFeeAmount ?? 0)} due`
-            : `All paid · ${money(collectedMonth)} collected`
+            ? `${pendingFees} pending · ${money(kpis?.pendingFeeAmount ?? 0)} due`
+            : `All paid · ${money(collectedMonth)}`
         }
         tone={pendingFees > 0 ? "warn" : "success"}
       />,
@@ -442,7 +442,7 @@ function KpiTile({
       search={search as never}
       style={{ borderTopColor: tone === "muted" ? "var(--foreground)" : color }}
       className={cn(
-        "flex min-h-[92px] flex-col gap-2 rounded-[7px] border border-t-2 border-border bg-card px-3.5 pb-3.5 pt-3",
+        "flex min-h-[64px] flex-col gap-1 rounded-[7px] border border-t-2 border-border bg-card px-3 pb-2.5 pt-2 md:min-h-[92px] md:gap-2 md:px-3.5 md:pb-3.5 md:pt-3",
         "outline-none transition-colors hover:border-foreground/40 focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]",
       )}
     >
@@ -464,12 +464,16 @@ function KpiTile({
         ) : null}
       </div>
       <div
-        className="text-[26px] font-semibold leading-none tracking-tight tabular-nums"
+        className="text-[21px] font-semibold leading-none tracking-tight tabular-nums md:text-[26px]"
         style={{ fontFamily: "var(--font-display)" }}
       >
         {value === null ? <Skeleton className="h-6 w-14" /> : value}
       </div>
-      {hint ? <div className="text-[11.5px] leading-snug text-muted-foreground">{hint}</div> : null}
+      {hint ? (
+        <div className="truncate text-[11px] leading-snug text-muted-foreground md:whitespace-normal md:text-[11.5px]">
+          {hint}
+        </div>
+      ) : null}
     </Link>
   );
 }

@@ -13,7 +13,6 @@ import {
   QrCode,
   Zap,
 } from "lucide-react";
-import { LiveBadge } from "@/components/ds";
 import { Calendar } from "@/components/ui/calendar";
 import {
   DropdownMenu,
@@ -26,11 +25,11 @@ import { ScanStudentCardDialog } from "@/components/attendance/ScanStudentCardDi
 import { cn } from "@/lib/utils";
 
 const chip =
-  "inline-flex min-h-[44px] shrink-0 items-center gap-1 rounded-full border px-2.5 py-2 text-[11px] font-medium transition-colors active:scale-95";
+  "inline-flex min-h-[40px] shrink-0 items-center gap-1 rounded-full border px-2.5 py-1.5 text-[11px] font-medium transition-colors active:scale-95";
 const chipIdle = "border-border bg-card text-muted-foreground hover:text-foreground";
 const chipOn = "border-primary/40 bg-primary/10 text-primary";
 const stepBtn =
-  "inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:text-foreground active:scale-95 disabled:pointer-events-none disabled:opacity-40";
+  "inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:text-foreground active:scale-95 disabled:pointer-events-none disabled:opacity-40";
 
 /** Title, day stepper (‹ date ›) and the tool chips for the Attendance screen. */
 export function AttendanceToolbar({
@@ -65,15 +64,8 @@ export function AttendanceToolbar({
   };
 
   return (
-    <div className="pt-2 pb-3">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="font-[family-name:var(--font-display)] text-lg font-bold leading-tight tracking-tight">
-          Attendance
-        </h1>
-        {todayView ? <LiveBadge state="live" /> : null}
-      </div>
-
-      <div className="mt-2 -mx-4 flex items-center gap-1.5 overflow-x-auto px-4 pb-0.5 md:mx-0 md:flex-wrap md:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className="pb-1.5">
+      <div className="-mx-4 flex items-center gap-1.5 overflow-x-auto px-4 pb-0.5 md:mx-0 md:flex-wrap md:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <button
           type="button"
           aria-label="Previous day"

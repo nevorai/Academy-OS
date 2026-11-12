@@ -13,7 +13,6 @@ function buildQuickCollectRemarks(period: string, existingRemarks: string | null
   return rest ? `${prefix} ${rest}` : prefix;
 }
 
-
 import {
   candidatePeriods,
   periodKey,
@@ -108,7 +107,8 @@ export function CollectionsPanel({
   const periods = cycle === "joining_date" ? candidatePeriods(today) : [selectedPeriod];
 
   // "all" is no longer a visible tab — legacy links fall back to Pending.
-  const initialFilter: Filter = initialFilterProp === "all" ? "pending" : (initialFilterProp ?? "pending");
+  const initialFilter: Filter =
+    initialFilterProp === "all" ? "pending" : (initialFilterProp ?? "pending");
   const [filter, setFilter] = useState<Filter>(initialFilter);
   const [search, setSearch] = useState("");
   const [payRow, setPayRow] = useState<RegisterRow | null>(null);
@@ -160,7 +160,7 @@ export function CollectionsPanel({
             : null;
         const plan = s.fee_plans;
         const isGenderPricingEnabled = (tenant as any).gender_pricing_enabled === true;
-        const baseAmount = isGenderPricingEnabled 
+        const baseAmount = isGenderPricingEnabled
           ? resolveMonthlyFee(plan as any, s.gender)
           : Number(plan?.amount ?? 0);
 
@@ -204,8 +204,6 @@ export function CollectionsPanel({
   );
   const pendingAmount = pendingRows.reduce((s, r) => s + r.amount, 0);
   const expectedAmount = collectedAmount + pendingAmount;
-  const collectionPct =
-    expectedAmount > 0 ? Math.round((collectedAmount / expectedAmount) * 100) : 0;
 
   const byFilter =
     filter === "pending"
@@ -243,18 +241,13 @@ export function CollectionsPanel({
         pending={pendingAmount}
         collected={collectedAmount}
         overdueCount={overdueRows.length}
-        pct={collectionPct}
       />
 
       {/* Sticky row 2: search + month + actions, then chip filters */}
       <div className="sticky top-0 z-20 -mx-4 space-y-1.5 bg-background/95 px-4 py-1.5 backdrop-blur supports-[backdrop-filter]:bg-background/70">
         <div className="flex items-center gap-1.5">
           <div className="min-w-0 flex-1">
-            <DashboardSearch
-              value={search}
-              onChange={setSearch}
-              placeholder="Search name or ID"
-            />
+            <DashboardSearch value={search} onChange={setSearch} placeholder="Search name or ID" />
           </div>
 
           {cycle === "calendar_month" && (
@@ -297,7 +290,9 @@ export function CollectionsPanel({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
               <DropdownMenuItem asChild>
-                <Link to="/dashboard/fees" search={{ tab: "plans" }}>Manage sessions &amp; fees</Link>
+                <Link to="/dashboard/fees" search={{ tab: "plans" }}>
+                  Manage sessions &amp; fees
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/dashboard/students">Assign to Students</Link>
@@ -321,8 +316,6 @@ export function CollectionsPanel({
           }}
         />
       </div>
-
-
 
       <section className="rounded-[10px] bg-card border border-border overflow-hidden">
         {loading ? (
@@ -428,56 +421,28 @@ function KpiStrip({
   pending,
   collected,
   overdueCount,
-  pct,
 }: {
   pending: number;
   collected: number;
   overdueCount: number;
-  pct: number;
 }) {
+  // One slim line: the money is context, the list below is the work.
   return (
-    <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-      <KpiCell label="Pending" value={money(pending)} tone="danger" />
-      <KpiCell label="Collected" value={money(collected)} tone="success" />
-      <KpiCell label="Overdue" value={String(overdueCount)} tone="danger" />
-      <KpiCell label="Collected" value={`${pct}%`} tone="neutral" />
+    <div className="flex flex-wrap items-baseline gap-x-4 gap-y-0.5 px-1 text-[12.5px] text-muted-foreground">
+      <span>
+        <b className="font-semibold tabular-nums text-rose-600">{money(pending)}</b> pending
+      </span>
+      <span>
+        <b className="font-semibold tabular-nums text-emerald-600">{money(collected)}</b> collected
+      </span>
+      {overdueCount > 0 ? (
+        <span>
+          <b className="font-semibold tabular-nums text-foreground">{overdueCount}</b> overdue
+        </span>
+      ) : null}
     </div>
   );
 }
-
-function KpiCell({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone: "danger" | "success" | "neutral";
-}) {
-  const color =
-    tone === "danger"
-      ? "text-rose-600"
-      : tone === "success"
-        ? "text-emerald-600"
-        : "text-foreground";
-  return (
-    <div className="min-w-0 rounded-[10px] border border-border border-t-2 border-t-foreground bg-card px-3 py-2.5">
-      <div className="truncate text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-        {label}
-      </div>
-      <div
-        className={cn(
-          "mt-0.5 truncate font-display text-xl font-bold tabular-nums tracking-tight",
-          color,
-        )}
-      >
-        {value}
-      </div>
-    </div>
-  );
-}
-
-
 
 /* ---------- Chip filters ---------- */
 
@@ -797,7 +762,6 @@ function CollectForm({
   const [amount, setAmount] = useState(String(row.amount || ""));
   const [note, setNote] = useState("");
   const [idempotencyKey] = useState(() => newIdempotencyKey());
-
 
   const qc = useQueryClient();
   const { tenant } = useDashboard();

@@ -131,7 +131,7 @@ export function HomeButtons({
       <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
         What do you want to do?
       </h2>
-      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 xl:grid-cols-5">
+      <div className="grid grid-cols-4 gap-2 md:grid-cols-6 md:gap-2.5 xl:grid-cols-6">
         {visible.map((b) => (
           <Link
             key={b.to}
@@ -139,24 +139,26 @@ export function HomeButtons({
             to={b.to as never}
             preload="intent"
             className={cn(
-              "group relative flex min-h-[104px] flex-col justify-between rounded-xl border border-border bg-card p-3.5",
+              "group relative flex min-h-[84px] flex-col items-center justify-start gap-1.5 rounded-xl border border-border bg-card px-1 py-2.5 text-center md:min-h-[104px] md:items-stretch md:justify-between md:p-3.5 md:text-left",
               "shadow-[var(--shadow-soft)] transition-colors hover:border-primary/50 hover:bg-accent/40",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.99]",
             )}
           >
-            <span className="flex items-start justify-between">
+            <span className="flex items-start justify-center md:justify-between">
               <span className="grid size-10 place-items-center rounded-lg bg-primary/10 text-primary">
                 <b.icon className="size-5" />
               </span>
               {b.count ? (
-                <span className="min-w-6 rounded-full bg-destructive px-1.5 py-0.5 text-center text-xs font-bold leading-none text-destructive-foreground">
+                <span className="absolute right-1 top-1 min-w-5 rounded-full bg-destructive px-1 py-0.5 text-center text-[10px] font-bold leading-none text-destructive-foreground md:static">
                   {b.count}
                 </span>
               ) : null}
             </span>
-            <span className="mt-3 block">
-              <span className="block text-[15px] font-semibold leading-tight">{b.title}</span>
-              <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
+            <span className="block md:mt-3">
+              <span className="block text-[11.5px] font-semibold leading-tight md:text-[15px]">
+                {b.title}
+              </span>
+              <span className="mt-0.5 hidden text-xs leading-snug text-muted-foreground md:block">
                 {b.hint}
               </span>
             </span>

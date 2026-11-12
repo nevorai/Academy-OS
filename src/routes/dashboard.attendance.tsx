@@ -58,7 +58,7 @@ function AttendancePage() {
   const goToday = () => a.setSelectedDate(startOfDay(new Date()));
 
   return (
-    <div className="-mt-4 md:-mt-8">
+    <div className="-mt-5 md:-mt-8">
       <AttendanceToolbar
         selectedDate={a.selectedDate}
         onDateChange={a.setSelectedDate}
@@ -90,7 +90,7 @@ function AttendancePage() {
       ) : null}
 
       {/* Sticky search: always reachable while scrolling. */}
-      <div className="sticky top-14 z-20 -mx-4 mb-2 border-b border-border/60 bg-background/90 px-4 py-2 backdrop-blur md:-mx-8 md:px-8">
+      <div className="sticky top-14 z-20 -mx-4 mb-1 border-b border-border/60 bg-background/90 px-4 py-1.5 backdrop-blur md:-mx-8 md:px-8">
         <SearchBar
           value={a.query}
           onChange={a.setQuery}
@@ -147,7 +147,7 @@ function AttendancePage() {
           <AttendanceSummary kpis={kpis} onPick={(t) => a.changeRosterTab(t)} />
 
           {/* Two main lists: who is in the academy now, and who has left. "Not arrived" is a button beside them. */}
-          <div className="sticky top-[6.5rem] z-10 -mx-4 mt-3 flex items-center gap-2 border-b border-border/60 bg-background/95 px-4 py-1.5 backdrop-blur md:-mx-8 md:px-8">
+          <div className="sticky top-[6.5rem] z-10 -mx-4 mt-1.5 flex items-center gap-2 border-b border-border/60 bg-background/95 px-4 py-1.5 backdrop-blur md:-mx-8 md:px-8">
             <div className="min-w-0 flex-1">
               <FilterTabs
                 value={rosterTab === "waiting" ? "" : rosterTab}

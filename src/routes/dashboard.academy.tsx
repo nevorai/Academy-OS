@@ -1,10 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   Swords,
   Activity,
   ShieldCheck,
-  Search,
   IndianRupee,
   Megaphone,
   UserCircle,
@@ -18,7 +17,6 @@ import {
 import { useDashboard } from "@/lib/dashboard-context";
 import { useCurrentRole } from "@/hooks/use-current-role";
 import { getFeatures } from "@/lib/tenant";
-import { SearchBar } from "@/components/ds/SearchBar";
 
 export const Route = createFileRoute("/dashboard/academy")({
   head: () => ({
@@ -109,7 +107,7 @@ const WORKSPACE_GROUPS: Group[] = [
 // The sidebar keeps only the daily workspaces, so the rest of an owner's tools are here: one place, searchable.
 const PROFILE_ITEM: Item = {
   to: "/dashboard/profile",
-  label: "Profile & settings",
+  label: "Profile",
   hint: "Your details, theme, notifications, payment setup and branding",
   icon: UserCircle,
   keywords: [
@@ -186,76 +184,25 @@ function ManageHub() {
   const { tenant } = useDashboard();
   const role = useCurrentRole();
   const features = getFeatures(tenant);
-  const [q, setQ] = useState("");
 
-  const groups = useMemo<Group[]>(() => {
-    const raw = groupsFor(role);
-    const gated = raw
-      .map((g) => ({
-        ...g,
-        items: g.items.filter((i) => !i.requiresFeature || features[i.requiresFeature] !== false),
-      }))
-      .filter((g) => g.items.length > 0);
-
-    if (!q.trim()) return gated;
-    const needle = q.toLowerCase();
-    return gated
-      .map((g) => ({
-        ...g,
-        items: g.items.filter(
-          (i) =>
-            i.label.toLowerCase().includes(needle) ||
-            i.hint.toLowerCase().includes(needle) ||
-            g.title.toLowerCase().includes(needle) ||
-            (i.keywords ?? []).some((k) => k.toLowerCase().includes(needle)),
-        ),
-      }))
-      .filter((g) => g.items.length > 0);
-  }, [role, q, features]);
-
-  const roleLabel = role === "owner" ? "Owner" : role === "admin" ? "Admin" : "Player";
-
-  return (
-    <div className="-mt-4 md:-mt-8 space-y-4 pb-4">
-      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 pt-2 pb-1">
-        <div className="min-w-0">
-          <h1 className="text-lg font-semibold tracking-tight leading-tight truncate">Manage</h1>
-          <p className="text-[11px] text-muted-foreground leading-tight truncate">
-            {tenant.name} · {roleLabel} · Daily operations
-          </p>
-        </div>
-      </header>
-
-      <SearchBar value={q} onChange={setQ} placeholder="Search…" />
-
-      {groups.length === 0 ? (
-        <div className="grid place-items-center py-16 text-center text-muted-foreground">
-          <Search className="size-6 mb-2" />
-          <p className="text-sm">No results for "{q}"</p>
-        </div>
-      ) : (
-        groups.map((group) => (
-          <Section key={group.title} title={group.title}>
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 sm:gap-3 lg:grid-cols-8">
-              {group.items.map((item) => (
-                <HubTile key={group.title + item.to + item.label} item={item} />
-              ))}
-            </div>
-          </Section>
-        ))
-      )}
-    </div>
+  // One flat set of buttons, four to a row. No section titles, no search: nothing to scroll or read.
+  const items = useMemo<Item[]>(
+    () =>
+      groupsFor(role)
+        .flatMap((g) => g.items)
+        .filter((i) => !i.requiresFeature || features[i.requiresFeature] !== false),
+    [role, features],
   );
-}
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-2.5">
-      <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground px-1">
-        {title}
-      </h2>
-      {children}
-    </section>
+    <div className="mx-auto w-full max-w-3xl space-y-3 pb-4">
+      <h1 className="text-lg font-semibold tracking-tight">Manage</h1>
+      <div className="grid grid-cols-4 gap-2 sm:gap-3">
+        {items.map((item) => (
+          <HubTile key={item.to + item.label} item={item} />
+        ))}
+      </div>
+    </div>
   );
 }
 

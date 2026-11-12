@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { CheckCircle2, Copy, MessageCircle, UserPlus } from "lucide-react";
+import { CheckCircle2, Copy, Loader2, MessageCircle, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchBatches, fetchFeePlans, qk } from "@/lib/dashboard-queries";
@@ -30,13 +30,17 @@ type Done = {
   studentId: string;
   name: string;
   phone: string;
-  password: string | null;
-  url: string;
-  whatsappSent: number;
-  loginError: string | null;
   paid: boolean;
   billed: boolean;
 };
+
+/** The login is made after the player is saved, so the screen never waits on it. */
+type LoginState =
+  | { status: "working" }
+  | { status: "ok"; password: string; url: string; whatsappSent: number }
+  | { status: "failed"; error: string };
+
+const LOGIN_WAIT_MS = 45_000;
 
 const FIELD =
   "h-14 w-full rounded-xl border border-border bg-card px-4 text-base outline-none focus:ring-2 focus:ring-[color:var(--brand)]";
@@ -68,6 +72,48 @@ function NewAdmission() {
   const [batchId, setBatchId] = useState("");
   const [paid, setPaid] = useState(false);
   const [done, setDone] = useState<Done | null>(null);
+  const [login, setLogin] = useState<LoginState>({ status: "working" });
+
+  // Phone number = ID, random password. Sent on WhatsApp and shown once. Safe to repeat: a player who already has a login is skipped.
+  const makeLogin = async (studentId: string) => {
+    setLogin({ status: "working" });
+    try {
+      const out = await Promise.race([
+        createLogins({
+          data: {
+            tenantId: tenant.id,
+            studentIds: [studentId],
+            sendEmail: false,
+            sendWhatsApp: true,
+          },
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("This is taking too long")), LOGIN_WAIT_MS),
+        ),
+      ]);
+      const r = out.results[0];
+      if (r?.status === "created") {
+        setLogin({
+          status: "ok",
+          password: r.password,
+          url: out.loginUrl,
+          whatsappSent: r.whatsappSent,
+        });
+      } else if (!r && out.skippedHaveLogin > 0) {
+        setLogin({
+          status: "failed",
+          error: "This player already has a login. Use Reset login on the player page.",
+        });
+      } else {
+        setLogin({ status: "failed", error: r?.error ?? "Login was not created" });
+      }
+    } catch (e) {
+      setLogin({
+        status: "failed",
+        error: e instanceof Error ? e.message : "Login was not created",
+      });
+    }
+  };
 
   const digits = phone.replace(/\D/g, "");
   const valid = name.trim().length >= 2 && digits.length >= 10;
@@ -134,45 +180,11 @@ function NewAdmission() {
         }
       }
 
-      // Login: the phone number is the ID, the password is random. It goes to WhatsApp and is shown once here.
-      let password: string | null = null;
-      let url = "";
-      let whatsappSent = 0;
-      let loginError: string | null = null;
-      try {
-        const out = await createLogins({
-          data: {
-            tenantId: tenant.id,
-            studentIds: [studentId],
-            sendEmail: false,
-            sendWhatsApp: true,
-          },
-        });
-        url = out.loginUrl;
-        const r = out.results[0];
-        if (r?.status === "created") {
-          password = r.password;
-          whatsappSent = r.whatsappSent;
-        } else {
-          loginError = r?.error ?? "Login was not created";
-        }
-      } catch (e) {
-        loginError = e instanceof Error ? e.message : "Login was not created";
-      }
-      return {
-        studentId,
-        name: name.trim(),
-        phone: form.phone,
-        password,
-        url,
-        whatsappSent,
-        loginError,
-        paid: paidNow,
-        billed,
-      };
+      return { studentId, name: name.trim(), phone: form.phone, paid: paidNow, billed };
     },
     onSuccess: (d) => {
       setDone(d);
+      void makeLogin(d.studentId);
       qc.invalidateQueries({ queryKey: qk.students(tenant.id) });
       qc.invalidateQueries({ queryKey: qk.kpis(tenant.id) });
       qc.invalidateQueries({ queryKey: ["d", "fees"] });
@@ -186,9 +198,19 @@ function NewAdmission() {
     setBatchId("");
     setPaid(false);
     setDone(null);
+    setLogin({ status: "working" });
   };
 
-  if (done) return <Result d={done} academy={tenant.name} onAgain={reset} />;
+  if (done)
+    return (
+      <Result
+        d={done}
+        login={login}
+        academy={tenant.name}
+        onAgain={reset}
+        onRetry={() => void makeLogin(done.studentId)}
+      />
+    );
 
   return (
     <div className="mx-auto w-full max-w-xl space-y-5 px-1 pb-24">
@@ -271,11 +293,24 @@ function NewAdmission() {
   );
 }
 
-function Result({ d, academy, onAgain }: { d: Done; academy: string; onAgain: () => void }) {
-  const text = d.password
-    ? `Welcome to ${academy}!\nLogin ID: ${d.phone}\nPassword: ${d.password}\nSign in: ${d.url}\nPlease fill your details after you sign in. You can change the password there.`
+function Result({
+  d,
+  login,
+  academy,
+  onAgain,
+  onRetry,
+}: {
+  d: Done;
+  login: LoginState;
+  academy: string;
+  onAgain: () => void;
+  onRetry: () => void;
+}) {
+  const ok = login.status === "ok" ? login : null;
+  const text = ok
+    ? `Welcome to ${academy}!\nLogin ID: ${d.phone}\nPassword: ${ok.password}\nSign in: ${ok.url}\nPlease fill your details after you sign in. You can change the password there.`
     : "";
-  const wa = d.password ? whatsappLink(d.phone, text) : null;
+  const wa = ok ? whatsappLink(d.phone, text) : null;
   return (
     <div className="mx-auto w-full max-w-xl space-y-4 px-1 pb-24">
       <section className="rounded-xl border border-border bg-card p-5">
@@ -287,7 +322,11 @@ function Result({ d, academy, onAgain }: { d: Done; academy: string; onAgain: ()
         </p>
       </section>
 
-      {d.password ? (
+      {login.status === "working" ? (
+        <section className="flex items-center gap-3 rounded-xl border border-border bg-card p-5 text-base">
+          <Loader2 className="size-5 animate-spin" /> Creating the login…
+        </section>
+      ) : ok ? (
         <section className="space-y-3 rounded-xl border border-border bg-card p-5">
           <h2 className="text-base font-semibold">Login</h2>
           <div className="space-y-1 text-lg">
@@ -295,12 +334,12 @@ function Result({ d, academy, onAgain }: { d: Done; academy: string; onAgain: ()
               ID: <span className="font-mono font-semibold">{d.phone}</span>
             </div>
             <div>
-              Password: <span className="font-mono font-semibold">{d.password}</span>
+              Password: <span className="font-mono font-semibold">{ok.password}</span>
             </div>
           </div>
           <p className="text-sm text-muted-foreground">
-            {d.whatsappSent > 0
-              ? `Sent on WhatsApp to ${d.whatsappSent} number${d.whatsappSent === 1 ? "" : "s"}.`
+            {ok.whatsappSent > 0
+              ? `Sent on WhatsApp to ${ok.whatsappSent} number${ok.whatsappSent === 1 ? "" : "s"}.`
               : "WhatsApp is not connected or switched off, so send it yourself with the button below."}{" "}
             This password is shown only now.
           </p>
@@ -328,9 +367,18 @@ function Result({ d, academy, onAgain }: { d: Done; academy: string; onAgain: ()
           </div>
         </section>
       ) : (
-        <section className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-5 text-base">
-          The player was added but the login could not be created ({d.loginError}). Open the player
-          and create the login from there.
+        <section className="space-y-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-5 text-base">
+          <p>
+            The player is saved, but the login is not ready:{" "}
+            {login.status === "failed" ? login.error : ""}.
+          </p>
+          <button
+            type="button"
+            onClick={onRetry}
+            className="h-12 w-full rounded-xl border border-border bg-card text-base font-semibold"
+          >
+            Try again
+          </button>
         </section>
       )}
 

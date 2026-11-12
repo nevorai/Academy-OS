@@ -143,9 +143,13 @@ export const createStudentLogins = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) => createInput.parse(v))
   .handler(async ({ data, context }) => {
+    const t0 = Date.now();
+    const lap = (step: string) => console.info(`[create-logins] ${step} +${Date.now() - t0}ms`);
     await assertManager(context.supabase, context.userId, data.tenantId);
+    lap("manager checked");
     const admin = await getAdmin();
     const { joinAcademy } = await import("@/lib/auth/join.functions");
+    lap("modules loaded");
     const { toE164 } = await import("@/lib/phone");
 
     const { data: tenant } = await admin
@@ -211,6 +215,7 @@ export const createStudentLogins = createServerFn({ method: "POST" })
           userId = made.user.id;
         }
 
+        lap("auth user created");
         const phoneE164 = s.phone ? toE164(s.phone) : null;
         if (phoneE164) {
           // Shared parent numbers can clash: the Player ID still works.
@@ -219,7 +224,9 @@ export const createStudentLogins = createServerFn({ method: "POST" })
             .catch(() => undefined);
         }
 
+        lap("phone set");
         await joinAcademy(userId, "bulk_logins");
+        lap("joined academy");
         const username = await saveUsername(admin, userId, wanted);
 
         const now = new Date().toISOString();

@@ -1,6 +1,6 @@
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
-import { type ReactNode, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { type ReactNode, useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
 import { PlusCircle, Search, ChevronRight, Radio, Swords, Users, LineChart } from "lucide-react";
@@ -263,6 +263,23 @@ function MatchCenterModuleHeader({ title, hideAction }: { title?: string; hideAc
 
 export function MatchCenterLayout({ children }: { children?: ReactNode }) {
   const location = useLocation();
+  const qc = useQueryClient();
+  const { tenant } = useDashboard();
+  // Warm the lists the Create page needs, so "Start match" opens with teams and players ready.
+  useEffect(() => {
+    void Promise.all([import("@/lib/mc-matches"), import("@/lib/mc-teams")]).then(
+      ([{ listAllTeams }, { listStudents }]) => {
+        void qc.prefetchQuery({
+          queryKey: ["mc-all-teams", tenant.id],
+          queryFn: () => listAllTeams(tenant.id),
+        });
+        void qc.prefetchQuery({
+          queryKey: ["mc-students-all", tenant.id],
+          queryFn: () => listStudents(tenant.id),
+        });
+      },
+    );
+  }, [qc, tenant.id]);
   const isCreate = location.pathname.startsWith("/match-center/create");
   return (
     <DashboardShell>

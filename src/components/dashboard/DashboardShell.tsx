@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation } from "@tanstack/react-router";
+import { Link, Outlet, useLocation, useRouter } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useState } from "react";
 import { ProductTour, useAutoOpenTour } from "@/components/dashboard/ProductTour";
 import { HelpCircle } from "lucide-react";
@@ -175,6 +175,39 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         if (n.to === "/match-center" && (liveMatchCount.data ?? 0) > 0) live = true;
         return { ...n, label, badge, live, also: LIT_ALSO[n.to] };
       });
+
+  // Once the screen is idle, load the code of the main tabs so a tap opens instantly (phones have no hover).
+  const router = useRouter();
+  useEffect(() => {
+    const targets = [
+      "/dashboard/attendance",
+      "/dashboard/fees",
+      "/dashboard/students",
+      "/dashboard/academy",
+      "/match-center/dashboard",
+      "/match-center/create",
+      "/match-center/matches",
+    ];
+    const run = () => {
+      for (const to of targets) {
+        void router.preloadRoute({ to } as never).catch(() => {});
+      }
+    };
+    const w = window as unknown as {
+      requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number;
+    };
+    const id = w.requestIdleCallback
+      ? w.requestIdleCallback(run, { timeout: 4000 })
+      : window.setTimeout(run, 2500);
+    return () => {
+      if (
+        w.requestIdleCallback &&
+        (window as unknown as { cancelIdleCallback?: (n: number) => void }).cancelIdleCallback
+      )
+        (window as unknown as { cancelIdleCallback: (n: number) => void }).cancelIdleCallback(id);
+      else window.clearTimeout(id);
+    };
+  }, [router]);
 
   const groups: SideGroup[] = navGroups
     .map((g) => ({

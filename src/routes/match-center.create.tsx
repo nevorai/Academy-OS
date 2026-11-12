@@ -616,7 +616,9 @@ function CreateMatchPage() {
 
   /* ==================== WIZARD ==================== */
 
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>((draft?.step as 1 | 2 | 3 | 4 | 5) ?? 1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(
+    draft?.step && draft.step <= 4 ? (draft.step as 1 | 2 | 3 | 4) : draft?.step ? 4 : 1,
+  );
 
   // Persist wizard state to sessionStorage on every change
   useEffect(() => {
@@ -707,7 +709,7 @@ function CreateMatchPage() {
       navigate({ to: "/match-center/matches" });
       return;
     }
-    setStep((step - 1) as 1 | 2 | 3 | 4 | 5);
+    setStep((step - 1) as 1 | 2 | 3 | 4);
   };
 
   const goNext = (e?: React.MouseEvent) => {
@@ -716,20 +718,12 @@ function CreateMatchPage() {
       e.stopPropagation();
     }
     if (canContinue) {
-      setStep(Math.min(5, step + 1) as 1 | 2 | 3 | 4 | 5);
+      setStep(Math.min(4, step + 1) as 1 | 2 | 3 | 4);
     }
   };
 
   const stepTitle =
-    step === 1
-      ? "Match setup"
-      : step === 2
-        ? "Team A"
-        : step === 3
-          ? "Team B"
-          : step === 4
-            ? "Advanced · optional"
-            : "Review & start";
+    step === 1 ? "Match setup" : step === 2 ? "Team A" : step === 3 ? "Team B" : "Check and start";
 
   const canContinue =
     step === 1 ? step1Valid : step === 2 ? step2Valid : step === 3 ? step3Valid : true;
@@ -768,13 +762,13 @@ function CreateMatchPage() {
             <div
               className="h-full rounded-full transition-[width] duration-300 ease-out"
               style={{
-                width: `${(step / 5) * 100}%`,
+                width: `${(step / 4) * 100}%`,
                 backgroundColor: "var(--tenant-brand, var(--brand, hsl(var(--primary))))",
               }}
             />
           </div>
           <div className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
-            {step}/5
+            {step}/4
           </div>
         </div>
         <h1 className="text-lg font-bold tracking-tight sm:text-2xl">{stepTitle}</h1>
@@ -831,34 +825,6 @@ function CreateMatchPage() {
             )}
 
             {step === 4 && (
-              <StepAdvanced
-                open={advOpen}
-                setOpen={setAdvOpen}
-                ground={ground}
-                setGround={setGround}
-                pitch={pitch}
-                setPitch={setPitch}
-                weather={weather}
-                setWeather={setWeather}
-                scorer={scorer}
-                setScorer={setScorer}
-                umpire={umpire}
-                setUmpire={setUmpire}
-                ballType={ballType}
-                setBallType={setBallType}
-                scheduledDate={scheduledDate}
-                setScheduledDate={setScheduledDate}
-                streamingUrl={streamingUrl}
-                setStreamingUrl={setStreamingUrl}
-                visibility={visibility}
-                setVisibility={setVisibility}
-                notes={notes}
-                setNotes={setNotes}
-                advFilled={advFilled}
-              />
-            )}
-
-            {step === 5 && (
               <StepReview
                 matchTypeLabel={MATCH_TYPES.find((t) => t.value === matchType)?.label ?? matchType}
                 matchFormat={matchFormat}
@@ -870,6 +836,36 @@ function CreateMatchPage() {
                 error={validationError}
                 onEditStep={(s) => setStep(s as 1 | 2 | 3 | 4)}
               />
+            )}
+
+            {step === 4 && (
+              <div className="mt-4">
+                <StepAdvanced
+                  open={advOpen}
+                  setOpen={setAdvOpen}
+                  ground={ground}
+                  setGround={setGround}
+                  pitch={pitch}
+                  setPitch={setPitch}
+                  weather={weather}
+                  setWeather={setWeather}
+                  scorer={scorer}
+                  setScorer={setScorer}
+                  umpire={umpire}
+                  setUmpire={setUmpire}
+                  ballType={ballType}
+                  setBallType={setBallType}
+                  scheduledDate={scheduledDate}
+                  setScheduledDate={setScheduledDate}
+                  streamingUrl={streamingUrl}
+                  setStreamingUrl={setStreamingUrl}
+                  visibility={visibility}
+                  setVisibility={setVisibility}
+                  notes={notes}
+                  setNotes={setNotes}
+                  advFilled={advFilled}
+                />
+              </div>
             )}
           </div>
         </div>
@@ -889,7 +885,7 @@ function CreateMatchPage() {
                 <ArrowLeft className="mr-1 size-4" />
                 Back
               </Button>
-              {step < 5 ? (
+              {step < 4 ? (
                 <Button
                   type="button"
                   className="h-11 flex-1 text-sm font-semibold"
@@ -930,7 +926,7 @@ function CreateMatchPage() {
                     : "Complete setup to continue"}
               </div>
             )}
-            {!canStart && step === 5 && validationError && (
+            {!canStart && step === 4 && validationError && (
               <div className="text-[10px] text-center text-amber-600 font-bold bg-amber-50 dark:bg-amber-900/10 rounded-lg py-1 px-2 border border-amber-100 dark:border-amber-900/20">
                 {validationError}
               </div>
@@ -1855,11 +1851,7 @@ function NewTeamBody({
       {/* ROSTER: Scrollable list of players */}
       <div className="p-3">
         {players.length > 0 ? (
-          <SquadList
-            players={[...players].reverse()}
-            onPlayers={(p) => onPlayers([...p].reverse())}
-            onRemove={onRemove}
-          />
+          <SquadList players={players} onPlayers={onPlayers} onRemove={onRemove} />
         ) : (
           <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground/30">
             <div className="relative mb-3">
@@ -1912,7 +1904,7 @@ function SquadList({
       {players.map((p, idx) => (
         <li
           key={p.key}
-          className="flex items-center gap-1.5 rounded-xl border border-border bg-background/60 px-2 py-1.5 shadow-sm"
+          className="flex items-center gap-2 rounded-xl border border-border bg-background/60 px-2.5 py-1.5 shadow-sm"
         >
           <span className="w-4 text-right text-[10px] font-mono text-muted-foreground opacity-50 shrink-0">
             {idx + 1}
@@ -1921,7 +1913,7 @@ function SquadList({
           <span className="min-w-0 flex-1 truncate text-xs font-semibold text-foreground tracking-tight">
             {p.name}
           </span>
-          <div className="flex gap-0.5 shrink-0">
+          <div className="flex shrink-0 gap-1.5">
             <RoleButton
               active={!!p.is_captain}
               onClick={() => setRole(p.key, "C")}
@@ -1944,10 +1936,10 @@ function SquadList({
           <button
             type="button"
             onClick={() => onRemove(p.key)}
-            className="rounded-md p-1 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/5 transition-colors"
+            className="grid size-8 shrink-0 place-items-center rounded-full text-muted-foreground/60 transition-colors hover:bg-destructive/10 hover:text-destructive"
             aria-label="Remove"
           >
-            <X className="size-3.5" />
+            <X className="size-4" />
           </button>
         </li>
       ))}
@@ -1980,7 +1972,7 @@ function RoleButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-lg border px-1 py-0.5 text-[9px] font-black transition-all active:scale-95 shrink-0 min-w-[24px] text-center",
+        "grid size-9 shrink-0 place-items-center rounded-full border text-[11px] font-black leading-none transition-all active:scale-90",
         colors[color],
       )}
     >

@@ -15,6 +15,8 @@ import { buildStudentInsert, emptyNewStudentForm } from "@/lib/students/new-stud
 import { createStudentLogins } from "@/lib/admissions/logins.functions";
 import { ModuleHeader } from "@/components/shared/ModuleHeader";
 import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
+import { checkMobile } from "@/lib/students/mobile-check";
 
 export const Route = createFileRoute("/dashboard/new-admission")({
   head: () => ({ meta: [{ title: "New admission" }, { name: "robots", content: "noindex" }] }),
@@ -41,6 +43,8 @@ type LoginState =
   | { status: "failed"; error: string };
 
 const LOGIN_WAIT_MS = 45_000;
+
+const FIELD_ERROR = "border-red-500 focus:ring-red-500";
 
 const FIELD =
   "h-14 w-full rounded-xl border border-border bg-card px-4 text-base outline-none focus:ring-2 focus:ring-[color:var(--brand)]";
@@ -115,8 +119,16 @@ function NewAdmission() {
     }
   };
 
-  const digits = phone.replace(/\D/g, "");
-  const valid = name.trim().length >= 2 && digits.length >= 10;
+  const mobile = checkMobile(phone);
+  const digits = mobile.digits;
+  const nameOk = name.trim().length >= 2;
+  const valid = nameOk && mobile.ok;
+  // Errors show once the owner has typed in the field or tried to submit, so an empty form is not red at the start.
+  const [tried, setTried] = useState(false);
+  const [phoneTouched, setPhoneTouched] = useState(false);
+  const [nameTouched, setNameTouched] = useState(false);
+  const showPhoneError = !mobile.ok && (tried || phoneTouched || phone.length > 0);
+  const showNameError = !nameOk && (tried || nameTouched);
   const batch = batchList.find((b) => b.id === batchId);
   const plan = batch?.fee_plan_id ? plans.find((p) => p.id === batch.fee_plan_id) : undefined;
   const planAmount = Number((plan as { amount?: number | null } | undefined)?.amount ?? 0);
@@ -126,7 +138,7 @@ function NewAdmission() {
       const form = {
         ...emptyNewStudentForm(todayISO()),
         name: name.trim(),
-        phone: digits.length === 10 ? digits : phone.trim(),
+        phone: digits,
         batch_id: batchId,
         fee_plan_id: batch?.fee_plan_id ?? "",
       };
@@ -219,29 +231,46 @@ function NewAdmission() {
         className="space-y-4"
         onSubmit={(e) => {
           e.preventDefault();
-          if (valid && !save.isPending) save.mutate();
+          if (save.isPending) return;
+          if (!valid) {
+            setTried(true);
+            return;
+          }
+          save.mutate();
         }}
       >
         <label className="block space-y-1.5">
           <span className="text-sm font-semibold">Player name</span>
           <input
-            className={FIELD}
+            className={cn(FIELD, showNameError && FIELD_ERROR)}
             value={name}
             onChange={(e) => setName(e.target.value)}
+            onBlur={() => setNameTouched(true)}
             autoComplete="off"
             placeholder="Full name"
+            aria-invalid={showNameError}
           />
+          {showNameError ? (
+            <p className="text-sm font-medium text-red-600">Enter the player's name</p>
+          ) : null}
         </label>
         <label className="block space-y-1.5">
           <span className="text-sm font-semibold">Phone number</span>
           <input
-            className={FIELD}
+            className={cn(FIELD, showPhoneError && FIELD_ERROR)}
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
+            onBlur={() => setPhoneTouched(true)}
             inputMode="tel"
             autoComplete="off"
             placeholder="10-digit mobile (this is the login ID)"
+            aria-invalid={showPhoneError}
           />
+          {showPhoneError ? (
+            <p className="text-sm font-medium text-red-600">{mobile.message}</p>
+          ) : mobile.ok ? (
+            <p className="text-sm text-emerald-600">Login ID will be {digits}</p>
+          ) : null}
         </label>
         <label className="block space-y-1.5">
           <span className="text-sm font-semibold">
@@ -275,9 +304,14 @@ function NewAdmission() {
           </div>
         ) : null}
 
+        {tried && !valid ? (
+          <p className="text-center text-sm font-medium text-red-600">
+            Please fix the red fields above, then tap Admit player.
+          </p>
+        ) : null}
         <button
           type="submit"
-          disabled={!valid || save.isPending}
+          disabled={save.isPending}
           className="flex h-14 w-full items-center justify-center gap-2 rounded-xl text-base font-semibold disabled:opacity-50"
           style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
         >

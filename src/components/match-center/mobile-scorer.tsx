@@ -31,7 +31,9 @@ import {
   Undo2,
   UserPlus,
   Share2,
+  Users,
 } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 const CricketBatIcon = ({ className }: { className?: string }) => (
   <svg
@@ -122,6 +124,8 @@ export interface MobileScorerProps {
   hideEndMatch?: boolean;
 
   onOpenScorecard?: () => void;
+  /** Opens the screen to fix team names, players and Captain / Vice / Keeper. */
+  onEditTeams?: () => void;
   onOpenScorebook?: () => void;
   onShareMatch?: () => void;
   scorecardContent?: ReactNode;
@@ -283,7 +287,7 @@ export function MobileScorer(props: MobileScorerProps) {
           aria-hidden
           className="absolute inset-0 bg-[radial-gradient(120%_60%_at_0%_0%,color-mix(in_oklab,var(--primary)_28%,transparent)_0%,transparent_60%)]"
         />
-        <div className="relative grid h-12 grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-2 px-2">
+        <div className="relative grid h-12 grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-1.5 px-2">
           <button
             type="button"
             onClick={props.onExit}
@@ -315,16 +319,37 @@ export function MobileScorer(props: MobileScorerProps) {
               )}
             </div>
           </div>
-          {!props.hideEndMatch && (
-            <button
-              type="button"
-              onClick={() => setConfirm({ kind: "end-match" })}
-              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-destructive/25 bg-destructive/[0.06] px-3 text-[10.5px] font-black uppercase tracking-wider text-destructive/90 transition duration-100 active:scale-95"
-            >
-              <StopCircle className="size-3.5" />
-              End
-            </button>
-          )}
+          <div className="flex items-center gap-1.5">
+            {props.onEditTeams && (
+              <button
+                type="button"
+                onClick={props.onEditTeams}
+                className="grid size-9 place-items-center rounded-lg border border-border bg-card text-foreground/80 active:scale-95"
+                aria-label="Edit teams"
+              >
+                <Users className="size-4" />
+              </button>
+            )}
+            {props.onShareMatch && (
+              <button
+                type="button"
+                onClick={props.onShareMatch}
+                className="grid size-9 place-items-center rounded-lg border border-border bg-card text-foreground/80 active:scale-95"
+                aria-label="Share match"
+              >
+                <Share2 className="size-4" />
+              </button>
+            )}
+            {!props.hideEndMatch && (
+              <button
+                type="button"
+                onClick={() => setConfirm({ kind: "end-match" })}
+                className="inline-flex h-9 items-center rounded-lg border border-destructive/40 bg-destructive/10 px-3 text-[12px] font-bold text-destructive active:scale-95"
+              >
+                End
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -392,34 +417,6 @@ export function MobileScorer(props: MobileScorerProps) {
             target={props.target}
             insights={props.insights}
           />
-
-          {props.scorecardContent && (
-            <section className="overflow-hidden rounded-xl border bg-card/70">
-              <button
-                type="button"
-                onClick={() => setScorecardExpanded((v) => !v)}
-                className="flex h-11 w-full items-center justify-between px-3 text-left transition duration-100 active:scale-[0.995] active:bg-muted/70"
-                aria-expanded={scorecardExpanded}
-              >
-                <span className="flex items-center gap-2">
-                  <FileText className="size-4 text-muted-foreground" />
-                  <span className="text-[13px] font-black tracking-tight">Scorecard</span>
-                  <span className="text-[11px] font-medium text-muted-foreground">
-                    Batting · Bowling
-                  </span>
-                </span>
-                <ChevronDown
-                  className={cn(
-                    "size-4 text-muted-foreground transition-transform duration-200",
-                    scorecardExpanded && "rotate-180",
-                  )}
-                />
-              </button>
-              {scorecardExpanded && (
-                <div className="border-t bg-background/40 p-2">{props.scorecardContent}</div>
-              )}
-            </section>
-          )}
         </div>
       </main>
 
@@ -468,10 +465,10 @@ export function MobileScorer(props: MobileScorerProps) {
             onClick={() => openPicker("bowler")}
           />
           <FooterAction
-            icon={<Share2 className="size-[18px]" />}
-            label="Share"
-            onClick={props.onShareMatch ?? (() => {})}
-            disabled={!props.onShareMatch}
+            icon={<FileText className="size-[18px]" />}
+            label="Scorecard"
+            onClick={() => setScorecardExpanded(true)}
+            disabled={!props.scorecardContent}
           />
           {props.showFinishInnings && props.onFinishInnings && (
             <FooterAction
@@ -504,6 +501,18 @@ export function MobileScorer(props: MobileScorerProps) {
           setPickerOpen(null);
         }}
       />
+
+      <Sheet open={scorecardExpanded} onOpenChange={setScorecardExpanded}>
+        <SheetContent
+          side="bottom"
+          className="flex h-[88dvh] flex-col gap-0 rounded-t-2xl p-0 pb-[var(--app-safe-bottom)]"
+        >
+          <SheetHeader className="border-b px-4 py-3 text-left">
+            <SheetTitle className="text-base">Scorecard</SheetTitle>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto p-2">{props.scorecardContent}</div>
+        </SheetContent>
+      </Sheet>
 
       <AlertDialog open={!!confirm} onOpenChange={(v) => !v && setConfirm(null)}>
         <AlertDialogContent>

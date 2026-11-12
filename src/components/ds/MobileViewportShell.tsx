@@ -15,6 +15,8 @@ interface MobileViewportShellProps {
   desktopClassName?: string;
   /** Base classes applied to the container */
   className?: string;
+  /** Background of the header and footer bands (default: card white). */
+  chromeClassName?: string;
 }
 
 /**
@@ -31,6 +33,7 @@ export function MobileViewportShell({
   children,
   desktopClassName,
   className,
+  chromeClassName = "bg-card",
 }: MobileViewportShellProps) {
   const insets = useViewportInsets();
 
@@ -66,7 +69,10 @@ export function MobileViewportShell({
       style={containerStyle}
     >
       {header ? (
-        <div className="flex-none bg-card" style={{ paddingTop: "var(--app-safe-top)" }}>
+        <div
+          className={cn("flex-none", chromeClassName)}
+          style={{ paddingTop: "var(--app-safe-top)" }}
+        >
           {header}
         </div>
       ) : (
@@ -79,7 +85,7 @@ export function MobileViewportShell({
 
       {footer ? (
         <div
-          className="flex-none bg-card"
+          className={cn("flex-none", chromeClassName)}
           style={{
             paddingBottom: insets.keyboardOpen ? "0px" : "var(--app-safe-bottom)",
           }}

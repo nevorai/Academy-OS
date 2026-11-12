@@ -13,6 +13,7 @@ import {
   type BowlerStats,
 } from "@/components/match-center/scoring-ui";
 import { MobileScorer } from "@/components/match-center/mobile-scorer";
+import { EditTeamsSheet } from "@/components/match-center/edit-teams-sheet";
 import { WicketSheet, type WicketSheetResult } from "@/components/match-center/wicket-sheet";
 import { Button } from "@/components/ui/button";
 import {
@@ -235,6 +236,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   const [tossWinnerId, setTossWinnerId] = useState<string | null>(null);
   const [tossDecision, setTossDecision] = useState<"bat" | "bowl" | null>(null);
   const [tossSaving, setTossSaving] = useState(false);
+  const [editTeamsOpen, setEditTeamsOpen] = useState(false);
   const [pendingBallIntent, setPendingBallIntent] = useState<
     Parameters<typeof session.submitBall>[0] | null
   >(null);
@@ -843,6 +845,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         ) : (
           <MobileScorer
             onExit={() => void navigate({ to: "/match-center/live" })}
+            onEditTeams={() => setEditTeamsOpen(true)}
             matchTitle={matchTitle}
             tournamentLabel={tournamentLabel || undefined}
             isLive={!isDemo}
@@ -1138,6 +1141,90 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         </DialogContent>
       </Dialog>
 
+      {/* Toss: nobody can score until the first innings exists. */}
+      <Dialog open={noInnings && !session.match?.match_locked}>
+        <DialogContent
+          className="max-w-sm"
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>Toss</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <div className="mb-1.5 text-xs font-medium text-muted-foreground">
+                Who won the toss?
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  {
+                    id: session.match?.team_a_id ?? "",
+                    label: teamMap.get(session.match?.team_a_id ?? "")?.name ?? "Team A",
+                  },
+                  {
+                    id: session.match?.team_b_id ?? "",
+                    label: teamMap.get(session.match?.team_b_id ?? "")?.name ?? "Team B",
+                  },
+                ].map((t) => (
+                  <Button
+                    key={t.id}
+                    type="button"
+                    variant={tossWinnerId === t.id ? "default" : "outline"}
+                    onClick={() => setTossWinnerId(t.id)}
+                    className="h-11 truncate"
+                  >
+                    {t.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className="mb-1.5 text-xs font-medium text-muted-foreground">Chose to</div>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant={tossDecision === "bat" ? "default" : "outline"}
+                  onClick={() => setTossDecision("bat")}
+                  className="h-11"
+                >
+                  Bat first
+                </Button>
+                <Button
+                  type="button"
+                  variant={tossDecision === "bowl" ? "default" : "outline"}
+                  onClick={() => setTossDecision("bowl")}
+                  className="h-11"
+                >
+                  Bowl first
+                </Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => void navigate({ to: "/match-center/live" })}>
+              Back
+            </Button>
+            <Button
+              onClick={() => void confirmTossAndStart()}
+              disabled={!tossWinnerId || !tossDecision || tossSaving}
+            >
+              {tossSaving ? "Starting…" : "Start match"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <EditTeamsSheet
+        open={editTeamsOpen}
+        onOpenChange={setEditTeamsOpen}
+        tenantId={session.match?.tenant_id ?? ""}
+        matchId={matchId}
+        teamAId={session.match?.team_a_id ?? ""}
+        teamBId={session.match?.team_b_id ?? ""}
+        onSaved={() => window.location.reload()}
+      />
+
       {/* Right squad drawer */}
       <SquadDrawer open={rightDrawer} onOpenChange={setRightDrawer} side="right" title="Squad">
         <SquadSection title={`${homeName} · Batting`} players={battingOptions} />
@@ -1199,7 +1286,14 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     </>
   );
 
-  return <MobileViewportShell className="scorer-root z-40" header={content} children={modals} />;
+  return (
+    <MobileViewportShell
+      className="scorer-root z-40"
+      chromeClassName="bg-background"
+      header={content}
+      children={modals}
+    />
+  );
 }
 
 function SquadSection({ title, players }: { title: string; players: PlayerOption[] }) {
@@ -1744,6 +1838,7 @@ function DemoScorerBody({
   return (
     <MobileViewportShell
       className="scorer-root z-40"
+      chromeClassName="bg-background"
       header={
         <div className="flex-none">
           <MobileScorer

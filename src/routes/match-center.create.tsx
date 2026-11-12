@@ -1776,12 +1776,30 @@ function SquadSheet({
       .map((x) => x.p);
   };
 
+  // Keep the row being typed in near the top of the visible area, with the 2 to 3 rows above it
+  // still showing, and never hidden behind the keyboard or the Back/Continue bar.
+  const reveal = (i: number) => {
+    const el = listRef.current?.querySelector<HTMLElement>(`[data-row="${i}"]`);
+    const box = el?.closest<HTMLElement>(".overflow-y-auto");
+    if (!el || !box) return;
+    const e = el.getBoundingClientRect();
+    const b = box.getBoundingClientRect();
+    const rowH = e.height + 8;
+    const inUpperPart = e.top >= b.top + rowH && e.bottom <= b.top + b.height * 0.6;
+    if (inUpperPart) return;
+    const target = box.scrollTop + (e.top - b.top) - rowH * 3;
+    box.scrollTo({ top: Math.max(0, target), behavior: "smooth" });
+  };
+
   const focusRow = (i: number) =>
-    requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
       listRef.current
         ?.querySelector<HTMLInputElement>(`[data-row="${i}"]`)
-        ?.focus({ preventScroll: true }),
-    );
+        ?.focus({ preventScroll: true });
+      reveal(i);
+      // Again once the keyboard has finished opening and the screen has shrunk.
+      setTimeout(() => reveal(i), 320);
+    });
 
   const setAt = (i: number, v: Slot) => {
     const next = [...slots];
@@ -1882,7 +1900,11 @@ function SquadSheet({
                 data-row={i}
                 value={p?.name ?? ""}
                 onChange={(e) => onType(i, e.target.value)}
-                onFocus={() => setActiveRow(i)}
+                onFocus={() => {
+                  setActiveRow(i);
+                  reveal(i);
+                  setTimeout(() => reveal(i), 320);
+                }}
                 onBlur={() => {
                   setActiveRow((r) => (r === i ? null : r));
                   onLeave(i);
@@ -1967,6 +1989,8 @@ function SquadSheet({
       >
         <Plus className="size-4" /> Add more rows
       </button>
+      {/* Room below the last row so any row can scroll up to the top area. */}
+      <div aria-hidden="true" className="h-[45dvh]" />
     </div>
   );
 }

@@ -1936,7 +1936,7 @@ function SquadSheet({
                         <MoreVertical className="size-4" />
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="z-[300] w-40">
+                    <DropdownMenuContent align="end" className="w-40">
                       <DropdownMenuItem disabled={i === 0} onSelect={() => swap(i, -1)}>
                         <ArrowUp className="mr-2 size-4" /> Move up
                       </DropdownMenuItem>

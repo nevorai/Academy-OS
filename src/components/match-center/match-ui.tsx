@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import {
   Swords,
@@ -95,8 +95,20 @@ export function MatchCard({
 }) {
   const typeLabel =
     MATCH_TYPES.find((t) => t.value === match.match_type)?.label ?? match.match_type;
+  const navigate = useNavigate();
+  const open = (e: React.MouseEvent<HTMLDivElement>) => {
+    const t = e.target as HTMLElement;
+    // Ignore taps on buttons/links/menus inside the card (menus render in a portal).
+    if (!e.currentTarget.contains(t) || t.closest("button,a,[role='menuitem']")) return;
+    if (match.status === "live" && !match.match_locked)
+      navigate({ to: "/scorer/$matchId", params: { matchId: match.id } });
+    else navigate({ to: "/match-center/scorebook/$matchId", params: { matchId: match.id } });
+  };
   return (
-    <div className="rounded-2xl border border-border/70 bg-card px-3.5 py-3 transition-colors active:bg-accent/30">
+    <div
+      onClick={open}
+      className="cursor-pointer rounded-2xl border border-border/70 bg-card px-3.5 py-3 transition-colors active:bg-accent/30"
+    >
       {/* Top row: status + format + menu */}
       <div className="mb-2 flex items-center gap-1.5">
         <MatchStatusBadge status={match.status} />

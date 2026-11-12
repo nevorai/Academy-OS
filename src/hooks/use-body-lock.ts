@@ -17,35 +17,20 @@ export function useBodyLock(active: boolean) {
   useEffect(() => {
     if (!active || !isMobile) return;
 
-    // We use a property on window to track count safely across mounts
+    // Only stop the page behind from scrolling. We never make the body position:fixed:
+    // on an iPhone home-screen app that shifted the whole screen up and left a strip at the bottom.
     const win = window as any;
     win.__bodyLockCount = (win.__bodyLockCount || 0) + 1;
-
     if (win.__bodyLockCount === 1) {
-      win.__previousScrollY = window.scrollY;
-      win.__previousStyle = document.body.style.cssText;
-      
-      // We use position: fixed to robustly lock iOS Safari
-      // previousStyle first so it doesn't override our lock properties
-      document.body.style.cssText = `
-        ${win.__previousStyle || ""};
-        position: fixed;
-        top: -${win.__previousScrollY}px;
-        left: 0;
-        right: 0;
-        width: 100%;
-        overflow: hidden;
-        overscroll-behavior: none;
-      `;
+      win.__previousOverflow = document.documentElement.style.overflow;
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overscrollBehavior = "none";
     }
-
     return () => {
       win.__bodyLockCount--;
       if (win.__bodyLockCount === 0) {
-        document.body.style.cssText = win.__previousStyle || "";
-        window.scrollTo(0, win.__previousScrollY || 0);
-        win.__previousStyle = null;
-        win.__previousScrollY = 0;
+        document.documentElement.style.overflow = win.__previousOverflow || "";
+        document.body.style.overscrollBehavior = "";
       }
     };
   }, [active, isMobile]);

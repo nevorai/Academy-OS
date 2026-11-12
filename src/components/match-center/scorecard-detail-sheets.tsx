@@ -64,10 +64,9 @@ function SheetShell({
           </div>
           <SheetClose
             aria-label="Close"
-            className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full border border-border/60 bg-background/70 px-3 text-[11px] font-black uppercase tracking-wider text-muted-foreground transition duration-100 hover:text-foreground active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            className="grid size-8 shrink-0 place-items-center rounded-md border border-destructive/40 bg-destructive/10 text-destructive active:scale-95 focus:outline-none"
           >
-            <X className="size-3.5" />
-            Close
+            <X className="size-4" />
           </SheetClose>
         </header>
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain ds-scroll px-4 py-4">

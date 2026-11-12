@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { MobileViewportShell } from "@/components/ds/MobileViewportShell";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -205,92 +205,26 @@ export function EditTeamsSheet({
     }
   };
 
+  if (!open) return null;
+
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="bottom"
-        className="flex h-[88dvh] flex-col gap-0 rounded-t-2xl p-0 pb-[var(--app-safe-bottom)]"
-      >
-        <SheetHeader className="border-b px-4 py-3 text-left">
-          <SheetTitle className="text-base">Edit teams</SheetTitle>
-        </SheetHeader>
-        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-3 py-3">
-          {!teams ? (
-            <div className="grid place-items-center py-10">
-              <Loader2 className="size-5 animate-spin text-muted-foreground" />
-            </div>
-          ) : (
-            teams.map((t, ti) => (
-              <section key={t.id}>
-                <input
-                  value={t.name}
-                  onChange={(e) =>
-                    setTeams((all) =>
-                      all
-                        ? all.map((x, i) => (i === ti ? { ...x, name: e.target.value } : x))
-                        : all,
-                    )
-                  }
-                  aria-label={`Team ${ti === 0 ? "A" : "B"} name`}
-                  className="mb-1.5 h-10 w-full rounded-lg border border-border bg-card px-3 text-[16px] font-bold"
-                />
-                <ol className="divide-y divide-border rounded-xl border border-border bg-card">
-                  {t.rows.map((r, ri) => (
-                    <li key={r.id ?? `new-${ri}`} className="flex items-center gap-1.5 px-2 py-1">
-                      <span className="w-5 shrink-0 text-center text-[12px] text-muted-foreground">
-                        {ri + 1}
-                      </span>
-                      <input
-                        value={r.name}
-                        readOnly={r.locked}
-                        placeholder="Player name"
-                        onChange={(e) => patchRow(ti, ri, { name: e.target.value })}
-                        className={cn(
-                          "h-9 min-w-0 flex-1 rounded-md bg-transparent px-1.5 text-[16px] font-semibold outline-none focus:bg-muted/60",
-                          r.locked && "text-foreground/80",
-                        )}
-                      />
-                      {(["C", "VC", "WK"] as const).map((role) => {
-                        const on =
-                          role === "C"
-                            ? r.is_captain
-                            : role === "VC"
-                              ? r.is_vice_captain
-                              : r.is_keeper;
-                        return (
-                          <button
-                            key={role}
-                            type="button"
-                            onClick={() => setRole(ti, ri, role)}
-                            className={cn(
-                              "grid size-8 shrink-0 place-items-center rounded-full border text-[10px] font-bold",
-                              on
-                                ? role === "C"
-                                  ? "border-amber-500 bg-amber-500 text-white"
-                                  : role === "VC"
-                                    ? "border-sky-500 bg-sky-500 text-white"
-                                    : "border-emerald-600 bg-emerald-600 text-white"
-                                : "border-border text-muted-foreground",
-                            )}
-                          >
-                            {role}
-                          </button>
-                        );
-                      })}
-                    </li>
-                  ))}
-                </ol>
-                <button
-                  type="button"
-                  onClick={() => addPlayer(ti)}
-                  className="mt-1.5 flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border text-[13px] font-semibold text-muted-foreground"
-                >
-                  <Plus className="size-4" /> Add player
-                </button>
-              </section>
-            ))
-          )}
+    <MobileViewportShell
+      className="z-[150]"
+      desktopClassName="md:inset-auto md:left-1/2 md:top-1/2 md:h-[85vh] md:w-[560px] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-3xl md:border md:shadow-xl"
+      header={
+        <div className="flex items-center justify-between border-b px-4 py-2.5">
+          <div className="text-base font-bold">Edit teams</div>
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            aria-label="Close"
+            className="grid size-8 place-items-center rounded-md border border-destructive/40 bg-destructive/10 text-destructive active:scale-95"
+          >
+            <X className="size-4" />
+          </button>
         </div>
+      }
+      footer={
         <div className="flex gap-2 border-t p-3">
           <Button variant="outline" className="h-11 flex-1" onClick={() => onOpenChange(false)}>
             Cancel
@@ -300,7 +234,83 @@ export function EditTeamsSheet({
             Save changes
           </Button>
         </div>
-      </SheetContent>
-    </Sheet>
+      }
+    >
+      <div className="space-y-5 px-3 py-3">
+        {!teams ? (
+          <div className="grid place-items-center py-10">
+            <Loader2 className="size-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          teams.map((t, ti) => (
+            <section key={t.id}>
+              <input
+                value={t.name}
+                onChange={(e) =>
+                  setTeams((all) =>
+                    all ? all.map((x, i) => (i === ti ? { ...x, name: e.target.value } : x)) : all,
+                  )
+                }
+                aria-label={`Team ${ti === 0 ? "A" : "B"} name`}
+                className="mb-1.5 h-10 w-full rounded-lg border border-border bg-card px-3 text-[16px] font-bold"
+              />
+              <ol className="divide-y divide-border rounded-xl border border-border bg-card">
+                {t.rows.map((r, ri) => (
+                  <li key={r.id ?? `new-${ri}`} className="flex items-center gap-1.5 px-2 py-1">
+                    <span className="w-5 shrink-0 text-center text-[12px] text-muted-foreground">
+                      {ri + 1}
+                    </span>
+                    <input
+                      value={r.name}
+                      readOnly={r.locked}
+                      placeholder="Player name"
+                      onChange={(e) => patchRow(ti, ri, { name: e.target.value })}
+                      className={cn(
+                        "h-9 min-w-0 flex-1 rounded-md bg-transparent px-1.5 text-[16px] font-semibold outline-none focus:bg-muted/60",
+                        r.locked && "text-foreground/80",
+                      )}
+                    />
+                    {(["C", "VC", "WK"] as const).map((role) => {
+                      const on =
+                        role === "C"
+                          ? r.is_captain
+                          : role === "VC"
+                            ? r.is_vice_captain
+                            : r.is_keeper;
+                      return (
+                        <button
+                          key={role}
+                          type="button"
+                          onClick={() => setRole(ti, ri, role)}
+                          className={cn(
+                            "grid h-9 w-10 shrink-0 place-items-center rounded-lg border text-[10px] font-bold",
+                            on
+                              ? role === "C"
+                                ? "border-amber-500 bg-amber-500 text-white"
+                                : role === "VC"
+                                  ? "border-sky-500 bg-sky-500 text-white"
+                                  : "border-emerald-600 bg-emerald-600 text-white"
+                              : "border-border text-muted-foreground",
+                          )}
+                        >
+                          {role}
+                        </button>
+                      );
+                    })}
+                  </li>
+                ))}
+              </ol>
+              <button
+                type="button"
+                onClick={() => addPlayer(ti)}
+                className="mt-1.5 flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border text-[13px] font-semibold text-muted-foreground"
+              >
+                <Plus className="size-4" /> Add player
+              </button>
+            </section>
+          ))
+        )}
+      </div>
+    </MobileViewportShell>
   );
 }

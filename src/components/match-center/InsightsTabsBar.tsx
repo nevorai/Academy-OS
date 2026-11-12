@@ -11,7 +11,11 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 
 const TABS: { to: string; label: string; match: string[] }[] = [
-  { to: "/match-center/leaderboards", label: "Leaderboards", match: ["/match-center/leaderboards"] },
+  {
+    to: "/match-center/leaderboards",
+    label: "Leaderboards",
+    match: ["/match-center/leaderboards"],
+  },
   { to: "/match-center/records", label: "Records", match: ["/match-center/records"] },
   { to: "/match-center/performance", label: "Players", match: ["/match-center/performance"] },
   {
@@ -31,9 +35,7 @@ export function InsightsTabsBar() {
       className="sticky top-[calc(var(--app-safe-top)+6.5rem)] z-20 -mx-4 mb-4 flex gap-1 overflow-x-auto no-scrollbar px-4 md:mx-0 md:px-0 bg-background/95 backdrop-blur py-1 border-b md:border-none"
     >
       {TABS.map((tab) => {
-        const active = tab.match.some(
-          (p) => pathname === p || pathname.startsWith(p + "/"),
-        );
+        const active = tab.match.some((p) => pathname === p || pathname.startsWith(p + "/"));
         return (
           <Link
             key={tab.to}

@@ -343,7 +343,11 @@ export function WicketSheet({
           className="border-t border-border/60 px-3 pt-3"
           style={{ paddingBottom: "calc(var(--app-safe-bottom) + .75rem)" }}
         >
-          <Button className="h-12 w-full text-sm font-bold" disabled={!canConfirm} onClick={confirm}>
+          <Button
+            className="h-12 w-full text-sm font-bold"
+            disabled={!canConfirm}
+            onClick={confirm}
+          >
             {kind ? "Record wicket" : "Choose how the batter is out"}
           </Button>
         </div>

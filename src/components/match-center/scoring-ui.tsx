@@ -325,7 +325,9 @@ function BatterRow({ batter, primary }: { batter?: BatterStats; primary?: boolea
   }
   const sr =
     batter.strikeRate ??
-    ((batter.balls ?? 0) > 0 ? (((batter.runs ?? 0) / (batter.balls ?? 0)) * 100).toFixed(1) : "0.0");
+    ((batter.balls ?? 0) > 0
+      ? (((batter.runs ?? 0) / (batter.balls ?? 0)) * 100).toFixed(1)
+      : "0.0");
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-3">
@@ -529,19 +531,24 @@ export function ScoreButton({
   );
 }
 
-export function RunsButton({ value, onClick }: { value: 0 | 1 | 2 | 3 | 4 | 5 | 6; onClick?: () => void }) {
+export function RunsButton({
+  value,
+  onClick,
+}: {
+  value: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  onClick?: () => void;
+}) {
   const isDot = value === 0;
   const tone: Tone = "run";
   const label = isDot ? "•" : value;
   const sublabel = isDot ? undefined : value === 4 ? "Four" : value === 6 ? "Six" : undefined;
-  
-  return (
-    <ScoreButton label={label} tone={tone} sublabel={sublabel} onClick={onClick} />
-  );
+
+  return <ScoreButton label={label} tone={tone} sublabel={sublabel} onClick={onClick} />;
 }
 
 export function ExtraButton({ label, onClick }: { label: string; onClick?: () => void }) {
-  const shortLabel = label === "Wide" ? "WD" : label === "No Ball" ? "NB" : label === "Bye" ? "B" : "LB";
+  const shortLabel =
+    label === "Wide" ? "WD" : label === "No Ball" ? "NB" : label === "Bye" ? "B" : "LB";
   return <ScoreButton label={shortLabel} tone="extra" size="lg" onClick={onClick} />;
 }
 
@@ -592,9 +599,7 @@ export function DismissalModal({
         <div className="flex items-center justify-between px-4 pb-2 pt-3">
           <div className="text-left">
             <SheetTitle className="text-base">How is the batter out?</SheetTitle>
-            <SheetDescription className="text-xs">
-              Select the mode of dismissal.
-            </SheetDescription>
+            <SheetDescription className="text-xs">Select the mode of dismissal.</SheetDescription>
           </div>
           <SheetClose asChild>
             <Button variant="ghost" size="icon" className="size-8 rounded-full">
@@ -621,8 +626,6 @@ export function DismissalModal({
     </Sheet>
   );
 }
-
-
 
 export interface PlayerOption {
   id: string;
@@ -828,7 +831,7 @@ export function ExtraRunsModal({
     }
   }, [open, kind]);
 
-  const k = open ? (kind || frozenKind) : frozenKind;
+  const k = open ? kind || frozenKind : frozenKind;
 
   // Wide/NB: 1-4, 5-7 + More | Bye/LB: 0-3, 4-6 + More
   const options = [1, 2, 3, 4, 5, 6, 7];
@@ -893,9 +896,7 @@ export function ExtraRunsModal({
       >
         <div className="flex flex-col h-full max-h-[90vh]">
           <SheetHeader className="px-5 pb-2 pt-4 text-left space-y-0.5">
-            <SheetTitle className="text-[15px] font-semibold">
-              {k} — total runs
-            </SheetTitle>
+            <SheetTitle className="text-[15px] font-semibold">{k} — total runs</SheetTitle>
             <SheetDescription className="text-[11px] leading-tight">
               Select total runs from this delivery
             </SheetDescription>
@@ -951,7 +952,10 @@ export function ExtraRunsModal({
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleCustomSubmit} className="space-y-4 py-2 animate-in fade-in slide-in-from-bottom-2">
+              <form
+                onSubmit={handleCustomSubmit}
+                className="space-y-4 py-2 animate-in fade-in slide-in-from-bottom-2"
+              >
                 <div className="space-y-2">
                   <h3 className="text-sm font-medium">Enter total runs</h3>
                   <Input
@@ -999,8 +1003,6 @@ export function ExtraRunsModal({
     </Sheet>
   );
 }
-
-
 
 /* ---------------- Drawers ---------------- */
 
@@ -1078,7 +1080,13 @@ export function CommentaryPanel({
 
 export function IconCloseButton({ onClick }: { onClick: () => void }) {
   return (
-    <Button variant="ghost" size="icon" onClick={onClick} aria-label="Close" className="size-9">
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={onClick}
+      aria-label="Close"
+      className="size-8 rounded-md border border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15 hover:text-destructive"
+    >
       <X className="size-4" />
     </Button>
   );

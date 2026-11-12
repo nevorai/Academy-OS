@@ -102,11 +102,7 @@ function CommunicationsHub() {
         }
       />
 
-      <DashboardSearch
-        value={q}
-        onChange={setQ}
-        placeholder="Search campaigns, templates…"
-      />
+      <DashboardSearch value={q} onChange={setQ} placeholder="Search campaigns, templates…" />
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="hidden">
@@ -715,7 +711,7 @@ function ModalShell({
           <h2 className="text-lg font-semibold">{title}</h2>
           <button
             onClick={onClose}
-            className="text-muted-foreground hover:text-foreground"
+            className="grid size-8 place-items-center rounded-md border border-destructive/40 bg-destructive/10 text-destructive"
             aria-label="Close"
           >
             <X className="size-5" />

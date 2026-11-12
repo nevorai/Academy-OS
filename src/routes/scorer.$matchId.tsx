@@ -846,6 +846,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           <MobileScorer
             onExit={() => void navigate({ to: "/match-center/live" })}
             onEditTeams={() => setEditTeamsOpen(true)}
+            newBowlerNeeded={newBowlerStillNeeded}
             matchTitle={matchTitle}
             tournamentLabel={tournamentLabel || undefined}
             isLive={!isDemo}

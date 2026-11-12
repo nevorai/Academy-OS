@@ -44,8 +44,8 @@ export function BallFixSheet({
         <DialogHeader className="px-4 pt-4 text-left">
           <DialogTitle>Fix an earlier ball</DialogTitle>
           <DialogDescription>
-            Pick the ball that was scored wrong. You score it again with the normal buttons, then the balls after
-            it are put back.
+            Pick the ball that was scored wrong. You score it again with the normal buttons, then
+            the balls after it are put back.
           </DialogDescription>
         </DialogHeader>
 
@@ -74,7 +74,9 @@ export function BallFixSheet({
         ) : (
           <div className="max-h-[60dvh] overflow-y-auto px-2 pb-3">
             {fix.balls.length === 0 ? (
-              <p className="px-2 py-6 text-center text-sm text-muted-foreground">No balls scored yet.</p>
+              <p className="px-2 py-6 text-center text-sm text-muted-foreground">
+                No balls scored yet.
+              </p>
             ) : (
               <ul className="divide-y">
                 {fix.balls.map((b) => (
@@ -98,7 +100,9 @@ export function BallFixSheet({
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block text-sm font-medium">{b.overLabel}</span>
-                        <span className="block truncate text-xs text-muted-foreground">{b.who}</span>
+                        <span className="block truncate text-xs text-muted-foreground">
+                          {b.who}
+                        </span>
                       </span>
                     </button>
                   </li>
@@ -150,10 +154,13 @@ export function BallFixBar({ fix }: { fix: BallFix }) {
           ) : (
             <>
               <div className="font-semibold">
-                Score {fix.originalLabel} again{fix.originalChip ? ` (it was ${fix.originalChip})` : ""}
+                Score {fix.originalLabel} again
+                {fix.originalChip ? ` (it was ${fix.originalChip})` : ""}
               </div>
               <div className="text-muted-foreground">
-                {held === 0 ? "Nothing is waiting after it." : `${heldText} wait${held === 1 ? "s" : ""} after it.`}
+                {held === 0
+                  ? "Nothing is waiting after it."
+                  : `${heldText} wait${held === 1 ? "s" : ""} after it.`}
               </div>
             </>
           )}
@@ -181,7 +188,12 @@ export function BallFixBar({ fix }: { fix: BallFix }) {
                 {sure ? "Tap again to discard" : "Discard them"}
               </Button>
             ) : (
-              <Button variant="outline" className="h-11" disabled={fix.busy} onClick={() => void fix.putBack()}>
+              <Button
+                variant="outline"
+                className="h-11"
+                disabled={fix.busy}
+                onClick={() => void fix.putBack()}
+              >
                 <RotateCcw className="mr-1.5 size-4" /> Put it back
               </Button>
             )}

@@ -67,8 +67,20 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "commentary", label: "Commentary" },
 ];
 
-export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero, commentary, squad, otherSquad, battingPending, bowlingStatsEvents, teamSwitcher, squadSwitcher }: Props) {
-
+export function LiveScorecard({
+  events,
+  innings,
+  totalOvers,
+  matchInfo,
+  hideHero,
+  commentary,
+  squad,
+  otherSquad,
+  battingPending,
+  bowlingStatsEvents,
+  teamSwitcher,
+  squadSwitcher,
+}: Props) {
   const [tab, setTab] = useState<TabKey>("summary");
   const [openBatter, setOpenBatter] = useState<BattingStat | null>(null);
   const [openBowler, setOpenBowler] = useState<BowlingStat | null>(null);
@@ -79,9 +91,14 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
   });
   // Separate stats derived from the OTHER innings so a team that hasn't batted
   // still shows correct Bowling figures.
-  const bowlingStats = bowlingStatsEvents && bowlingStatsEvents.length > 0
-    ? calculateInningsStatistics(bowlingStatsEvents, { totalOvers: null, playingRules: matchInfo?.playingRules ?? null, target: null })
-    : stats;
+  const bowlingStats =
+    bowlingStatsEvents && bowlingStatsEvents.length > 0
+      ? calculateInningsStatistics(bowlingStatsEvents, {
+          totalOvers: null,
+          playingRules: matchInfo?.playingRules ?? null,
+          target: null,
+        })
+      : stats;
 
   // When embedded in a page that scrolls (hideHero=true, e.g. public match view),
   // don't create nested scroll containers — let the page scroll naturally.
@@ -89,7 +106,6 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
 
   return (
     <div className={embedded ? "flex flex-col" : "flex h-full min-h-0 flex-col"}>
-
       {!hideHero && (
         <div className="px-1 pb-3">
           <div className="rounded-2xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card p-4 shadow-sm">
@@ -142,7 +158,12 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
       )}
 
       {/* Segment control */}
-      <div className={cn("z-10 -mx-1 space-y-2 bg-background/95 px-1 pb-2 backdrop-blur", !embedded && "sticky top-0")}>
+      <div
+        className={cn(
+          "z-10 -mx-1 space-y-2 bg-background/95 px-1 pb-2 backdrop-blur",
+          !embedded && "sticky top-0",
+        )}
+      >
         <div className="flex gap-1 overflow-x-auto rounded-full bg-muted p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {TABS.map((t) => (
             <button
@@ -162,10 +183,13 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
       </div>
 
       {/* Scroll content */}
-      <div className={cn("px-1 pt-3 pb-4 animate-fade-in", embedded ? "" : "flex-1 min-h-0 overflow-y-auto overscroll-contain")}>
-        {tab === "summary" && (
-          <SummaryPane stats={stats} matchInfo={matchInfo} />
+      <div
+        className={cn(
+          "px-1 pt-3 pb-4 animate-fade-in",
+          embedded ? "" : "flex-1 min-h-0 overflow-y-auto overscroll-contain",
         )}
+      >
+        {tab === "summary" && <SummaryPane stats={stats} matchInfo={matchInfo} />}
         {tab === "batting" && (
           <div className="space-y-3">
             <div className="flex justify-end">{teamSwitcher}</div>
@@ -189,19 +213,35 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
               <>
                 {/* Desktop: both squads side-by-side, no toggle needed. */}
                 <div className="hidden gap-4 md:grid md:grid-cols-2">
-                  <SquadList matchId={squad.matchId} teamId={squad.teamId} teamName={squad.teamName} />
-                  <SquadList matchId={otherSquad.matchId} teamId={otherSquad.teamId} teamName={otherSquad.teamName} />
+                  <SquadList
+                    matchId={squad.matchId}
+                    teamId={squad.teamId}
+                    teamName={squad.teamName}
+                  />
+                  <SquadList
+                    matchId={otherSquad.matchId}
+                    teamId={otherSquad.teamId}
+                    teamName={otherSquad.teamName}
+                  />
                 </div>
                 {/* Mobile: name-only switcher + active squad. */}
                 <div className="space-y-3 md:hidden">
                   <div className="flex justify-end">{squadSwitcher ?? teamSwitcher}</div>
-                  <SquadList matchId={squad.matchId} teamId={squad.teamId} teamName={squad.teamName} />
+                  <SquadList
+                    matchId={squad.matchId}
+                    teamId={squad.teamId}
+                    teamName={squad.teamName}
+                  />
                 </div>
               </>
             ) : squad ? (
               <>
                 <div className="flex justify-end">{squadSwitcher ?? teamSwitcher}</div>
-                <SquadList matchId={squad.matchId} teamId={squad.teamId} teamName={squad.teamName} />
+                <SquadList
+                  matchId={squad.matchId}
+                  teamId={squad.teamId}
+                  teamName={squad.teamName}
+                />
               </>
             ) : (
               <EmptyState text="Squad unavailable." />
@@ -209,7 +249,6 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
           </div>
         )}
         {tab === "commentary" && <CommentaryPane commentary={commentary ?? []} />}
-
       </div>
 
       <BatterDetailSheet
@@ -458,7 +497,9 @@ function SummaryPane({
             label="Teams"
             value={`${matchInfo?.homeTeam ?? "Home"} vs ${matchInfo?.awayTeam ?? "Away"}`}
           />
-          {matchInfo?.playingRules && <InfoRow label="Rules" value={`${matchInfo.playingRules} Rules`} />}
+          {matchInfo?.playingRules && (
+            <InfoRow label="Rules" value={`${matchInfo.playingRules} Rules`} />
+          )}
           {matchInfo?.format && <InfoRow label="Format" value={matchInfo.format} />}
           {matchInfo?.ground && <InfoRow label="Ground" value={matchInfo.ground} />}
           {matchInfo?.tournament && <InfoRow label="Tournament" value={matchInfo.tournament} />}
@@ -635,7 +676,6 @@ export function BallChip({ b }: { b: MCBallEvent }) {
   );
 }
 
-
 /* ------------------------------- Primitives ------------------------------ */
 
 function MetricCard({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
@@ -754,7 +794,11 @@ function EmptyState({ text }: { text: string }) {
   );
 }
 
-function CommentaryPane({ commentary }: { commentary: { id: string; over: string; text: string }[] }) {
+function CommentaryPane({
+  commentary,
+}: {
+  commentary: { id: string; over: string; text: string }[];
+}) {
   if (commentary.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-border/60 bg-card/50 p-6 text-center text-xs text-muted-foreground">

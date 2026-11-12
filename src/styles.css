@@ -340,7 +340,12 @@
 
   /* Minimum touch target on interactive controls for coarse pointers. */
   @media (pointer: coarse) {
-    :where(button, a[role="button"], [role="button"]) {
+    /* Buttons that set their own size (h-8, size-9 ...) keep it: the 44px floor made them tall pills. */
+    :where(
+      button:not([class*="size-"]):not([class*="h-"]),
+      a[role="button"],
+      [role="button"]:not([class*="size-"]):not([class*="h-"])
+    ) {
       min-height: 44px;
     }
   }

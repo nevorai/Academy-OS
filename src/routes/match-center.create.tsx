@@ -2056,7 +2056,7 @@ function RoleButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "grid size-9 shrink-0 place-items-center rounded-full border text-[11px] font-black leading-none transition-all active:scale-90",
+        "grid h-9 w-10 shrink-0 place-items-center rounded-lg border text-[11px] font-black leading-none transition-all active:scale-90",
         colors[color],
       )}
     >

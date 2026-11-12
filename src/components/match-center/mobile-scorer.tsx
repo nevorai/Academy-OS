@@ -126,6 +126,8 @@ export interface MobileScorerProps {
   onOpenScorecard?: () => void;
   /** Opens the screen to fix team names, players and Captain / Vice / Keeper. */
   onEditTeams?: () => void;
+  /** A new over started and its bowler is not chosen yet. */
+  newBowlerNeeded?: boolean;
   onOpenScorebook?: () => void;
   onShareMatch?: () => void;
   scorecardContent?: ReactNode;
@@ -276,6 +278,12 @@ export function MobileScorer(props: MobileScorerProps) {
     };
   })();
 
+  // A new over has started and no bowler is chosen: open the bowler list at once. The ball the
+  // scorer tapped is kept by the page and is scored as soon as a bowler is picked.
+  const askBowlerFirst = () => {
+    if (props.newBowlerNeeded) openPicker("bowler");
+  };
+
   return (
     <div className="scorer-native-page flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground">
       <header className="relative z-20 shrink-0 overflow-hidden border-b border-border/60">
@@ -392,7 +400,7 @@ export function MobileScorer(props: MobileScorerProps) {
           <BowlerLine
             bowler={props.bowler}
             onClick={() => openPicker("bowler")}
-            awaiting={Boolean(props.awaitingNewBowler) || !props.bowler?.name}
+            awaiting={Boolean(props.newBowlerNeeded) || !props.bowler?.name}
           />
 
           {effectiveAwaitingNewBatter && (
@@ -425,9 +433,18 @@ export function MobileScorer(props: MobileScorerProps) {
         <div className="px-3 pt-2">
           <ScoringDock
             disabled={props.disabled}
-            onRun={props.onRun}
-            onExtra={props.onExtra}
-            onOut={props.onOut}
+            onRun={(r) => {
+              askBowlerFirst();
+              props.onRun(r);
+            }}
+            onExtra={(k) => {
+              askBowlerFirst();
+              props.onExtra(k);
+            }}
+            onOut={() => {
+              askBowlerFirst();
+              props.onOut();
+            }}
           />
         </div>
         <div
@@ -696,7 +713,7 @@ function BowlerLine({
   awaiting?: boolean;
 }) {
   const hasBowler = Boolean(bowler?.name);
-  const showAwaiting = Boolean(awaiting) && !hasBowler;
+  const showAwaiting = Boolean(awaiting);
   return (
     <button
       type="button"
@@ -719,7 +736,7 @@ function BowlerLine({
             <CircleDot className="size-3" strokeWidth={2.25} />
           </span>
           <span className="truncate text-[14px] font-bold">
-            {showAwaiting ? "Next Bowler Required" : (bowler?.name ?? "Select bowler")}
+            {showAwaiting ? "Select bowler for this over" : (bowler?.name ?? "Select bowler")}
           </span>
           <span
             className={cn(

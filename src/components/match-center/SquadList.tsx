@@ -35,9 +35,18 @@ export function SquadList({
       const client = supabase as unknown as {
         from: (t: string) => {
           select: (c: string) => {
-            eq: (c: string, v: string) => {
-              eq: (c: string, v: string) => {
-                order: (c: string, o: { ascending: boolean; nullsFirst?: boolean }) => Promise<{ data: PublicSquadPlayer[] | null; error: unknown }>;
+            eq: (
+              c: string,
+              v: string,
+            ) => {
+              eq: (
+                c: string,
+                v: string,
+              ) => {
+                order: (
+                  c: string,
+                  o: { ascending: boolean; nullsFirst?: boolean },
+                ) => Promise<{ data: PublicSquadPlayer[] | null; error: unknown }>;
               };
             };
           };
@@ -97,11 +106,7 @@ export function SquadList({
 
 function PlayerGrid({ rows, muted }: { rows: PublicSquadPlayer[]; muted?: boolean }) {
   return (
-    <ul
-      className={
-        "grid grid-cols-1 gap-2 sm:grid-cols-2 " + (muted ? "opacity-80" : "")
-      }
-    >
+    <ul className={"grid grid-cols-1 gap-2 sm:grid-cols-2 " + (muted ? "opacity-80" : "")}>
       {rows.map((p) => (
         <li
           key={p.squad_row_id}
@@ -110,9 +115,7 @@ function PlayerGrid({ rows, muted }: { rows: PublicSquadPlayer[]; muted?: boolea
           <Avatar url={p.photo_url} name={p.display_name} />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <span className="truncate text-sm font-semibold">
-                {p.display_name ?? "—"}
-              </span>
+              <span className="truncate text-sm font-semibold">{p.display_name ?? "—"}</span>
               {p.is_captain && <Badge>C</Badge>}
               {p.is_vice_captain && <Badge>VC</Badge>}
               {p.is_keeper && <Badge>WK</Badge>}

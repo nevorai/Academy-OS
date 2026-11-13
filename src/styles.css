@@ -367,10 +367,11 @@
   }
 
   .scorer-native-page {
-    /* The scorer sits in the full-screen shell's top slot, which only grows to its content:
-       give it the whole screen so nothing is left blank under the bottom bar. */
-    height: calc(100dvh - var(--app-safe-top));
-    max-height: calc(100dvh - var(--app-safe-top));
+    /* The scorer fills the full-screen shell (fixed to the real screen edges) by stretching,
+       not by "100dvh": on an installed iPhone app dvh is shorter than the screen and left a
+       grey strip under the bottom bar. */
+    flex: 1 1 0%;
+    min-height: 0;
     overscroll-behavior: none;
   }
 

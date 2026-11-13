@@ -815,7 +815,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const content = (
     <>
-      <div className="flex-none">
+      <div className="flex min-h-0 flex-1 flex-col">
         {isDemo ? (
           <div className="grid flex-1 place-items-center p-8 text-center">
             <div className="max-w-md space-y-3">
@@ -1318,7 +1318,9 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   return (
     <MobileViewportShell
       className="scorer-root z-40"
-      chromeClassName="bg-background"
+      // White from the very top edge (status bar) to the very bottom edge: no grey strips.
+      chromeClassName="bg-card"
+      fill
       header={content}
       children={modals}
     />
@@ -1867,9 +1869,11 @@ function DemoScorerBody({
   return (
     <MobileViewportShell
       className="scorer-root z-40"
-      chromeClassName="bg-background"
+      // White from the very top edge (status bar) to the very bottom edge: no grey strips.
+      chromeClassName="bg-card"
+      fill
       header={
-        <div className="flex-none">
+        <div className="flex min-h-0 flex-1 flex-col">
           <MobileScorer
             onExit={() => void navigate({ to: "/match-center/live" })}
             matchTitle={matchTitle}

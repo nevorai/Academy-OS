@@ -131,6 +131,7 @@ export interface MobileScorerProps {
 type PickerKind = "striker" | "nonStriker" | "bowler";
 
 const FOOTER_COLS: Record<number, string> = {
+  4: "grid-cols-4",
   5: "grid-cols-5",
   6: "grid-cols-6",
 };
@@ -305,6 +306,20 @@ export function MobileScorer(props: MobileScorerProps) {
     danger?: boolean;
     run: () => void;
   }[] = [
+    // Strike changes by itself on runs, over end and wickets. This is only the manual correction
+    // (wrong batter picked as striker, batters crossed before a catch, a short run), so it lives
+    // in More, not on the main bar where it could be tapped by mistake.
+    ...(hasActiveStriker && hasActiveNonStriker
+      ? [
+          {
+            key: "swap",
+            icon: <ArrowLeftRight className="size-[18px]" />,
+            label: "Change who is on strike",
+            hint: "Only to correct a mistake",
+            run: props.onSwapStrike,
+          },
+        ]
+      : []),
     {
       key: "bowler",
       icon: <UserPlus className="size-[18px]" />,
@@ -483,7 +498,8 @@ export function MobileScorer(props: MobileScorerProps) {
         </div>
       </main>
 
-      <div className="z-20 shrink-0 border-t border-border/70 bg-card pb-[max(env(safe-area-inset-bottom),4px)]">
+      {/* White runs to the bottom edge; the buttons sit as low as the home bar allows (it needs about 20 px). */}
+      <div className="z-20 shrink-0 border-t border-border/70 bg-card pb-[max(calc(env(safe-area-inset-bottom)-14px),4px)]">
         {props.fixBar ? <div className="pt-2">{props.fixBar}</div> : null}
         <div className="px-2 pt-2">
           <ScoringDock
@@ -493,7 +509,7 @@ export function MobileScorer(props: MobileScorerProps) {
             onOut={props.onOut}
           />
         </div>
-        <div className={cn("mt-1 grid gap-0.5 px-1", FOOTER_COLS[props.onFixBall ? 6 : 5])}>
+        <div className={cn("mt-1 grid gap-0.5 px-1", FOOTER_COLS[props.onFixBall ? 5 : 4])}>
           <FooterAction
             icon={<Undo2 className="size-[18px]" />}
             label="Undo"
@@ -504,12 +520,6 @@ export function MobileScorer(props: MobileScorerProps) {
             label="Redo"
             onClick={props.onRedo ?? (() => {})}
             disabled={!props.onRedo || !props.canRedo}
-          />
-          <FooterAction
-            icon={<ArrowLeftRight className="size-[18px]" />}
-            label="Swap"
-            onClick={props.onSwapStrike}
-            disabled={!hasActiveStriker || !hasActiveNonStriker}
           />
           {props.onFixBall && (
             <FooterAction
@@ -909,7 +919,8 @@ function RecentOvers({ rows, onOpen }: { rows: OverHistoryRow[]; onOpen: () => v
               <span className="text-[10.5px] font-black uppercase tracking-wide text-muted-foreground">
                 Ov {row.overLabel}
               </span>
-              <span className="flex min-w-0 items-center gap-1 overflow-hidden">
+              {/* A long over (wides, no-balls) slides sideways under the finger; nothing is cut off. */}
+              <span className="flex min-w-0 touch-pan-x items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {row.chips.map((chip, i) => (
                   <BallBubble key={`${chip}-${i}`} label={chip} small />
                 ))}

@@ -17,6 +17,11 @@ interface MobileViewportShellProps {
   className?: string;
   /** Background of the header and footer bands (default: card white). */
   chromeClassName?: string;
+  /**
+   * The header slot IS the whole screen (the scorer): it stretches from the very top to the very
+   * bottom edge and handles the bottom safe area itself, so no spare strip is added under it.
+   */
+  fill?: boolean;
 }
 
 /**
@@ -34,6 +39,7 @@ export function MobileViewportShell({
   desktopClassName,
   className,
   chromeClassName = "bg-card",
+  fill = false,
 }: MobileViewportShellProps) {
   const insets = useViewportInsets();
 
@@ -70,7 +76,7 @@ export function MobileViewportShell({
     >
       {header ? (
         <div
-          className={cn("flex-none", chromeClassName)}
+          className={cn(fill ? "flex min-h-0 flex-1 flex-col" : "flex-none", chromeClassName)}
           style={{ paddingTop: "var(--app-safe-top)" }}
         >
           {header}
@@ -79,7 +85,13 @@ export function MobileViewportShell({
         <div style={{ paddingTop: "var(--app-safe-top)" }} />
       )}
 
-      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
+      <div
+        className={cn(
+          fill
+            ? "flex-none"
+            : "flex-1 min-h-0 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]",
+        )}
+      >
         {children}
       </div>
 
@@ -92,7 +104,7 @@ export function MobileViewportShell({
         >
           {footer}
         </div>
-      ) : (
+      ) : fill ? null : (
         <div style={{ paddingBottom: insets.keyboardOpen ? "0px" : "var(--app-safe-bottom)" }} />
       )}
     </div>,

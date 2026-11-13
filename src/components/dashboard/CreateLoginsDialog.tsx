@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { loadXlsx, warmXlsx } from "@/lib/xlsx-lazy";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -146,6 +146,16 @@ function CreateLoginsInner() {
   };
 
   const cantEmail = useMemo(() => meta && !meta.emailConfigured, [meta]);
+
+  // The bulk import asks for this window right after it finishes.
+  useEffect(() => {
+    const onAsk = () => {
+      warmXlsx();
+      setOpen(true);
+    };
+    window.addEventListener("academy:create-logins", onAsk);
+    return () => window.removeEventListener("academy:create-logins", onAsk);
+  }, []);
 
   return (
     <Dialog

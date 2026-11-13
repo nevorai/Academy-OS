@@ -395,8 +395,10 @@ export function BulkImportStudents() {
     },
     onSuccess: (n) => {
       toast.success(`Imported ${n} players`, {
-        description: "Next, tap Create logins to give everyone an ID and password.",
+        description: "Next: give everyone an ID and password.",
       });
+      // Open the Create logins window straight away (it lists only players without a login).
+      setTimeout(() => window.dispatchEvent(new CustomEvent("academy:create-logins")), 400);
       qc.invalidateQueries({ queryKey: qk.students(tenant.id) });
       clear();
       setOpen(false);

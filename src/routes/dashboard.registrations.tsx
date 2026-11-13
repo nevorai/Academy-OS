@@ -8,6 +8,7 @@ import { useDashboard } from "@/lib/dashboard-context";
 import { fetchRegistrations, qk } from "@/lib/dashboard-queries";
 import { supabase } from "@/integrations/supabase/client";
 import { bulkApproveRegistrations } from "@/lib/bulk-ops";
+import { AcceptedLoginDialog } from "@/components/dashboard/AcceptedLoginDialog";
 import { useOptimisticMutation } from "@/hooks/use-optimistic-mutation";
 import { markRegistrationsReviewed, newRegsQueryKey } from "@/hooks/use-new-registrations";
 import { enrollStudentInBilling, enrollManyInBilling } from "@/lib/billing-enrollment";
@@ -116,6 +117,8 @@ function RegistrationsInbox() {
   const [filter, setFilter] = useState<FilterKey>("pending");
   const [dialog, setDialog] = useState<{ id: string; mode: "approve" | "changes" } | null>(null);
   const [rejectReasonFor, setRejectReasonFor] = useState<string | null>(null);
+  // After Accept: make the login and show the ID + password once.
+  const [loginFor, setLoginFor] = useState<{ id: string; name: string } | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [waitlistFor, setWaitlistFor] = useState<string | null>(null);
 
@@ -197,6 +200,7 @@ function RegistrationsInbox() {
 
       // 2. Automate Billing
       const reg = data.find(r => r.id === regId);
+      if (newStudentId) setLoginFor({ id: newStudentId, name: reg?.name ?? "Player" });
       if (reg && reg.fee_plan_id) {
         try {
           await enrollStudentInBilling({
@@ -437,6 +441,15 @@ function RegistrationsInbox() {
         onDelete={() => openReg && del.mutate(openReg.id)}
         accepting={approve.isPending}
         deleting={del.isPending}
+      />
+
+      <AcceptedLoginDialog
+        tenantId={tenantId}
+        student={loginFor}
+        onClose={() => {
+          setLoginFor(null);
+          invalidate();
+        }}
       />
 
       <AdmissionActionDialog

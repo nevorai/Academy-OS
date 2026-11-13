@@ -30,10 +30,17 @@ export function KpiTile({
   hint?: string;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-2.5">
-      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
-      <div className="mt-0.5 text-lg font-semibold tabular-nums leading-tight">{value}</div>
-      {hint ? <div className="text-[10px] text-muted-foreground mt-0.5">{hint}</div> : null}
+    <div className="min-w-0 rounded-xl border border-border bg-card p-2 sm:p-2.5">
+      <div className="truncate text-[9px] uppercase text-muted-foreground sm:text-[10px] sm:tracking-wider">
+        {label}
+      </div>
+      <div className="mt-0.5 truncate text-[17px] font-semibold tabular-nums leading-tight sm:text-lg">
+        {value}
+      </div>
+      {/* Phones: the small hint line is dropped so every tile in the row has the same low height. */}
+      {hint ? (
+        <div className="mt-0.5 hidden text-[10px] text-muted-foreground sm:block">{hint}</div>
+      ) : null}
     </div>
   );
 }

@@ -173,12 +173,23 @@ function ScorebookPage() {
   const teams = teamsQ.data ?? [];
   const teamA = teams.find((t) => t.id === m.team_a_id);
   const teamB = teams.find((t) => t.id === m.team_b_id);
+  // toss_winner is stored as "team_a" / "team_b" on older matches and as the team's id on newer ones.
+  // Never print the raw id: an unknown value shows nothing.
   const tossWinnerName =
-    m.toss_winner === "team_a"
+    m.toss_winner === "team_a" || m.toss_winner === m.team_a_id
       ? (teamA?.name ?? null)
-      : m.toss_winner === "team_b"
+      : m.toss_winner === "team_b" || m.toss_winner === m.team_b_id
         ? (teamB?.name ?? null)
-        : (m.toss_winner ?? null);
+        : m.toss_winner && !/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(m.toss_winner)
+          ? m.toss_winner
+          : null;
+  const dateLabel = m.scheduled_date
+    ? new Date(`${String(m.scheduled_date).slice(0, 10)}T00:00:00`).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : m.scheduled_date;
 
   return (
     <div className="min-h-dvh bg-background">
@@ -201,7 +212,7 @@ function ScorebookPage() {
             title: `${teamA?.name ?? "Team A"} v ${teamB?.name ?? "Team B"}`,
             tournament: tournamentQ.data ?? null,
             ground: m.ground_name,
-            date: m.scheduled_date,
+            date: dateLabel,
             format: m.match_format ?? m.match_type,
             overs: m.overs,
             umpire: m.umpire,

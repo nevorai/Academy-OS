@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Download, ExternalLink, Plus } from "lucide-react";
+import { ChevronDown, Download, ExternalLink, Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,10 +18,9 @@ import { warmXlsx } from "@/lib/xlsx-lazy";
 
 /**
  * Players page heading: the totals on the left, the page's actions on the
- * right. On a phone the actions shrink to their icons (each one carries its
- * name for screen readers). Whenever the title and the buttons do not fit on
- * one row (a phone, or a laptop with the menu open) the buttons drop to a row
- * of their own, so the title is never squeezed under them.
+ * right. On a phone the title, a "More" button and "Add" share ONE row; the
+ * less-used actions (export, share link, import, logins, fees page) open
+ * under it with their names written out, never as bare icons.
  */
 export function StudentsHeader({
   total,
@@ -35,15 +36,23 @@ export function StudentsHeader({
   onExport: (format: "csv" | "xlsx") => void;
   onAdd: () => void;
 }) {
+  const [more, setMore] = useState(false);
   return (
-    <header className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
-      <div className="max-w-full shrink-0">
+    <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 sm:items-end">
+      <div className="flex min-w-0 max-w-full items-baseline gap-2 sm:block sm:shrink-0">
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight leading-tight">Players</h1>
-        <p className="text-[12.5px] sm:text-sm text-muted-foreground mt-0.5 truncate">
+        <p className="text-[12.5px] sm:text-sm text-muted-foreground sm:mt-0.5 truncate">
           {total} total · {active} active
         </p>
       </div>
-      <div className="ml-auto flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
+      <div
+        className={cn(
+          "order-last basis-full flex-wrap items-center gap-1.5 sm:order-none sm:ml-auto sm:flex sm:basis-auto sm:justify-end sm:gap-2",
+          more ? "flex" : "hidden",
+          // Phones: the opened row shows each button's name beside its icon.
+          "max-sm:[&_button>span]:!inline max-sm:[&_a>span]:!inline max-sm:[&_svg]:mr-1.5",
+        )}
+      >
         <DropdownMenu onOpenChange={(open) => open && warmXlsx()}>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="rounded-full h-9" aria-label="Export">
@@ -69,13 +78,26 @@ export function StudentsHeader({
             <span className="hidden sm:inline">View Fees</span>
           </Link>
         </Button>
+      </div>
+      <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:ml-0 sm:gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-10 rounded-full sm:hidden"
+          aria-expanded={more}
+          onClick={() => setMore((v) => !v)}
+        >
+          More{" "}
+          <ChevronDown className={cn("ml-1 size-4 transition-transform", more && "rotate-180")} />
+        </Button>
         <Button
           onClick={onAdd}
           aria-label="Add player"
-          className="rounded-full h-9 sm:h-10 px-3 sm:px-5 font-semibold"
+          className="rounded-full h-10 px-4 sm:px-5 font-semibold"
           style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
         >
-          <Plus className="size-4 sm:mr-1" /> <span className="hidden sm:inline">Add</span>
+          <Plus className="mr-1 size-4" /> Add
         </Button>
       </div>
     </header>

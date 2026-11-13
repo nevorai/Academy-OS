@@ -112,9 +112,9 @@ function CreateTeamPage() {
         ]}
         actions={
           <>
-            <Button variant="outline" asChild>
+            <Button variant="outline" asChild className="px-3 sm:px-4">
               <Link to="/match-center/teams">
-                <ArrowLeft className="size-4 mr-1.5" /> Cancel
+                <ArrowLeft className="mr-1.5 hidden size-4 sm:inline" /> Cancel
               </Link>
             </Button>
             <Button

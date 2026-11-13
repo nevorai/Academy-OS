@@ -45,7 +45,7 @@ function StudentsPage() {
   const openAdd = () => void navigate({ to: "/dashboard/new-admission" });
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-3 md:space-y-5">
       <StudentsHeader
         total={counts.all}
         active={counts.active}

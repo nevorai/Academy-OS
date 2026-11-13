@@ -85,7 +85,7 @@ function PlayerProfileRoute() {
   ];
 
   return (
-    <div className="space-y-4 pb-8 max-w-3xl mx-auto">
+    <div className="space-y-3 pb-8 sm:space-y-4 max-w-3xl mx-auto">
       <PlayerHeader
         student={student}
         athlete={athlete}

@@ -207,13 +207,17 @@ function CategorySegments<T extends string>({
   onChange: (v: T) => void;
   options: { value: T; label: string }[];
 }) {
+  // Phones: seven names do not fit one screen, so the bar slides sideways and every name stays whole (the page itself never moves sideways).
   return (
-    <FilterTabs<T>
-      value={value}
-      onChange={onChange}
-      items={options.map((o) => ({ key: o.value, label: o.label }))}
-      ariaLabel="Report category"
-    />
+    <div className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
+      <FilterTabs<T>
+        value={value}
+        onChange={onChange}
+        items={options.map((o) => ({ key: o.value, label: o.label }))}
+        ariaLabel="Report category"
+        className="max-md:min-w-max"
+      />
+    </div>
   );
 }
 
@@ -1323,7 +1327,12 @@ function CommunicationReport({ tenantId, range }: { tenantId: string; range: Ran
 // ============================================================
 
 function KpiGrid({ children }: { children: React.ReactNode }) {
-  return <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2.5">{children}</div>;
+  // Phones: three short tiles per row (ten numbers = four rows, was five tall ones).
+  return (
+    <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-2 sm:gap-2.5 md:grid-cols-4 lg:grid-cols-5">
+      {children}
+    </div>
+  );
 }
 
 function KpiTile({
@@ -1358,17 +1367,17 @@ function KpiTile({
   return (
     <Card
       className={cn(
-        "px-3 py-2.5 min-h-[88px] flex flex-col justify-between rounded-2xl border border-border/60",
+        "min-w-0 px-2 py-2 min-h-[66px] sm:px-3 sm:py-2.5 sm:min-h-[88px] flex flex-col justify-between rounded-xl sm:rounded-2xl border border-border/60",
         tone === "warn" && "border-amber-200/70 dark:border-amber-800/40",
       )}
     >
-      <div className="text-[11px] uppercase tracking-wide text-muted-foreground truncate">
+      <div className="text-[9.5px] uppercase text-muted-foreground truncate sm:text-[11px] sm:tracking-wide">
         {label}
       </div>
       <div className="flex items-baseline justify-between gap-2 mt-0.5">
         <div
           className={cn(
-            "text-xl sm:text-[22px] font-semibold tabular-nums leading-tight truncate",
+            "text-[17px] sm:text-[22px] font-semibold tabular-nums leading-tight truncate",
             tone === "warn" && "text-amber-600 dark:text-amber-400",
           )}
         >

@@ -23,7 +23,7 @@ export function PlayerQuickStats({
   const pct = recentQ.data?.pct;
 
   return (
-    <div className="grid grid-cols-4 gap-2">
+    <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
       <KpiTile label="Attendance" value={pct != null ? `${pct}%` : "—"} hint="30 days" />
       <KpiTile label="Matches" value={career?.matches ?? 0} />
       <KpiTile label="Runs" value={career?.runs ?? 0} />

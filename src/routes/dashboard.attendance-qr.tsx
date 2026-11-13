@@ -234,7 +234,7 @@ function QrSetupPage() {
 
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 py-4 md:px-8">
+    <div className="mx-auto w-full max-w-2xl py-1 md:px-8 md:py-4">
       <div className="mb-3 flex items-center gap-2">
         <Button asChild variant="ghost" size="icon" className="rounded-full">
           <Link to="/dashboard/attendance" aria-label="Back to attendance">

@@ -201,19 +201,19 @@ export function OfficialScorebook({
             </Button>
             <Button size="sm" variant="outline" onClick={handlePrint} aria-label="Print scorebook">
               <Printer className="size-4" />
-              <span className="ml-1.5 hidden sm:inline">Print</span>
+              <span className="ml-1 text-[12px] sm:ml-1.5 sm:text-sm">Print</span>
             </Button>
             <Button size="sm" variant="outline" onClick={handlePrint} aria-label="Save as PDF">
               <FileText className="size-4" />
-              <span className="ml-1.5 hidden sm:inline">PDF</span>
+              <span className="ml-1 text-[12px] sm:ml-1.5 sm:text-sm">PDF</span>
             </Button>
             <Button size="sm" variant="outline" onClick={handlePng} aria-label="Download PNG">
               <ImageDown className="size-4" />
-              <span className="ml-1.5 hidden sm:inline">PNG</span>
+              <span className="ml-1 text-[12px] sm:ml-1.5 sm:text-sm">PNG</span>
             </Button>
             <Button size="sm" variant="outline" onClick={handleShare} aria-label="Share scorebook">
               <Share2 className="size-4" />
-              <span className="ml-1.5 hidden sm:inline">Share</span>
+              <span className="ml-1 text-[12px] sm:ml-1.5 sm:text-sm">Share</span>
             </Button>
             {fullscreen && onExitFullscreen && (
               <Button size="sm" variant="ghost" onClick={onExitFullscreen}>
@@ -227,7 +227,7 @@ export function OfficialScorebook({
       <div className="scorebook-paper-outer">
         <div
           ref={paperRef}
-          className="scorebook-print scorebook-paper mx-auto max-w-[960px] rounded-2xl border bg-card p-5 shadow-sm sm:p-8"
+          className="scorebook-print scorebook-paper mx-auto max-w-[960px] rounded-2xl border bg-card p-2.5 shadow-sm sm:p-8"
         >
           <ScorebookHeader info={matchInfo} teamA={teamA} teamB={teamB} />
           <MatchSummaryStrip
@@ -290,7 +290,7 @@ function ScorebookHeader({
         : null;
 
   return (
-    <header className="sb-card mb-5 rounded-xl border-2 border-dashed p-4">
+    <header className="sb-card mb-3 rounded-xl border-2 border-dashed p-3 sm:mb-5 sm:p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
           <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
@@ -331,7 +331,8 @@ function MetaCell({ label, value, span }: { label: string; value?: string | null
       <dt className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
         {label}
       </dt>
-      <dd className="truncate font-medium">{value ?? "—"}</dd>
+      {/* Phones: long lines (the toss sentence) wrap instead of being cut. */}
+      <dd className="break-words font-medium sm:truncate">{value ?? "—"}</dd>
     </div>
   );
 }
@@ -368,7 +369,7 @@ function MatchSummaryStrip({
   const rrr = chase?.stats.team.requiredRunRate ?? null;
 
   return (
-    <section className="sb-card mb-6 rounded-2xl border bg-gradient-to-br from-card to-background p-5 shadow-sm">
+    <section className="sb-card mb-3 rounded-2xl border bg-gradient-to-br from-card to-background p-3 shadow-sm sm:mb-6 sm:p-5">
       {rows.length === 0 ? (
         <div className="text-sm text-muted-foreground">No innings started yet.</div>
       ) : (
@@ -455,7 +456,7 @@ function InningsBlock({
   playerOfMatch?: string | null;
 }) {
   return (
-    <section className="sb-card mb-6 rounded-2xl border bg-card/60 p-4 shadow-sm sm:p-5">
+    <section className="sb-card mb-3 rounded-2xl border bg-card/60 p-2.5 shadow-sm sm:mb-6 sm:p-5">
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2 border-b-2 border-foreground/70 pb-2">
         <h2 className="text-sm font-black uppercase tracking-widest sm:text-base">
           Innings {inningsNumber} — {battingTeamName} batting

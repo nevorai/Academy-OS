@@ -81,7 +81,8 @@ function QuickAction({
   const inner = (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-1 h-16 rounded-xl border border-border bg-card transition-colors",
+        // Phones: icon and word side by side in a short row (two rows of three stay low); stacked from 640 px.
+        "flex h-11 items-center justify-center gap-1.5 rounded-xl border border-border bg-card transition-colors sm:h-16 sm:flex-col sm:gap-1",
         !disabled && "hover:bg-accent active:scale-[0.98]",
         disabled && "opacity-40",
       )}
@@ -89,7 +90,7 @@ function QuickAction({
       <span style={{ color: disabled ? undefined : "var(--brand)" }}>
         <Icon className="size-4" />
       </span>
-      <span className="text-[10.5px] font-medium">{label}</span>
+      <span className="text-[12px] font-medium sm:text-[10.5px]">{label}</span>
     </div>
   );
   if (disabled) return <div>{inner}</div>;
@@ -152,7 +153,8 @@ export function PlayerHeader({
         >
           <ArrowLeft className="size-4" /> Players
         </button>
-        <div className="flex items-center gap-1">
+        {/* Phones already have Edit and Share as named buttons on the card below. */}
+        <div className="hidden items-center gap-1 sm:flex">
           <button
             type="button"
             onClick={share}
@@ -172,12 +174,12 @@ export function PlayerHeader({
         </div>
       </div>
 
-      <Card className="p-4 md:p-5">
-        <div className="flex items-start gap-4">
+      <Card className="p-3 sm:p-4 md:p-5">
+        <div className="flex items-start gap-3 sm:gap-4">
           <PersonAvatar
             name={student.name}
             src={student.photo_url ?? undefined}
-            className="size-20 md:size-24 shrink-0"
+            className="size-14 sm:size-20 md:size-24 shrink-0"
           />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
@@ -194,7 +196,7 @@ export function PlayerHeader({
               {student.batches?.name ? <span>{student.batches.name}</span> : null}
             </div>
             {student.joined_at ? (
-              <div className="mt-2 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+              <div className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground sm:mt-2">
                 <Calendar className="size-3" /> Joined{" "}
                 {format(new Date(student.joined_at), "MMM d, yyyy")}
               </div>
@@ -202,7 +204,7 @@ export function PlayerHeader({
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-3 sm:grid-cols-6 gap-2">
+        <div className="mt-3 grid grid-cols-3 gap-1.5 sm:mt-4 sm:grid-cols-6 sm:gap-2">
           <QuickAction icon={Pencil} label="Edit" onClick={onEdit} />
           <QuickAction
             icon={ClipboardCheck}

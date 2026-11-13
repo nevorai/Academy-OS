@@ -57,21 +57,21 @@ export function RegistrationsBanner({ tenantId }: { tenantId: string }) {
   };
 
   return (
-    <div className="group flex items-center gap-3 rounded-2xl border border-rose-500/30 bg-rose-500/5 px-4 py-3">
+    <div className="group flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/5 px-3 py-1.5 sm:gap-3 sm:rounded-2xl sm:px-4 sm:py-3">
       <Link
         to="/dashboard/registrations"
         onClick={dismiss}
         className="flex items-center gap-3 min-w-0 flex-1"
       >
-        <span className="grid place-items-center size-9 rounded-full bg-rose-600 text-white shrink-0">
+        <span className="grid place-items-center size-7 sm:size-9 rounded-full bg-rose-600 text-white shrink-0">
           <Inbox className="size-4" />
         </span>
         <div className="min-w-0 flex-1">
           <div className="text-sm font-semibold text-foreground">
-            {count} pending registration{count === 1 ? "" : "s"}
+            {count} new request{count === 1 ? "" : "s"} to review
           </div>
-          <div className="text-xs text-muted-foreground">
-            New admission requests waiting for review
+          <div className="hidden text-xs text-muted-foreground sm:block">
+            New admission requests and enquiries waiting for review
           </div>
         </div>
         <ChevronRight className="size-4 text-muted-foreground" />

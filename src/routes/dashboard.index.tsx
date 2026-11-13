@@ -219,6 +219,11 @@ function DashboardHome() {
         to="/dashboard/fees"
         search={pendingFees > 0 ? { filter: "pending" } : undefined}
         label="Fees this month"
+        short={{
+          label: "Fees paid",
+          value: `${paidCount}/${total}`,
+          hint: pendingFees > 0 ? `${pendingFees} pending` : "All paid",
+        }}
         value={kpisQ.isLoading ? null : `${paidCount} of ${total} paid`}
         hint={
           pendingFees > 0
@@ -234,6 +239,7 @@ function DashboardHome() {
       key="in"
       to="/dashboard/attendance"
       label="In academy now"
+      short={{ label: "In now" }}
       value={attendanceLoading ? null : inAcademy}
       hint="Live"
       tone="live"
@@ -246,6 +252,7 @@ function DashboardHome() {
         key="present"
         to="/dashboard/attendance"
         label="Players present"
+        short={{ label: "Present" }}
         value={attendanceLoading ? null : playersPresent}
         hint={`of ${attTotal}`}
         tone="brand"
@@ -257,6 +264,7 @@ function DashboardHome() {
       key="att"
       to="/dashboard/attendance"
       label="Attendance"
+      short={{ label: "Today", hint: attTotal > 0 ? `${attPresent}/${attTotal}` : "No marks" }}
       value={attendanceLoading ? null : `${attPct}%`}
       hint={attTotal > 0 ? `${attPresent}/${attTotal} today` : "No marks yet"}
       tone={attPct >= 80 ? "success" : attPct >= 60 ? "warn" : "muted"}
@@ -266,6 +274,7 @@ function DashboardHome() {
         key="regs"
         to="/dashboard/registrations"
         label="New registrations"
+        short={{ label: "New", hint: newRegs > 0 ? "Review" : "None" }}
         value={newRegs}
         hint={newRegs > 0 ? "Needs review" : "Inbox clear"}
         tone={newRegs > 0 ? "warn" : "muted"}
@@ -275,6 +284,7 @@ function DashboardHome() {
         key="actions"
         to="/dashboard/registrations"
         label="Pending actions"
+        short={{ label: "To do", hint: pendingActions > 0 ? "Review" : "None" }}
         value={pendingActions}
         hint={pendingActions > 0 ? "Review inbox" : "Nothing pending"}
         tone={pendingActions > 0 ? "warn" : "muted"}
@@ -284,7 +294,7 @@ function DashboardHome() {
   const tileGrid =
     tiles.length === 5
       ? "grid-cols-2 md:grid-cols-3 xl:grid-cols-5 [&>*:last-child]:col-span-2 xl:[&>*:last-child]:col-span-1"
-      : "grid-cols-2 lg:grid-cols-4";
+      : "grid-cols-4"; // phones too: four short tiles on ONE line (his rule), full wording from 640 px
 
   return (
     <div className="space-y-4 pb-2">
@@ -314,7 +324,7 @@ function DashboardHome() {
       ) : null}
 
       <section aria-label="Today at a glance">
-        <div className={cn("grid gap-2.5", tileGrid)}>{tiles}</div>
+        <div className={cn("grid gap-1.5 sm:gap-2.5", tileGrid)}>{tiles}</div>
       </section>
 
       {/* The ten things an owner does most. One tap each. */}
@@ -394,8 +404,11 @@ function KpiTile({
   hint,
   tone = "brand",
   pulse,
+  short,
 }: {
   to: string;
+  /** Phone wording (under 640 px), so four tiles fit on one line. */
+  short?: { label?: string; value?: string; hint?: string };
   search?: Record<string, string>;
   label: string;
   value: number | string | null;
@@ -410,13 +423,14 @@ function KpiTile({
       search={search as never}
       style={{ borderTopColor: tone === "muted" ? "var(--foreground)" : color }}
       className={cn(
-        "flex min-h-[64px] flex-col gap-1 rounded-[7px] border border-t-2 border-border bg-card px-3 pb-2.5 pt-2 md:min-h-[92px] md:gap-2 md:px-3.5 md:pb-3.5 md:pt-3",
+        "flex min-h-[64px] min-w-0 flex-col gap-1 rounded-[7px] border border-t-2 border-border bg-card px-2 pb-2 pt-2 sm:px-3 sm:pb-2.5 md:min-h-[92px] md:gap-2 md:px-3.5 md:pb-3.5 md:pt-3",
         "outline-none transition-colors hover:border-foreground/40 focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]",
       )}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="truncate text-[11px] font-semibold uppercase tracking-[0.07em] text-muted-foreground">
-          {label}
+        <span className="truncate text-[10px] font-semibold uppercase tracking-[0.04em] text-muted-foreground sm:text-[11px] sm:tracking-[0.07em]">
+          <span className="sm:hidden">{short?.label ?? label}</span>
+          <span className="hidden sm:inline">{label}</span>
         </span>
         {pulse ? (
           <span className="relative inline-flex size-2 shrink-0">
@@ -432,14 +446,24 @@ function KpiTile({
         ) : null}
       </div>
       <div
-        className="text-[21px] font-semibold leading-none tracking-tight tabular-nums md:text-[26px]"
+        className="truncate text-[19px] font-semibold leading-none tracking-tight tabular-nums sm:text-[21px] md:text-[26px]"
         style={{ fontFamily: "var(--font-display)" }}
       >
-        {value === null ? <Skeleton className="h-6 w-14" /> : value}
+        {value === null ? (
+          <Skeleton className="h-6 w-10 sm:w-14" />
+        ) : short?.value ? (
+          <>
+            <span className="sm:hidden">{short.value}</span>
+            <span className="hidden sm:inline">{value}</span>
+          </>
+        ) : (
+          value
+        )}
       </div>
       {hint ? (
-        <div className="truncate text-[11px] leading-snug text-muted-foreground md:whitespace-normal md:text-[11.5px]">
-          {hint}
+        <div className="truncate text-[10.5px] leading-snug text-muted-foreground sm:text-[11px] md:whitespace-normal md:text-[11.5px]">
+          <span className="sm:hidden">{short?.hint ?? hint}</span>
+          <span className="hidden sm:inline">{hint}</span>
         </div>
       ) : null}
     </Link>

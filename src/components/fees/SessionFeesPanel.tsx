@@ -132,17 +132,17 @@ export function SessionFeesPanel({ showCoaches = true }: { showCoaches?: boolean
   );
 
   return (
-    <div className="space-y-5">
-      <header className="flex flex-wrap items-start justify-between gap-2">
-        <div>
+    <div className="space-y-3 md:space-y-5">
+      <header className="flex flex-wrap items-center justify-between gap-2 md:items-start">
+        <div className="min-w-0">
           <h2 className="text-lg font-bold tracking-tight">Sessions &amp; fees</h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="hidden text-sm text-muted-foreground md:block">
             Each session carries its own monthly fee. This is what players are billed and what your
             public /fees page shows.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex flex-col items-end mr-4">
+          <div className="flex flex-col items-end md:mr-4">
             <div className="flex items-center gap-2">
               <Label className="text-xs text-muted-foreground">Girls discount</Label>
               <Switch 
@@ -163,8 +163,8 @@ export function SessionFeesPanel({ showCoaches = true }: { showCoaches?: boolean
       </header>
 
       {/* One-time admission fee — academy-wide, charged on a player's first invoice. */}
-      <Card className="flex items-center justify-between gap-3 p-4">
-        <div className="min-w-0">
+      <Card className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 p-3 sm:flex-nowrap sm:p-4">
+        <div className="min-w-0 basis-full sm:basis-auto">
           <div className="flex items-center gap-2 font-semibold">
             <IndianRupee className="size-4 text-muted-foreground" />
             One-time admission fee

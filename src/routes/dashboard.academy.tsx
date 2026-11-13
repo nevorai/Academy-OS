@@ -21,8 +21,6 @@ import {
   BarChart3,
   Lightbulb,
   QrCode,
-  Palette,
-  Globe,
   Inbox,
   CalendarDays,
 } from "lucide-react";
@@ -158,8 +156,6 @@ const SHORTCUTS: Item[] = [
     hint: "Attendance by day",
     icon: CalendarDays,
   },
-  { to: "/dashboard/branding", label: "Branding", hint: "Logo and colours", icon: Palette },
-  { to: "/dashboard/site", label: "Website", hint: "Your public site", icon: Globe },
 ];
 const FEE_SHORTCUTS: Item[] = [
   {

@@ -18,12 +18,8 @@ export const Route = createFileRoute("/dashboard/batches")({
 function BatchesPage() {
   return (
     <div className="space-y-4">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">Sessions</h1>
-        <p className="text-sm text-muted-foreground">
-          Groups your players train with — each one carries its own monthly fee.
-        </p>
-      </header>
+      {/* The panel below carries the visible heading; a second one only pushed the list down. */}
+      <h1 className="sr-only">Sessions</h1>
       <SessionFeesPanel />
     </div>
   );

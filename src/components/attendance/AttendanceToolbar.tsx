@@ -140,7 +140,7 @@ export function AttendanceToolbar({
                 onClick={onToggleSelect}
                 aria-pressed={selectMode}
                 aria-label="Toggle bulk selection"
-                className={cn(chip, selectMode ? chipOn : chipIdle)}
+                className={cn(chip, selectMode ? chipOn : chipIdle, "hidden md:inline-flex")}
               >
                 <CheckSquare className="size-3" /> Select
               </button>
@@ -150,7 +150,7 @@ export function AttendanceToolbar({
                 type="button"
                 onClick={() => setScanCards(true)}
                 aria-label="Scan player ID cards"
-                className={cn(chip, chipIdle)}
+                className={cn(chip, chipIdle, "hidden md:inline-flex")}
               >
                 <IdCard className="size-3" /> Cards
               </button>
@@ -158,7 +158,7 @@ export function AttendanceToolbar({
             <Link
               to="/dashboard/attendance-calendar"
               aria-label="Attendance calendar"
-              className={cn(chip, chipIdle)}
+              className={cn(chip, chipIdle, "hidden md:inline-flex")}
             >
               <CalendarDays className="size-3" /> Calendar
             </Link>
@@ -166,11 +166,51 @@ export function AttendanceToolbar({
               <Link
                 to="/dashboard/attendance-qr"
                 aria-label="QR check-in setup"
-                className={cn(chip, chipIdle)}
+                className={cn(chip, chipIdle, "hidden md:inline-flex")}
               >
                 <QrCode className="size-3" /> QR
               </Link>
             ) : null}
+            {/* Phones: the row must fit the screen, so the less-used tools open from one More button. */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="More attendance tools"
+                  className={cn(chip, chipIdle, "ml-auto md:hidden")}
+                >
+                  <MoreVertical className="size-3.5" /> More
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-[200px]">
+                {canMark ? (
+                  <DropdownMenuItem className="min-h-11 text-[15px]" onClick={onToggleSelect}>
+                    <CheckSquare className="size-4" />{" "}
+                    {selectMode ? "Stop selecting" : "Select many players"}
+                  </DropdownMenuItem>
+                ) : null}
+                {canMark ? (
+                  <DropdownMenuItem
+                    className="min-h-11 text-[15px]"
+                    onClick={() => setScanCards(true)}
+                  >
+                    <IdCard className="size-4" /> Scan ID cards
+                  </DropdownMenuItem>
+                ) : null}
+                <DropdownMenuItem asChild className="min-h-11 text-[15px]">
+                  <Link to="/dashboard/attendance-calendar">
+                    <CalendarDays className="size-4" /> Calendar
+                  </Link>
+                </DropdownMenuItem>
+                {canMark ? (
+                  <DropdownMenuItem asChild className="min-h-11 text-[15px]">
+                    <Link to="/dashboard/attendance-qr">
+                      <QrCode className="size-4" /> Check-in QR
+                    </Link>
+                  </DropdownMenuItem>
+                ) : null}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <ScanStudentCardDialog
               open={scanCards}
               onOpenChange={setScanCards}

@@ -157,6 +157,8 @@ function AttendancePage() {
                   { key: "done", label: "Checked out", count: groups.done.length },
                 ]}
                 ariaLabel="Attendance groups"
+                // Phones: tighter side padding so "Checked out" is never cut off.
+                className="[&_button]:px-1.5 [&_button]:text-[13px] sm:[&_button]:px-3 sm:[&_button]:text-sm"
               />
             </div>
             <button
@@ -164,7 +166,7 @@ function AttendancePage() {
               onClick={() => a.changeRosterTab("waiting")}
               aria-pressed={rosterTab === "waiting"}
               className={
-                "shrink-0 rounded-full border px-2.5 py-1.5 text-[12px] font-semibold leading-none transition-colors " +
+                "shrink-0 rounded-full border px-2 py-1.5 text-[12px] font-semibold leading-none transition-colors " +
                 (rosterTab === "waiting"
                   ? "border-amber-500 bg-amber-500/15 text-amber-700 dark:text-amber-300"
                   : "border-border bg-card hover:bg-muted")

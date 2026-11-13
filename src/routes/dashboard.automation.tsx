@@ -140,7 +140,7 @@ function AutomationHistoryPage() {
     <div className="space-y-4">
       <ModuleHeader
         overline="Platform"
-        title="Automation History"
+        title="Automation"
         backTo="/dashboard/profile"
         action={
           <div className="flex gap-2">
@@ -157,15 +157,15 @@ function AutomationHistoryPage() {
               onClick={() => void q.refetch()}
               disabled={q.isFetching}
             >
-              <RefreshCw className={cn("size-4 mr-1", q.isFetching && "animate-spin")} />
-              Refresh
+              <RefreshCw className={cn("size-4 sm:mr-1", q.isFetching && "animate-spin")} />
+              <span className="sr-only sm:not-sr-only">Refresh</span>
             </Button>
           </div>
         }
       />
 
       <Card className="p-3">
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-2 text-center">
+        <div className="grid grid-cols-6 gap-1 text-center md:gap-2">
           <Stat label="Success" value={totals.success} tone="success" />
           <Stat label="Failed" value={totals.failed} tone="danger" />
           <Stat label="Retrying" value={totals.retrying} tone="warn" />
@@ -291,7 +291,9 @@ function Stat({
   return (
     <div className="min-w-0">
       <div className={cn("text-lg font-bold tabular-nums", color)}>{value}</div>
-      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="truncate text-[9px] uppercase text-muted-foreground sm:text-[10px] sm:tracking-wide">
+        {label}
+      </div>
     </div>
   );
 }

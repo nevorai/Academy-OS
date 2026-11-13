@@ -86,7 +86,7 @@ function QrSetupPage() {
   const logQ = useQuery({
     queryKey: qrKeys.scans(tenant.id),
     queryFn: () => fetchQrScanLog(tenant.id),
-    refetchInterval: 15_000,
+    refetchInterval: 60_000,
   });
 
   const s = settingsQ.data;
@@ -122,6 +122,8 @@ function QrSetupPage() {
       .catch(() => setQrPng(null));
   }, [checkinUrl]);
 
+  // The log holds the latest scans of any day; show a few and let the owner open the rest.
+  const [showAllScans, setShowAllScans] = useState(false);
   const todayStats = useMemo(() => {
     const rows = logQ.data ?? [];
     const today = new Date().toDateString();
@@ -435,7 +437,7 @@ function QrSetupPage() {
                 <img
                   src={qrPng}
                   alt="Academy check-in QR code"
-                  className="mx-auto size-48 rounded-xl border border-border/60 bg-white p-2"
+                  className="mx-auto size-40 rounded-xl border border-border/60 bg-white p-2 sm:size-48"
                 />
                 <Button
                   onClick={() => withPoster("pdf")}
@@ -488,9 +490,9 @@ function QrSetupPage() {
                   </Button>
                 </div>
                 <p className="text-[11px] leading-relaxed text-muted-foreground">
-                  Download the PDF and send it to a print shop, or share it straight from your phone. This QR code allows students to sign in, check in/out, and even register for the academy.
-                  phone. Print A4 and stick it at every entry point — several copies of the same
-                  poster all work at once.
+                  Download the PDF for a print shop, or share it from your phone. Print it on A4
+                  and stick it at every entry. Players scan it to check in and out, and new
+                  players can register from it.
                 </p>
 
               </>
@@ -533,7 +535,10 @@ function QrSetupPage() {
               <StatBox label="Checked out" value={todayStats.checkedOut} />
               <StatBox label="Rejected" value={todayStats.rejected} />
             </div>
-            <div className="mt-3 divide-y divide-border/60">
+            <p className="mt-3 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Latest scans
+            </p>
+            <div className="divide-y divide-border/60">
               {logQ.isError ? (
                 <div className="space-y-2 py-3 text-center text-xs text-muted-foreground">
                   <p>
@@ -548,7 +553,7 @@ function QrSetupPage() {
               ) : (logQ.data ?? []).length === 0 ? (
                 <p className="py-4 text-center text-xs text-muted-foreground">No scans yet.</p>
               ) : (
-                (logQ.data ?? []).map((row) => (
+                (showAllScans ? (logQ.data ?? []) : (logQ.data ?? []).slice(0, 6)).map((row) => (
                   <div key={row.id} className="flex items-center justify-between gap-3 py-2 text-xs">
                     <div className="min-w-0 text-left">
                       <p className="truncate font-medium">{row.student_name ?? "Unknown student"}</p>
@@ -568,6 +573,9 @@ function QrSetupPage() {
                     </div>
                     <span className="shrink-0 text-muted-foreground">
                       {row.distance_m != null ? `${Math.round(row.distance_m)} m · ` : ""}
+                      {new Date(row.created_at).toDateString() === new Date().toDateString()
+                        ? ""
+                        : `${new Date(row.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} · `}
                       {new Date(row.created_at).toLocaleTimeString([], {
                         hour: "2-digit",
                         minute: "2-digit",
@@ -577,6 +585,15 @@ function QrSetupPage() {
                 ))
               )}
             </div>
+            {(logQ.data ?? []).length > 6 ? (
+              <Button
+                variant="outline"
+                className="mt-2 h-10 w-full rounded-xl text-sm"
+                onClick={() => setShowAllScans((v) => !v)}
+              >
+                {showAllScans ? "Show fewer" : `Show all ${(logQ.data ?? []).length} scans`}
+              </Button>
+            ) : null}
           </Card>
 
         </div>

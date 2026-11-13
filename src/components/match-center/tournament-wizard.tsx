@@ -211,7 +211,7 @@ export function TournamentWizard({
         if (!v) reset();
       }}
     >
-      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="max-h-[92dvh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Trophy className="size-5" />
@@ -232,7 +232,7 @@ export function TournamentWizard({
           {step === "review" && <StepReview state={state} derived={derivedType} />}
         </div>
 
-        <div className="mt-4 flex items-center justify-between border-t pt-4">
+        <div className="sticky -bottom-5 z-10 -mx-5 -mb-5 mt-4 flex items-center justify-between border-t bg-background px-5 py-3 sm:-bottom-6 sm:-mx-6 sm:-mb-6 sm:px-6">
           <Button
             variant="ghost"
             onClick={() => {
@@ -347,7 +347,7 @@ function StepBasics({ state, setField }: StepProps) {
           ))}
         </select>
       </Field>
-      <Field label="Public slug" className="md:col-span-2">
+      <Field label="Web link name" className="md:col-span-2">
         <Input
           value={state.slugTouched ? state.slug : slugify(state.name)}
           onChange={(e) => {
@@ -357,8 +357,7 @@ function StepBasics({ state, setField }: StepProps) {
           placeholder="summer-cup-2026"
         />
         <p className="mt-1 text-[11px] text-muted-foreground">
-          Used only for the public tournament URL. Uniqueness is checked when you create the
-          tournament.
+          The short name in the tournament's public web link. You can leave it as it is.
         </p>
       </Field>
       <Field label="Description" className="md:col-span-2">

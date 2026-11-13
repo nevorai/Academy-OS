@@ -7,9 +7,6 @@ import {
   PlusCircle,
   Trash2,
   Save,
-  BarChart3,
-  History,
-  Swords,
   Settings as SettingsIcon,
   LayoutDashboard,
   UserPlus,
@@ -57,9 +54,6 @@ export const Route = createFileRoute("/match-center/teams/$teamId")({
 const TABS = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "players", label: "Players", icon: Users2 },
-  { id: "stats", label: "Statistics", icon: BarChart3 },
-  { id: "matches", label: "Matches", icon: Swords },
-  { id: "history", label: "History", icon: History },
   { id: "settings", label: "Settings", icon: SettingsIcon },
 ] as const;
 
@@ -227,7 +221,7 @@ function TeamProfilePage() {
       />
 
       {/* Tabs */}
-      <div className="mb-6 -mx-1 flex gap-1 overflow-x-auto border-b border-border">
+      <div className="mb-3 -mx-1 flex gap-1 overflow-x-auto border-b border-border md:mb-6">
         {TABS.map((t) => {
           const Icon = t.icon;
           const active = t.id === tab;
@@ -292,29 +286,8 @@ function TeamProfilePage() {
         />
       )}
 
-      {tab === "stats" && (
-        <EmptyState
-          icon={BarChart3}
-          title="Statistics coming soon"
-          description="Batting, bowling and fielding numbers will roll up here once matches are played."
-        />
-      )}
 
-      {tab === "matches" && (
-        <EmptyState
-          icon={Swords}
-          title="No matches yet"
-          description="This team hasn't played any matches. Create one from Match Center."
-        />
-      )}
 
-      {tab === "history" && (
-        <EmptyState
-          icon={History}
-          title="No history yet"
-          description="Season-over-season records and roster history will appear here."
-        />
-      )}
 
       {tab === "settings" && (
         <SettingsTab
@@ -359,7 +332,7 @@ function OverviewTab({
   keeperName?: string;
 }) {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-2 gap-2 md:gap-4 lg:grid-cols-3">
       <Info label="Coach" value={team.coach_name || "—"} />
       <Info label="Assistant coach" value={team.assistant_coach_name || "—"} />
       <Info label="Season" value={team.season || "—"} />
@@ -392,12 +365,12 @@ function OverviewTab({
 
 function Info({ label, value, badge }: { label: string; value: string; badge?: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-5">
+    <div className="min-w-0 rounded-2xl border border-border bg-card p-3 md:p-5">
       <div className="flex items-center justify-between text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">
         <span>{label}</span>
         {badge}
       </div>
-      <div className="mt-2 text-base font-semibold truncate">{value}</div>
+      <div className="mt-1 truncate text-sm font-semibold md:mt-2 md:text-base">{value}</div>
     </div>
   );
 }

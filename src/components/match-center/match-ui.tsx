@@ -179,7 +179,12 @@ export function MatchCard({
         <div className="flex min-w-0 flex-1 items-center gap-2 text-[11.5px] text-muted-foreground">
           {match.scheduled_date && (
             <span className="inline-flex shrink-0 items-center gap-1">
-              <Calendar className="size-3" /> {match.scheduled_date}
+              <Calendar className="size-3" />{" "}
+              {new Date(`${match.scheduled_date}T00:00:00`).toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}
             </span>
           )}
           {match.ground_name && (

@@ -142,6 +142,7 @@ function RecordsPage() {
   return (
     <div>
       <PageHeader
+        tabRoot
         title="Academy Records"
         description="Automatically aggregated from every finalized match."
         breadcrumbs={[

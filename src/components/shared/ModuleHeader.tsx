@@ -55,7 +55,7 @@ export function ModuleHeader({
       <button
         type="button"
         onClick={onBack}
-        className="-ml-2 grid size-9 shrink-0 place-items-center rounded-[9px] border border-border bg-card active:bg-accent/60 no-tap-highlight"
+        className="grid size-9 shrink-0 place-items-center rounded-[9px] border border-border bg-card active:bg-accent/60 no-tap-highlight"
         aria-label="Back"
       >
         <ArrowLeft className="size-[18px]" />

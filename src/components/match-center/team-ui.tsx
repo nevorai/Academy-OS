@@ -201,10 +201,10 @@ export function TeamCard({
   onDelete?: () => void;
 }) {
   return (
-    <div className="group relative flex flex-col rounded-2xl border border-border bg-card p-5 transition-all hover:border-foreground/20 hover:shadow-md">
-      <div className="flex items-start gap-3">
+    <div className="group relative flex flex-col rounded-xl border border-border bg-card px-3 py-2.5 transition-colors hover:border-foreground/20">
+      <div className="flex items-center gap-3">
         <div
-          className="size-12 shrink-0 rounded-xl grid place-items-center text-white text-base font-bold overflow-hidden"
+          className="size-10 shrink-0 rounded-lg grid place-items-center text-white text-[13px] font-bold overflow-hidden"
           style={{
             backgroundColor: team.team_color || "var(--tenant-brand, var(--brand, #2A7A4B))",
           }}
@@ -226,21 +226,28 @@ export function TeamCard({
           <Link
             to="/match-center/teams/$teamId"
             params={{ teamId: team.id }}
-            className="block truncate text-base font-semibold tracking-tight hover:underline"
+            className="block truncate text-[14.5px] font-semibold leading-tight tracking-tight after:absolute after:inset-0"
           >
             {team.name}
           </Link>
-          <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+          <div className="mt-0.5 flex items-center gap-1.5 overflow-hidden text-[11.5px] text-muted-foreground">
+            <span className="shrink-0">
+              {team.player_count ?? 0} {(team.player_count ?? 0) === 1 ? "player" : "players"}
+            </span>
+            {team.coach_name && <span className="truncate">· Coach {team.coach_name}</span>}
+            {team.season && <span className="shrink-0">· {team.season}</span>}
             <AgeGroupBadge ageGroup={team.age_group} custom={team.age_group_custom} />
             <StatusBadge status={team.status} />
-            {team.season && (
-              <span className="text-[10px] font-medium text-muted-foreground">{team.season}</span>
-            )}
           </div>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="-mr-2 -mt-1" aria-label="Team actions">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative z-10 -mr-2 size-9"
+              aria-label="Team actions"
+            >
               <MoreVertical className="size-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -279,35 +286,6 @@ export function TeamCard({
         </DropdownMenu>
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-3 text-xs">
-        <Metric icon={Users2} label="Players" value={String(team.player_count ?? 0)} />
-        <Metric icon={UserIcon} label="Coach" value={team.coach_name || "—"} />
-      </div>
-
-      <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-[11px] text-muted-foreground">
-        <span>0 matches</span>
-        <span>Updated {new Date(team.updated_at).toLocaleDateString()}</span>
-      </div>
-    </div>
-  );
-}
-
-function Metric({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-lg bg-accent/30 px-2.5 py-2">
-      <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
-        <Icon className="size-3" />
-        {label}
-      </div>
-      <div className="mt-0.5 truncate text-sm font-semibold">{value}</div>
     </div>
   );
 }

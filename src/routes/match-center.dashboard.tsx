@@ -161,8 +161,9 @@ function MatchCenterDashboard() {
         <OnboardingChecklist />
       ) : (
         <>
-          {/* SIX BIG BUTTONS, plain words */}
-          <div className="grid grid-cols-3 gap-2.5 md:grid-cols-6">
+          {/* Six shortcuts. On a phone the tab bar above already has all six, so they are
+              shown only on wider screens. */}
+          <div className="hidden gap-2.5 md:grid md:grid-cols-6">
             <ActionTile
               icon={Radio}
               label="Live scoring"
@@ -393,7 +394,7 @@ function LiveHero({ match, extra }: { match: MatchWithTeams; extra: number }) {
           </div>
         ) : null}
         <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
-          <Button asChild className="h-12 rounded-xl text-[15px] font-semibold">
+          <Button asChild className="h-11 rounded-xl text-[15px] font-semibold">
             <Link to="/scorer/$matchId" params={{ matchId: match.id }}>
               <Radio className="mr-1.5 size-4" /> Score this match
             </Link>
@@ -401,7 +402,7 @@ function LiveHero({ match, extra }: { match: MatchWithTeams; extra: number }) {
           <Button
             asChild
             variant="outline"
-            className="h-12 rounded-xl px-4 text-[14px] font-semibold"
+            className="h-11 rounded-xl px-4 text-[14px] font-semibold"
           >
             <Link to="/match-center/scorebook/$matchId" params={{ matchId: match.id }}>
               <BookOpen className="mr-1.5 size-4" /> Scorecard

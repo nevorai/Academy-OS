@@ -45,6 +45,7 @@ function TournamentsPage() {
   return (
     <div>
       <PageHeader
+        tabRoot
         title="Tournaments"
         description="Leagues, knockouts and series run under your academy."
         breadcrumbs={[

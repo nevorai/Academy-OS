@@ -146,6 +146,7 @@ function RecognitionPage() {
   return (
     <div>
       <PageHeader
+        tabRoot
         title="Awards & Recognition"
         description="Automatic award suggestions, certificates and digital badges."
         breadcrumbs={[

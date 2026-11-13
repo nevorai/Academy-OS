@@ -1,9 +1,19 @@
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
-import { PlusCircle, Search, ChevronRight, Radio, Swords, Users, LineChart } from "lucide-react";
+import {
+  PlusCircle,
+  Search,
+  ChevronRight,
+  Radio,
+  Swords,
+  Users,
+  Users2,
+  Trophy,
+  LineChart,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
@@ -19,6 +29,8 @@ export type PageHeaderProps = {
   description?: string;
   breadcrumbs?: { label: string; to?: string }[];
   actions?: ReactNode;
+  /** The page is one of the Match Center tabs: the tab already names it, so a phone skips the title. */
+  tabRoot?: boolean;
 };
 
 /**
@@ -26,9 +38,15 @@ export type PageHeaderProps = {
  * (DashboardShell) provides the global top bar and bottom nav — this header
  * sits inside the page content and carries the page title + actions.
  */
-export function PageHeader({ title, description, breadcrumbs, actions }: PageHeaderProps) {
+export function PageHeader({
+  title,
+  description,
+  breadcrumbs,
+  actions,
+  tabRoot,
+}: PageHeaderProps) {
   return (
-    <div className="mb-3 sm:mb-6">
+    <div className={cn("mb-3 sm:mb-6", tabRoot && !actions && "hidden sm:block")}>
       {breadcrumbs && breadcrumbs.length > 0 && (
         <nav className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground mb-2 overflow-x-auto whitespace-nowrap">
           {breadcrumbs.map((b, i) => (
@@ -46,7 +64,7 @@ export function PageHeader({ title, description, breadcrumbs, actions }: PageHea
         </nav>
       )}
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
-        <div className="min-w-0">
+        <div className={cn("min-w-0", tabRoot && "invisible h-0 sm:visible sm:h-auto")}>
           <h1 className="truncate text-[20px] sm:text-2xl font-bold tracking-tight leading-tight">
             {title}
           </h1>
@@ -116,20 +134,27 @@ const SUB_TABS: SubTab[] = [
   },
   {
     to: "/match-center/matches",
-    match: [
-      "/match-center/matches",
-      "/match-center/scorebook",
-      "/match-center/teams",
-      "/match-center/tournaments",
-    ],
+    match: ["/match-center/matches", "/match-center/scorebook"],
     label: "Matches",
     icon: Swords,
+  },
+  {
+    to: "/match-center/teams",
+    match: ["/match-center/teams"],
+    label: "Teams",
+    icon: Users2,
   },
   {
     to: "/match-center/players",
     match: ["/match-center/players"],
     label: "Players",
     icon: Users,
+  },
+  {
+    to: "/match-center/tournaments",
+    match: ["/match-center/tournaments"],
+    label: "Tournaments",
+    icon: Trophy,
   },
   {
     to: "/match-center/insights",
@@ -142,7 +167,7 @@ const SUB_TABS: SubTab[] = [
       "/match-center/recognition",
       "/match-center/awards",
     ],
-    label: "Insights",
+    label: "Stats",
     icon: LineChart,
   },
 ];
@@ -165,12 +190,22 @@ function ModuleSubTabs() {
     staleTime: 15_000,
   });
 
+  // Six tabs do not fit on a phone: keep the chosen one in view.
+  const listRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const list = listRef.current;
+    const el = list?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!list || !el) return;
+    list.scrollLeft = el.offsetLeft - (list.clientWidth - el.offsetWidth) / 2;
+  }, [location.pathname]);
+
   return (
     <div className="sticky top-[calc(var(--app-safe-top)+3.5rem)] z-30 -mx-4 md:-mx-8 px-4 md:px-8 bg-background/95 backdrop-blur border-b border-border/60">
       <div
+        ref={listRef}
         role="tablist"
         aria-label="Match Center sections"
-        className="flex items-center gap-1 overflow-x-auto no-scrollbar py-2"
+        className="flex items-center gap-1 overflow-x-auto no-scrollbar py-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {SUB_TABS.map((tab) => {
           const active =
@@ -192,7 +227,7 @@ function ModuleSubTabs() {
               aria-selected={active}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "shrink-0 inline-flex items-center gap-1.5 h-9 px-3.5 rounded-[7px] text-[13.5px] font-semibold border transition-colors",
+                "shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-[7px] text-[13px] font-semibold border transition-colors",
                 active
                   ? "border-[color:var(--brand)] bg-[color:var(--brand)] text-[color:var(--brand-ink)] shadow-sm"
                   : "bg-card text-muted-foreground hover:border-foreground/30 hover:bg-accent hover:text-foreground border-border",
@@ -230,6 +265,8 @@ function MatchCenterModuleHeader({ title, hideAction }: { title?: string; hideAc
     "/match-center/live",
     "/match-center/matches",
     "/match-center/players",
+    "/match-center/teams",
+    "/match-center/tournaments",
     "/match-center/insights",
   ].includes(pathname.replace(/\/$/, ""));
   return (

@@ -89,7 +89,7 @@ function PlayersPage() {
             onAction={q ? undefined : () => setOpen(true)}
           />
         ) : (
-          <div className="grid gap-2.5 sm:grid-cols-2">
+          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
             {filtered.map((a) => (
               <AthleteCard key={a.id} athlete={a} to={`/match-center/players/${a.id}`} />
             ))}

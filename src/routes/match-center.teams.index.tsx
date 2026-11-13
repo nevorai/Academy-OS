@@ -98,6 +98,7 @@ function TeamsListPage() {
   return (
     <div>
       <PageHeader
+        tabRoot
         title="Teams"
         description="Reusable squads for your academy. Playing XI is picked from a squad at match time."
         breadcrumbs={[{ label: "Match Center", to: "/match-center/dashboard" }, { label: "Teams" }]}
@@ -166,7 +167,7 @@ function TeamsListPage() {
           />
         )
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((t) => (
             <TeamCard
               key={t.id}

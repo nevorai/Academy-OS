@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ListOrdered, Trophy, Target, Zap } from "lucide-react";
-import { PageHeader } from "@/components/match-center/MatchCenterLayout";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { InsightsTabsBar } from "@/components/match-center/InsightsTabsBar";
 import { EmptyState } from "@/components/match-center/ui";
 import { useDashboard } from "@/lib/dashboard-context";
@@ -18,45 +19,80 @@ function LeaderboardsPage() {
   const { tenant } = useDashboard();
   const demo = useDemoData(tenant.id);
 
-  const leaders = demo ? deriveLeaderboards(demo) : null;
+  // Real matches: career totals kept by the scoring engine (same rows the Records tab reads).
+  const careersQ = useQuery({
+    queryKey: ["mc-careers-all", tenant.id],
+    enabled: !demo,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("mc_player_careers")
+        .select("*, mc_athlete_profiles(id, student_id, students(name))")
+        .eq("tenant_id", tenant.id);
+      if (error) throw error;
+      return (data ?? []) as unknown as Array<Record<string, unknown>>;
+    },
+  });
+
+  const leaders = demo ? deriveLeaderboards(demo) : fromCareers(careersQ.data ?? []);
+  const loading = !demo && careersQ.isLoading;
   const hasData =
-    !!leaders &&
-    (leaders.mostRuns.length > 0 ||
-      leaders.mostWickets.length > 0 ||
-      leaders.mostBoundaries.length > 0);
+    leaders.mostRuns.length > 0 ||
+    leaders.mostWickets.length > 0 ||
+    leaders.mostBoundaries.length > 0;
 
   return (
     <div>
-      <PageHeader
-        title="Leaderboards"
-        description="Batting, bowling and boundary charts across your academy."
-        breadcrumbs={[
-          { label: "Match Center", to: "/match-center/dashboard" },
-          { label: "Insights", to: "/match-center/leaderboards" },
-          { label: "Leaderboards" },
-        ]}
-      />
       <InsightsTabsBar />
-      {!hasData ? (
+      {loading ? (
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-40 animate-pulse rounded-2xl border border-border bg-card" />
+          ))}
+        </div>
+      ) : !hasData ? (
         <EmptyState
           icon={ListOrdered}
           title="No leaderboards yet"
-          description="Once matches are played, top-run scorers, wicket-takers and MVPs will rank here automatically."
+          description="Finish a match with academy players in it and the top run scorers and wicket takers appear here."
         />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <LeaderCard icon={Trophy} title="Most Runs" unit="runs" rows={leaders!.mostRuns} />
-          <LeaderCard icon={Target} title="Most Wickets" unit="wkts" rows={leaders!.mostWickets} />
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <LeaderCard icon={Trophy} title="Most Runs" unit="runs" rows={leaders.mostRuns} />
+          <LeaderCard icon={Target} title="Most Wickets" unit="wkts" rows={leaders.mostWickets} />
           <LeaderCard
             icon={Zap}
             title="Most Boundaries"
             unit="4s+6s"
-            rows={leaders!.mostBoundaries}
+            rows={leaders.mostBoundaries}
           />
         </div>
       )}
     </div>
   );
+}
+
+function fromCareers(careers: Array<Record<string, unknown>>) {
+  const num = (v: unknown) => (typeof v === "number" ? v : Number(v) || 0);
+  const name = (c: Record<string, unknown>) => {
+    const ap = c.mc_athlete_profiles as { students?: { name?: string } | null } | null | undefined;
+    return ap?.students?.name ?? "Unknown player";
+  };
+  const top = (value: (c: Record<string, unknown>) => number): LeaderRow[] =>
+    careers
+      .map((c) => ({
+        athleteId: (c.athlete_profile_id as string | null) ?? null,
+        name: name(c),
+        value: value(c),
+      }))
+      .filter((r) => r.value > 0)
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 10);
+  return {
+    mostRuns: top((c) => num(c.runs)),
+    mostWickets: top((c) => num(c.wickets)),
+    mostBoundaries: top((c) => num(c.fours) + num(c.sixes)),
+  };
 }
 
 function LeaderCard({
@@ -72,8 +108,8 @@ function LeaderCard({
 }) {
   if (rows.length === 0) return null;
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
-      <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+    <div className="rounded-2xl border border-border bg-card p-3">
+      <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
         <Icon className="size-3.5" /> {title}
       </div>
       <ol className="space-y-1">

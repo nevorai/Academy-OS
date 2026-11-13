@@ -117,6 +117,7 @@ function PerformancePage() {
   return (
     <div>
       <PageHeader
+        tabRoot
         title="Performance Analysis"
         description="Understand who's improving, who's consistent, and who needs attention."
         breadcrumbs={[

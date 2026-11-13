@@ -107,41 +107,23 @@ export function AthleteCard({ athlete, to }: { athlete: AthleteWithStudent; to?:
   const age = ageFromDob(s?.dob);
   const role = labelFor(CRICKET_ROLES, athlete.cricket?.playing_role);
   const sport = labelFor(PRIMARY_SPORTS, athlete.primary_sport);
+  // One dense row per player: photo, name, id and age, then role / sport / team on one line.
+  const tags = [role, sport, athlete.team?.name].filter(Boolean).join(" · ");
   const inner = (
-    <div className="group flex h-full flex-col gap-4 rounded-2xl border border-border bg-card p-5 transition-all hover:border-foreground/20 hover:shadow-md">
-      <div className="flex items-start gap-4">
-        <Avatar src={s?.photo_url ?? null} name={s?.name ?? "?"} size={56} />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <div className="truncate text-base font-semibold tracking-tight">
-                {s?.name ?? "Unknown"}
-              </div>
-              <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                {s?.player_id && <span className="font-mono">{s.player_id}</span>}
-                {age !== null && <span>· {age} yrs</span>}
-              </div>
-            </div>
-            <AthleteStatusBadge status={athlete.current_status} />
-          </div>
+    <div className="flex h-full items-center gap-3 rounded-xl border border-border bg-card px-3 py-2 transition-colors hover:border-foreground/20 active:bg-accent/40">
+      <Avatar src={s?.photo_url ?? null} name={s?.name ?? "?"} size={40} />
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-[14.5px] font-semibold leading-tight tracking-tight">
+          {s?.name ?? "Unknown"}
+        </div>
+        <div className="mt-0.5 truncate text-[11.5px] leading-tight text-muted-foreground">
+          {s?.player_id && <span className="font-mono">{s.player_id}</span>}
+          {age !== null && <span> · {age} yrs</span>}
+          {tags && <span> · {tags}</span>}
         </div>
       </div>
-      <div className="flex flex-wrap gap-2 text-xs">
-        {role && (
-          <span className="inline-flex items-center gap-1 rounded-md bg-accent/50 px-2 py-0.5 font-medium">
-            {role}
-          </span>
-        )}
-        {sport && (
-          <span className="inline-flex items-center gap-1 rounded-md bg-accent/50 px-2 py-0.5 font-medium">
-            {sport}
-          </span>
-        )}
-        {athlete.team?.name && (
-          <span className="inline-flex items-center gap-1 rounded-md bg-accent/50 px-2 py-0.5 font-medium">
-            {athlete.team.name}
-          </span>
-        )}
+      <div className="flex shrink-0 flex-col items-end gap-1">
+        <AthleteStatusBadge status={athlete.current_status} />
         <FitnessBadge status={athlete.fitness_status} />
       </div>
     </div>

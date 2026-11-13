@@ -32,7 +32,7 @@ export function InsightsTabsBar() {
   return (
     <nav
       aria-label="Insights sections"
-      className="sticky top-[calc(var(--app-safe-top)+6.5rem)] z-20 -mx-4 mb-4 flex gap-1 overflow-x-auto no-scrollbar px-4 md:mx-0 md:px-0 bg-background/95 backdrop-blur py-1 border-b md:border-none"
+      className="sticky top-[calc(var(--app-safe-top)+6.5rem)] z-20 -mx-4 mb-3 flex gap-1 overflow-x-auto no-scrollbar px-4 md:mx-0 md:px-0 bg-background/95 backdrop-blur py-1 border-b md:border-none"
     >
       {TABS.map((tab) => {
         const active = tab.match.some((p) => pathname === p || pathname.startsWith(p + "/"));
@@ -42,7 +42,7 @@ export function InsightsTabsBar() {
             to={tab.to}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "shrink-0 inline-flex h-9 items-center rounded-full border px-3.5 text-[13px] font-medium transition-colors",
+              "shrink-0 inline-flex h-8 items-center rounded-full border px-3 text-[13px] font-medium transition-colors",
               active
                 ? "border-foreground bg-foreground text-background shadow-sm"
                 : "border-border bg-card text-muted-foreground hover:text-foreground",

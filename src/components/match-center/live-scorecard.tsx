@@ -414,11 +414,12 @@ function SummaryPane({
 }) {
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-2">
-        <MetricCard label="Boundaries" value={`${stats.team.fours}·4  ${stats.team.sixes}·6`} />
-        <MetricCard label="Dot balls" value={String(stats.team.dotBalls)} />
+      <div className="grid grid-cols-5 divide-x divide-border/60 overflow-hidden rounded-xl border border-border/60 bg-card">
+        <MetricCard label="Fours" value={String(stats.team.fours)} />
+        <MetricCard label="Sixes" value={String(stats.team.sixes)} />
+        <MetricCard label="Dots" value={String(stats.team.dotBalls)} />
         <MetricCard label="Extras" value={String(stats.team.extras.total)} />
-        <MetricCard label="Wickets" value={String(stats.team.wickets)} />
+        <MetricCard label="Wkts" value={String(stats.team.wickets)} />
       </div>
 
       {stats.summary.highestScorer && (
@@ -481,12 +482,12 @@ function SummaryPane({
       </Section>
 
       <Section title="Extras">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-6 divide-x divide-border/60 overflow-hidden rounded-xl border border-border/60 bg-card">
           <MetricCard label="Wides" value={String(stats.team.extras.wides)} />
-          <MetricCard label="No balls" value={String(stats.team.extras.noBalls)} />
+          <MetricCard label="NB" value={String(stats.team.extras.noBalls)} />
           <MetricCard label="Byes" value={String(stats.team.extras.byes)} />
-          <MetricCard label="Leg byes" value={String(stats.team.extras.legByes)} />
-          <MetricCard label="Penalty" value={String(stats.team.extras.penalty)} />
+          <MetricCard label="LB" value={String(stats.team.extras.legByes)} />
+          <MetricCard label="Pen" value={String(stats.team.extras.penalty)} />
           <MetricCard label="Total" value={String(stats.team.extras.total)} accent />
         </div>
       </Section>
@@ -680,16 +681,11 @@ export function BallChip({ b }: { b: MCBallEvent }) {
 
 function MetricCard({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div
-      className={cn(
-        "rounded-2xl border p-3",
-        accent ? "border-primary/40 bg-primary/5" : "border-border/60 bg-card",
-      )}
-    >
-      <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+    <div className={cn("min-w-0 px-1 py-1.5 text-center", accent && "bg-primary/5")}>
+      <div className="truncate text-[9px] font-black uppercase tracking-wider text-muted-foreground">
         {label}
       </div>
-      <div className="mt-1 text-lg font-black tabular-nums leading-none">{value}</div>
+      <div className="mt-0.5 text-[15px] font-black tabular-nums leading-none">{value}</div>
     </div>
   );
 }

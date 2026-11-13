@@ -21,11 +21,16 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   ArrowLeft,
-  ChevronDown,
+  ArrowLeftRight,
+  BookOpen,
+  ChevronRight,
   CircleDot,
   FileText,
   Flag,
+  HeartPulse,
   History,
+  ListOrdered,
+  MoreHorizontal,
   Redo2,
   StopCircle,
   Undo2,
@@ -35,20 +40,6 @@ import {
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
-const CricketBatIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L7 20l-4.5 1.5L4 17l14.5-14.5Z" />
-    <path d="M6 15l4 4" />
-  </svg>
-);
 import { OverHistorySheet } from "./over-history-sheet";
 import type { OverHistoryRow } from "@/lib/mc-statistics-engine";
 import { formatBallNotation } from "@/lib/mc-ball-events-core";
@@ -126,6 +117,10 @@ export interface MobileScorerProps {
   onOpenScorecard?: () => void;
   /** Opens the screen to fix team names, players and Captain / Vice / Keeper. */
   onEditTeams?: () => void;
+  /** Overs per innings; used for the projected score in the first innings. */
+  totalOvers?: number | null;
+  /** The scorer closed a player list that a tapped ball was waiting for: drop that ball. */
+  onPickerDismissed?: () => void;
   /** A new over started and its bowler is not chosen yet. */
   newBowlerNeeded?: boolean;
   onOpenScorebook?: () => void;
@@ -136,7 +131,6 @@ export interface MobileScorerProps {
 type PickerKind = "striker" | "nonStriker" | "bowler";
 
 const FOOTER_COLS: Record<number, string> = {
-  4: "grid-cols-4",
   5: "grid-cols-5",
   6: "grid-cols-6",
 };
@@ -145,6 +139,7 @@ export function MobileScorer(props: MobileScorerProps) {
   const [pickerOpen, setPickerOpen] = useState<PickerKind | null>(null);
   const autoPickerRef = useRef<PickerKind | null>(null);
   const [scorecardExpanded, setScorecardExpanded] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [confirm, setConfirm] = useState<null | {
     kind: "end-match" | "finish-innings" | "delete-ball";
   }>(null);
@@ -161,8 +156,9 @@ export function MobileScorer(props: MobileScorerProps) {
     : !hasActiveNonStriker
       ? "nonStriker"
       : null;
-  const effectiveAwaitingNewBatter = Boolean(props.awaitingNewBatter && missingBatterRole);
 
+  // A tapped ball is waiting for a player (striker, non-striker or bowler): open that list.
+  // When one is chosen the page asks for the next missing one, then scores the ball.
   useEffect(() => {
     if (!sheetPickerEnabled || !props.requiredPicker) return;
     autoPickerRef.current = props.requiredPicker;
@@ -181,14 +177,12 @@ export function MobileScorer(props: MobileScorerProps) {
     if (!sheetPickerEnabled) return;
     if (!props.awaitingNewBatter) return;
     if (!missingBatterRole) return;
-    autoPickerRef.current = missingBatterRole;
+    // Not marked as "auto": the effect above closes auto-opened lists as soon as no ball is
+    // waiting, which used to shut this list the instant it opened.
+    autoPickerRef.current = null;
     setPickerOpen(missingBatterRole);
   }, [sheetPickerEnabled, props.awaitingNewBatter, missingBatterRole]);
 
-  const waitingBatterRole = missingBatterRole ?? props.awaitingNewBatterRole ?? "striker";
-
-  // Swipe gestures: right = undo last ball. Swipe-up removed to prevent
-  // accidental opening of the More sheet when scrolling.
   // Swipe-to-undo removed: a slip of the thumb while scrolling must never delete a ball. Use the Undo button.
   const swipeHandlers = useSwipe({ threshold: 72 });
 
@@ -278,185 +272,228 @@ export function MobileScorer(props: MobileScorerProps) {
     };
   })();
 
-  // A new over has started and no bowler is chosen: open the bowler list at once. The ball the
-  // scorer tapped is kept by the page and is scored as soon as a bowler is picked.
-  const askBowlerFirst = () => {
-    if (props.newBowlerNeeded) openPicker("bowler");
-  };
+  /* ---------- this over / recent overs ---------- */
+  const history = props.overHistory ?? [];
+  const lastRow = history.length > 0 ? history[history.length - 1] : undefined;
+  // Between overs the strip keeps showing the over that just ended until the next ball.
+  const stripIsLastOver = Boolean(lastRow?.completed);
+  const stripBalls = lastRow ? lastRow.chips : props.overHistory ? [] : props.overBalls;
+  const recentOvers = useMemo(
+    () => [...history].reverse().slice(lastRow ? 1 : 0),
+    [history, lastRow],
+  );
+
+  /* ---------- small numbers ---------- */
+  const crrNum = Number(props.crr);
+  const projected =
+    !props.target && props.totalOvers && Number.isFinite(crrNum) && crrNum > 0
+      ? String(Math.round(crrNum * props.totalOvers))
+      : props.insights?.projected;
+  const partnershipText =
+    props.insights?.partnership ??
+    (props.partnership ? `${props.partnership.runs}(${props.partnership.balls})` : "0(0)");
+
+  const openScorecard = props.scorecardContent
+    ? () => setScorecardExpanded(true)
+    : props.onOpenScorecard;
+
+  const moreItems: {
+    key: string;
+    icon: ReactNode;
+    label: string;
+    hint?: string;
+    danger?: boolean;
+    run: () => void;
+  }[] = [
+    {
+      key: "bowler",
+      icon: <UserPlus className="size-[18px]" />,
+      label: "Change bowler",
+      hint: props.bowler?.name,
+      run: () => openPicker("bowler"),
+    },
+    {
+      key: "retire",
+      icon: <HeartPulse className="size-[18px]" />,
+      label: "Retire a batter",
+      hint: "Hurt or retired out",
+      run: props.onRetiredHurt,
+    },
+    ...(history.length > 0
+      ? [
+          {
+            key: "overs",
+            icon: <ListOrdered className="size-[18px]" />,
+            label: "All overs",
+            hint: "Ball by ball",
+            run: () => setHistoryOpen(true),
+          },
+        ]
+      : []),
+    ...(props.onOpenScorebook
+      ? [
+          {
+            key: "book",
+            icon: <BookOpen className="size-[18px]" />,
+            label: "Official scorebook",
+            run: props.onOpenScorebook,
+          },
+        ]
+      : []),
+    ...(props.onEditTeams
+      ? [
+          {
+            key: "teams",
+            icon: <Users className="size-[18px]" />,
+            label: "Edit teams and players",
+            hint: "Names, captain, keeper",
+            run: props.onEditTeams,
+          },
+        ]
+      : []),
+    ...(props.onShareMatch
+      ? [
+          {
+            key: "share",
+            icon: <Share2 className="size-[18px]" />,
+            label: "Share live score",
+            run: props.onShareMatch,
+          },
+        ]
+      : []),
+    ...(props.onFinishInnings
+      ? [
+          {
+            key: "finish",
+            icon: <Flag className="size-[18px]" />,
+            label: "Finish innings",
+            hint: "Declare or end early",
+            danger: true,
+            run: () => setConfirm({ kind: "finish-innings" }),
+          },
+        ]
+      : []),
+    ...(!props.hideEndMatch
+      ? [
+          {
+            key: "end",
+            icon: <StopCircle className="size-[18px]" />,
+            label: "End match",
+            danger: true,
+            run: () => setConfirm({ kind: "end-match" }),
+          },
+        ]
+      : []),
+  ];
 
   return (
-    <div className="scorer-native-page flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground">
-      <header className="relative z-20 shrink-0 overflow-hidden border-b border-border/60">
-        <div
-          aria-hidden
-          className="absolute inset-0 bg-gradient-to-br from-primary/15 via-background to-background"
-        />
-        <div
-          aria-hidden
-          className="absolute inset-0 bg-[radial-gradient(120%_60%_at_0%_0%,color-mix(in_oklab,var(--primary)_28%,transparent)_0%,transparent_60%)]"
-        />
-        <div className="relative grid h-12 grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-1.5 px-2">
+    <div className="scorer-native-page flex min-h-0 flex-col overflow-hidden bg-background text-foreground">
+      <header className="z-20 grid h-11 shrink-0 grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-1 border-b border-border/70 bg-card px-1.5">
+        <button
+          type="button"
+          onClick={props.onExit}
+          className="grid size-9 place-items-center rounded-lg text-foreground/80 transition duration-100 active:scale-95 active:bg-muted"
+          aria-label="Back"
+        >
+          <ArrowLeft className="size-5" />
+        </button>
+        <div className="min-w-0 text-left">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <span className="truncate text-[14px] font-black leading-none tracking-tight">
+              {props.matchTitle}
+            </span>
+            {props.isLive && (
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-destructive/10 px-1.5 py-0.5 text-[9px] font-black uppercase leading-none tracking-wider text-destructive">
+                <span className="size-1.5 animate-pulse rounded-full bg-destructive" />
+                Live
+              </span>
+            )}
+          </div>
+          {props.tournamentLabel && (
+            <div className="mt-1 truncate text-[9.5px] font-semibold uppercase leading-none tracking-[0.1em] text-muted-foreground">
+              {props.tournamentLabel}
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          {!props.hideEndMatch && (
+            <button
+              type="button"
+              onClick={() => setConfirm({ kind: "end-match" })}
+              className="inline-flex h-8 items-center rounded-lg border border-destructive/40 bg-destructive/10 px-2.5 text-[12px] font-bold text-destructive active:scale-95"
+            >
+              End
+            </button>
+          )}
           <button
             type="button"
-            onClick={props.onExit}
-            className="grid size-10 place-items-center rounded-full text-foreground/80 transition duration-100 active:scale-95 active:bg-muted"
-            aria-label="Back"
+            onClick={() => setMoreOpen(true)}
+            className="grid size-9 place-items-center rounded-lg text-foreground/80 active:scale-95 active:bg-muted"
+            aria-label="More actions"
           >
-            <ArrowLeft className="size-5" />
+            <MoreHorizontal className="size-5" />
           </button>
-          <div className="min-w-0 text-left">
-            {props.tournamentLabel && (
-              <div className="truncate text-[9px] font-semibold uppercase leading-none tracking-[0.14em] text-muted-foreground">
-                {props.tournamentLabel}
-              </div>
-            )}
-            <div className="mt-1 flex min-w-0 items-center gap-1.5">
-              <span className="truncate text-[15px] font-black leading-none tracking-tight">
-                {props.matchTitle}
-              </span>
-              {props.isLive && (
-                <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-destructive/40 bg-destructive/10 px-1.5 py-0.5 text-[9px] font-black uppercase leading-none tracking-wider text-destructive">
-                  <span className="size-1.5 animate-pulse rounded-full bg-destructive" />
-                  Live
-                </span>
-              )}
-              {props.freeHit && (
-                <span className="inline-flex shrink-0 items-center rounded-full border border-amber-500/50 bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-black uppercase leading-none tracking-wider text-amber-600 dark:text-amber-400">
-                  Free hit
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5">
-            {props.onEditTeams && (
-              <button
-                type="button"
-                onClick={props.onEditTeams}
-                className="grid size-9 place-items-center rounded-lg border border-border bg-card text-foreground/80 active:scale-95"
-                aria-label="Edit teams"
-              >
-                <Users className="size-4" />
-              </button>
-            )}
-            {props.onShareMatch && (
-              <button
-                type="button"
-                onClick={props.onShareMatch}
-                className="grid size-9 place-items-center rounded-lg border border-border bg-card text-foreground/80 active:scale-95"
-                aria-label="Share match"
-              >
-                <Share2 className="size-4" />
-              </button>
-            )}
-            {!props.hideEndMatch && (
-              <button
-                type="button"
-                onClick={() => setConfirm({ kind: "end-match" })}
-                className="inline-flex h-9 items-center rounded-lg border border-destructive/40 bg-destructive/10 px-3 text-[12px] font-bold text-destructive active:scale-95"
-              >
-                End
-              </button>
-            )}
-          </div>
         </div>
       </header>
 
-      <div className="shrink-0 border-b border-border/60 bg-gradient-to-b from-primary/10 to-background/95 px-3 py-1.5 backdrop-blur-xl">
-        <ThisOverStrip
-          balls={props.overBalls}
-          overs={props.currentOverLabel ?? props.overs}
-          onOpenHistory={
-            props.overHistory && props.overHistory.length > 0
-              ? () => setHistoryOpen(true)
-              : undefined
-          }
-        />
-      </div>
-
       <main
-        className="scorer-match-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain ds-scroll"
+        className="scorer-match-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain"
         {...swipeHandlers}
       >
-        <div className="flex min-h-full flex-col gap-2 px-3 py-2">
-          <section className="shrink-0">
-            <ScoreHeroCard
-              score={props.score}
-              overs={props.overs}
-              crr={props.crr}
-              rrr={props.rrr}
-              target={props.target}
-              chase={props.chase}
-              isFinished={props.hideEndMatch}
-            />
-          </section>
-
-          <ScorebookBatters
-            striker={props.striker}
-            nonStriker={props.nonStriker}
-            onPickStriker={() => openPicker("striker")}
-            onPickNonStriker={() => openPicker("nonStriker")}
-          />
-
-          <BowlerLine
-            bowler={props.bowler}
-            onClick={() => openPicker("bowler")}
-            awaiting={Boolean(props.newBowlerNeeded) || !props.bowler?.name}
-          />
-
-          {effectiveAwaitingNewBatter && (
-            <button
-              type="button"
-              onClick={() => openPicker(waitingBatterRole)}
-              className="grid h-11 w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-xl border border-[var(--score-wait-border)] bg-[var(--score-wait-bg)] px-3 text-left text-[12px] font-semibold text-[var(--score-wait-fg)] transition duration-100 active:scale-[0.98]"
-              aria-live="polite"
-            >
-              <span aria-hidden>⚠</span>
-              <span className="truncate">Waiting for next batter</span>
-              <span className="text-[11px] opacity-75">Tap to select</span>
-            </button>
-          )}
-
-          <LiveInsights
-            className="min-h-[112px]"
-            partnership={props.partnership}
-            chase={props.chase}
+        <div className="flex min-h-full flex-col gap-1.5 px-2.5 py-2">
+          <ScoreCard
+            score={props.score}
+            overs={props.overs}
             crr={props.crr}
             rrr={props.rrr}
             target={props.target}
-            insights={props.insights}
+            chase={props.chase}
+            isFinished={props.hideEndMatch}
+            freeHit={props.freeHit}
+            projected={projected}
+            partnership={partnershipText}
+            extras={props.insights?.extras ?? "0"}
+            lastWicket={props.insights?.lastWicket ?? "–"}
           />
+
+          <ThisOverStrip
+            balls={stripBalls}
+            label={
+              lastRow
+                ? `${stripIsLastOver ? "Last over" : "This over"} · ${lastRow.overLabel}`
+                : "This over"
+            }
+            runs={lastRow?.runs}
+            onOpenHistory={history.length > 0 ? () => setHistoryOpen(true) : undefined}
+          />
+
+          <section className="overflow-hidden rounded-xl border bg-card">
+            <BatterLine batter={props.striker} striker onClick={() => openPicker("striker")} />
+            <div className="h-px bg-border/70" />
+            <BatterLine batter={props.nonStriker} onClick={() => openPicker("nonStriker")} />
+            <div className="h-px bg-border/70" />
+            <BowlerLine
+              bowler={props.bowler}
+              onClick={() => openPicker("bowler")}
+              awaiting={Boolean(props.newBowlerNeeded) || !props.bowler?.name}
+            />
+          </section>
+
+          <RecentOvers rows={recentOvers} onOpen={() => setHistoryOpen(true)} />
         </div>
       </main>
 
-      <div className="z-20 shrink-0 border-t bg-background/95 backdrop-blur-xl">
+      <div className="z-20 shrink-0 border-t border-border/70 bg-card pb-[max(env(safe-area-inset-bottom),4px)]">
         {props.fixBar ? <div className="pt-2">{props.fixBar}</div> : null}
-        <div className="px-3 pt-2">
+        <div className="px-2 pt-2">
           <ScoringDock
             disabled={props.disabled}
-            onRun={(r) => {
-              askBowlerFirst();
-              props.onRun(r);
-            }}
-            onExtra={(k) => {
-              askBowlerFirst();
-              props.onExtra(k);
-            }}
-            onOut={() => {
-              askBowlerFirst();
-              props.onOut();
-            }}
+            onRun={props.onRun}
+            onExtra={props.onExtra}
+            onOut={props.onOut}
           />
         </div>
-        <div
-          className={cn(
-            "grid gap-1 px-2 pb-1.5 pt-1",
-            FOOTER_COLS[
-              4 +
-                (props.showFinishInnings && props.onFinishInnings ? 1 : 0) +
-                (props.onFixBall ? 1 : 0)
-            ],
-          )}
-        >
+        <div className={cn("mt-1 grid gap-0.5 px-1", FOOTER_COLS[props.onFixBall ? 6 : 5])}>
           <FooterAction
             icon={<Undo2 className="size-[18px]" />}
             label="Undo"
@@ -468,6 +505,12 @@ export function MobileScorer(props: MobileScorerProps) {
             onClick={props.onRedo ?? (() => {})}
             disabled={!props.onRedo || !props.canRedo}
           />
+          <FooterAction
+            icon={<ArrowLeftRight className="size-[18px]" />}
+            label="Swap"
+            onClick={props.onSwapStrike}
+            disabled={!hasActiveStriker || !hasActiveNonStriker}
+          />
           {props.onFixBall && (
             <FooterAction
               icon={<History className="size-[18px]" />}
@@ -477,24 +520,16 @@ export function MobileScorer(props: MobileScorerProps) {
             />
           )}
           <FooterAction
-            icon={<UserPlus className="size-[18px]" />}
-            label="Bowler"
-            onClick={() => openPicker("bowler")}
-          />
-          <FooterAction
             icon={<FileText className="size-[18px]" />}
             label="Scorecard"
-            onClick={() => setScorecardExpanded(true)}
-            disabled={!props.scorecardContent}
+            onClick={openScorecard ?? (() => {})}
+            disabled={!openScorecard}
           />
-          {props.showFinishInnings && props.onFinishInnings && (
-            <FooterAction
-              icon={<Flag className="size-[18px]" />}
-              label="Finish"
-              onClick={() => setConfirm({ kind: "finish-innings" })}
-              tone="danger"
-            />
-          )}
+          <FooterAction
+            icon={<MoreHorizontal className="size-[18px]" />}
+            label="More"
+            onClick={() => setMoreOpen(true)}
+          />
         </div>
       </div>
 
@@ -505,7 +540,9 @@ export function MobileScorer(props: MobileScorerProps) {
         isDisabled={isIllegalBowler}
         onOpenChange={(v) => {
           if (v) return;
-          if (pickerOpen && pickerOpen === props.requiredPicker) return;
+          // Closing a list that a tapped ball was waiting for drops that ball, so it can
+          // never be scored later by surprise.
+          if (pickerOpen && pickerOpen === props.requiredPicker) props.onPickerDismissed?.();
           autoPickerRef.current = null;
           setPickerOpen(null);
         }}
@@ -518,6 +555,44 @@ export function MobileScorer(props: MobileScorerProps) {
           setPickerOpen(null);
         }}
       />
+
+      <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+        <SheetContent side="bottom" className="gap-0 rounded-t-2xl p-0 pb-[var(--app-safe-bottom)]">
+          <SheetHeader className="border-b px-4 py-3 text-left">
+            <SheetTitle className="text-base">More actions</SheetTitle>
+          </SheetHeader>
+          <ul className="max-h-[70dvh] divide-y divide-border/60 overflow-y-auto">
+            {moreItems.map((item) => (
+              <li key={item.key}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMoreOpen(false);
+                    item.run();
+                  }}
+                  className={cn(
+                    "grid h-12 w-full grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-2 px-4 text-left active:bg-muted",
+                    item.danger && "text-destructive",
+                  )}
+                >
+                  <span aria-hidden>{item.icon}</span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-[14px] font-semibold leading-tight">
+                      {item.label}
+                    </span>
+                    {item.hint && (
+                      <span className="block truncate text-[11px] leading-tight text-muted-foreground">
+                        {item.hint}
+                      </span>
+                    )}
+                  </span>
+                  <ChevronRight className="size-4 text-muted-foreground" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </SheetContent>
+      </Sheet>
 
       <Sheet open={scorecardExpanded} onOpenChange={setScorecardExpanded}>
         <SheetContent
@@ -563,7 +638,8 @@ export function MobileScorer(props: MobileScorerProps) {
   );
 }
 
-function ScoreHeroCard({
+/** Score, run rates and the four small numbers, all in one card. */
+function ScoreCard({
   score,
   overs,
   crr,
@@ -571,6 +647,11 @@ function ScoreHeroCard({
   target,
   chase,
   isFinished,
+  freeHit,
+  projected,
+  partnership,
+  extras,
+  lastWicket,
 }: {
   score: string;
   overs: string;
@@ -579,297 +660,65 @@ function ScoreHeroCard({
   target?: string;
   chase?: { runsNeeded: number; ballsLeft: number } | null;
   isFinished?: boolean;
+  freeHit?: boolean;
+  projected?: string;
+  partnership: string;
+  extras: string;
+  lastWicket: string;
 }) {
   const [runsPart, wicketsPart] = score.split("/");
   const wickets = wicketsPart ?? "0";
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-primary/12 via-card to-card p-3 shadow-[0_10px_30px_-16px_color-mix(in_oklab,var(--primary)_35%,transparent),inset_0_1px_0_0_color-mix(in_oklab,white_20%,transparent)]">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"
-      />
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-        <div className="min-w-0">
-          <div className="mb-0.5 text-[9.5px] font-black uppercase tracking-[0.16em] text-muted-foreground">
-            Score
-          </div>
-          <div className="flex min-w-0 items-end gap-2">
-            <h1 className="text-[46px] font-black leading-[0.9] tracking-tight tabular-nums sm:text-[52px]">
-              <NumberRoll value={`${runsPart ?? score}/${wickets}`} />
-            </h1>
-            <span className="mb-1 shrink-0 rounded-md bg-muted/70 px-1.5 py-0.5 text-[11px] font-black tabular-nums text-muted-foreground">
-              {overs.startsWith("Over ") ? overs : `${overs} overs`}
-            </span>
-          </div>
-          {isFinished ? (
-            <div className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-1 text-[11.5px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-tight">
-              Match Finished
-            </div>
-          ) : (
-            chase && (
-              <div className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-[var(--score-success-bg,color-mix(in_oklab,var(--primary)_16%,transparent))] px-2 py-1 text-[11.5px] font-black text-[var(--score-success-fg)] tabular-nums">
-                Need {chase.runsNeeded} from {chase.ballsLeft}
-              </div>
-            )
-          )}
+    <section className="shrink-0 overflow-hidden rounded-xl border bg-card">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 py-2">
+        <div className="flex min-w-0 items-end gap-2">
+          <h1 className="text-[38px] font-black leading-[0.9] tracking-tight tabular-nums">
+            <NumberRoll value={`${runsPart ?? score}/${wickets}`} />
+          </h1>
+          <span className="mb-0.5 shrink-0 text-[12px] font-bold tabular-nums text-muted-foreground">
+            {overs.startsWith("Over ") ? overs : `${overs} ov`}
+          </span>
         </div>
         <div className="flex flex-col items-end gap-1 text-right tabular-nums">
+          {isFinished ? (
+            <span className="rounded-md bg-amber-500/15 px-2 py-1 text-[11px] font-black uppercase tracking-tight text-amber-600 dark:text-amber-400">
+              Match finished
+            </span>
+          ) : freeHit ? (
+            <span className="rounded-md bg-amber-500/20 px-2 py-1 text-[11px] font-black uppercase tracking-wide text-amber-700 dark:text-amber-300">
+              Free hit
+            </span>
+          ) : chase ? (
+            <span className="rounded-md bg-[color-mix(in_oklab,var(--score-success-fg)_14%,transparent)] px-2 py-1 text-[12px] font-black text-[var(--score-success-fg)]">
+              Need {chase.runsNeeded} off {chase.ballsLeft}
+            </span>
+          ) : null}
           {target && (
-            <div className="rounded-lg border border-[var(--score-success-fg)]/40 bg-[var(--score-success-fg)]/10 px-2.5 py-1 leading-tight">
-              <div className="text-[9px] font-black uppercase tracking-[0.14em] text-[var(--score-success-fg)]/80">
-                Target
-              </div>
-              <div className="text-[20px] font-black text-[var(--score-success-fg)]">{target}</div>
-            </div>
-          )}
-          <div className="text-[11px] font-bold text-muted-foreground">
-            CRR <span className="font-black text-foreground">{crr ?? "–"}</span>
-          </div>
-          {rrr && (
-            <div className="text-[11px] font-bold text-muted-foreground">
-              RRR <span className="font-black text-foreground">{rrr}</span>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ScorebookBatters({
-  striker,
-  nonStriker,
-  onPickStriker,
-  onPickNonStriker,
-}: {
-  striker?: BatterStats;
-  nonStriker?: BatterStats;
-  onPickStriker: () => void;
-  onPickNonStriker: () => void;
-}) {
-  return (
-    <section className="overflow-hidden rounded-xl border bg-card/70">
-      <BatterLine batter={striker} striker onClick={onPickStriker} />
-      <div className="h-px bg-border/70" />
-      <BatterLine batter={nonStriker} onClick={onPickNonStriker} />
-    </section>
-  );
-}
-
-function BatterLine({
-  batter,
-  striker,
-  onClick,
-}: {
-  batter?: BatterStats;
-  striker?: boolean;
-  onClick: () => void;
-}) {
-  const name = batter?.name ?? (striker ? "Select striker" : "Select non-striker");
-  const sr = batter?.strikeRate ?? "0.0";
-  const order = batter?.order;
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "grid h-[52px] w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 text-left transition duration-100 active:scale-[0.995] active:bg-muted/70",
-        striker && "bg-[var(--score-striker-bg)]",
-      )}
-    >
-      <div className="min-w-0">
-        <div className="flex min-w-0 items-center gap-1.5">
-          <span className="truncate text-[14px] font-bold leading-tight">{name}</span>
-          {striker && batter?.name && (
-            <span className="ml-1" title="Striker">
-              <CricketBatIcon className="size-3.5 text-primary" />
+            <span className="text-[11px] font-bold text-muted-foreground">
+              Target <span className="font-black text-foreground">{target}</span>
             </span>
           )}
         </div>
-        <div className="mt-1 pl-1 truncate text-[11px] leading-tight text-muted-foreground tabular-nums">
-          4s {batter?.fours ?? 0} · 6s {batter?.sixes ?? 0} · SR {sr}
-        </div>
       </div>
-
-      <div className="text-right tabular-nums">
-        <div className="text-[20px] font-black leading-none">
-          {batter?.runs ?? 0}
-          <span className="ml-1 text-[12px] font-bold text-muted-foreground">
-            ({batter?.balls ?? 0})
-          </span>
-        </div>
-      </div>
-    </button>
-  );
-}
-
-function BowlerLine({
-  bowler,
-  onClick,
-  awaiting,
-}: {
-  bowler?: BowlerStats;
-  onClick: () => void;
-  awaiting?: boolean;
-}) {
-  const hasBowler = Boolean(bowler?.name);
-  const showAwaiting = Boolean(awaiting);
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-live="polite"
-      className={cn(
-        "grid h-12 w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-xl border bg-card/70 px-3 text-left transition duration-100 active:scale-[0.995] active:bg-muted/70",
-        showAwaiting &&
-          "border-sky-400/60 bg-sky-500/10 ring-1 ring-sky-400/40 shadow-[0_0_0_1px_color-mix(in_oklab,rgb(56_189_248)_35%,transparent)]",
-      )}
-    >
-      <div className="min-w-0">
-        <div className="flex items-center gap-1.5">
-          <span
-            className={cn(
-              "grid size-[18px] shrink-0 place-items-center rounded-full bg-[var(--score-bowler-bg)] text-[var(--score-bowler-fg)]",
-              showAwaiting && "bg-sky-500/25 text-sky-600 dark:text-sky-300",
-            )}
-          >
-            <CircleDot className="size-3" strokeWidth={2.25} />
-          </span>
-          <span className="truncate text-[14px] font-bold">
-            {showAwaiting ? "Select bowler for this over" : (bowler?.name ?? "Select bowler")}
-          </span>
-          <span
-            className={cn(
-              "shrink-0 text-[9px] font-bold uppercase tracking-widest",
-              showAwaiting ? "text-sky-600 dark:text-sky-300" : "text-muted-foreground",
-            )}
-          >
-            {showAwaiting ? "Tap to select" : "Current Bowler"}
-          </span>
-        </div>
-      </div>
-      <div className="text-right text-[11.5px] font-semibold text-muted-foreground tabular-nums">
-        {showAwaiting ? (
-          <span className="text-sky-600 dark:text-sky-300">—</span>
+      <div className="grid grid-cols-5 divide-x divide-border/60 border-t border-border/60 bg-muted/30">
+        <Stat label="CRR" value={crr ?? "–"} />
+        {rrr ? (
+          <Stat label="RRR" value={rrr} accent />
         ) : (
-          <>
-            <span className="text-foreground">
-              {bowler?.wickets ?? 0}/{bowler?.runs ?? 0}
-            </span>
-            <span> · {bowler?.overs ?? "0"} ov</span>
-          </>
+          <Stat label="Proj" value={projected ?? "–"} />
         )}
-      </div>
-    </button>
-  );
-}
-
-function ThisOverStrip({
-  balls,
-  overs,
-  onOpenHistory,
-}: {
-  balls: string[];
-  overs?: string;
-  onOpenHistory?: () => void;
-}) {
-  // The parent may pass either "N.M" (in-progress) or "Over N+1" (pre-over
-  // state after a completed over). We strip the redundant "Over " prefix so
-  // the fixed label above the number never doubles up.
-  const isPreOver = overs?.startsWith("Over ") ?? false;
-  const value = isPreOver ? overs!.slice(5) : overs;
-  const clickable = Boolean(onOpenHistory);
-  return (
-    <section
-      role={clickable ? "button" : undefined}
-      tabIndex={clickable ? 0 : undefined}
-      aria-label={clickable ? "Open over history" : undefined}
-      onClick={onOpenHistory}
-      onKeyDown={
-        clickable
-          ? (e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onOpenHistory?.();
-              }
-            }
-          : undefined
-      }
-      className={cn(
-        "flex h-12 shrink-0 items-center gap-2 rounded-xl border border-primary/25 bg-card/80 px-3 shadow-sm ring-1 ring-primary/10",
-        clickable &&
-          "cursor-pointer transition duration-100 active:scale-[0.99] hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
-      )}
-    >
-      <div className="flex shrink-0 flex-col leading-none">
-        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
-          Over
-        </span>
-        {value && (
-          <span className="mt-0.5 text-[13px] font-black tabular-nums text-foreground">
-            {value}
-          </span>
-        )}
-      </div>
-      <div className="h-6 w-px shrink-0 bg-border/70" />
-      <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto ds-scroll">
-        {balls.length === 0 ? (
-          <span className="text-[12px] text-muted-foreground">
-            {isPreOver ? "Next over ready" : "Ready"}
-          </span>
-        ) : (
-          balls.map((ball, i) => <BallBubble key={`${ball}-${i}`} label={ball} />)
-        )}
+        <Stat label="P'ship" value={partnership} />
+        <Stat label="Extras" value={extras} />
+        <Stat label="Last wkt" value={lastWicket} />
       </div>
     </section>
   );
 }
 
-function LiveInsights({
-  partnership,
-  chase,
-  crr,
-  rrr,
-  target,
-  insights,
-  className,
-}: {
-  partnership?: { runs: number; balls: number } | null;
-  chase?: { runsNeeded: number; ballsLeft: number } | null;
-  crr?: string;
-  rrr?: string;
-  target?: string;
-  insights?: MobileScorerInsight;
-  className?: string;
-}) {
-  const recentOvers = insights?.recentOvers ?? [];
+function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <section
-      className={cn(
-        "flex flex-col gap-1.5 overflow-hidden rounded-xl border bg-muted/20 p-1.5",
-        className,
-      )}
-    >
-      <div className="grid shrink-0 grid-cols-4 gap-1.5">
-        <InfoTile label="CRR" value={crr ?? "0.00"} />
-        <InfoTile
-          label="P'ship"
-          value={
-            insights?.partnership ??
-            (partnership ? `${partnership.runs}(${partnership.balls})` : "0(0)")
-          }
-        />
-        <InfoTile label="Extras" value={insights?.extras ?? "0"} />
-        <InfoTile label="FOW" value={insights?.lastWicket ?? "—"} />
-      </div>
-    </section>
-  );
-}
-
-function InfoTile({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
-  return (
-    <div className="min-w-0 rounded-lg bg-card/70 px-2 py-1 text-center tabular-nums">
-      <div className="truncate text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+    <div className="min-w-0 px-1 py-1 text-center tabular-nums">
+      <div className="truncate text-[8.5px] font-black uppercase tracking-wider text-muted-foreground">
         {label}
       </div>
       <div
@@ -884,10 +733,204 @@ function InfoTile({ label, value, accent }: { label: string; value: string; acce
   );
 }
 
-function BallBubble({ label }: { label: string }) {
+function BatterLine({
+  batter,
+  striker,
+  onClick,
+}: {
+  batter?: BatterStats;
+  striker?: boolean;
+  onClick: () => void;
+}) {
+  const empty = !batter?.name;
+  const name = batter?.name ?? (striker ? "Select striker" : "Select non-striker");
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "relative grid h-11 w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 pl-3 pr-3 text-left transition duration-100 active:bg-muted/70",
+        striker && !empty && "bg-[var(--score-striker-bg)]",
+        empty && "bg-[var(--score-wait-bg)]",
+      )}
+    >
+      {striker && !empty && (
+        <span aria-hidden className="absolute inset-y-1.5 left-0 w-[3px] rounded-r bg-primary" />
+      )}
+      <span className="flex min-w-0 items-baseline gap-1">
+        <span
+          className={cn(
+            "truncate text-[14px] leading-tight",
+            empty ? "font-semibold text-primary" : "font-bold",
+          )}
+        >
+          {name}
+        </span>
+        {striker && !empty && (
+          <span className="shrink-0 text-[14px] font-black text-primary" title="On strike">
+            *
+          </span>
+        )}
+      </span>
+      <span className="shrink-0 text-[10.5px] font-semibold tabular-nums text-muted-foreground">
+        {empty
+          ? "Tap to choose"
+          : `${batter?.fours ?? 0}×4 ${batter?.sixes ?? 0}×6 · SR ${Math.round(Number(batter?.strikeRate ?? 0)) || 0}`}
+      </span>
+      <span className="w-[62px] shrink-0 text-right tabular-nums">
+        <span className="text-[18px] font-black leading-none">{batter?.runs ?? 0}</span>
+        <span className="ml-0.5 text-[11.5px] font-bold text-muted-foreground">
+          ({batter?.balls ?? 0})
+        </span>
+      </span>
+    </button>
+  );
+}
+
+function BowlerLine({
+  bowler,
+  onClick,
+  awaiting,
+}: {
+  bowler?: BowlerStats;
+  onClick: () => void;
+  awaiting?: boolean;
+}) {
+  const showAwaiting = Boolean(awaiting);
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-live="polite"
+      className={cn(
+        "grid h-10 w-full grid-cols-[18px_minmax(0,1fr)_auto] items-center gap-2 px-3 text-left transition duration-100 active:bg-muted/70",
+        showAwaiting ? "bg-sky-500/10" : "bg-muted/25",
+      )}
+    >
+      <span
+        className={cn(
+          "grid size-[18px] shrink-0 place-items-center rounded-full bg-[var(--score-bowler-bg)] text-[var(--score-bowler-fg)]",
+          showAwaiting && "bg-sky-500/25 text-sky-600 dark:text-sky-300",
+        )}
+      >
+        <CircleDot className="size-3" strokeWidth={2.25} />
+      </span>
+      <span
+        className={cn(
+          "truncate text-[13.5px] font-bold",
+          showAwaiting && "text-sky-700 dark:text-sky-300",
+        )}
+      >
+        {showAwaiting ? "Choose bowler for this over" : (bowler?.name ?? "Choose bowler")}
+      </span>
+      <span className="shrink-0 text-right text-[11.5px] font-semibold tabular-nums text-muted-foreground">
+        {showAwaiting ? (
+          "Tap to choose"
+        ) : (
+          <>
+            <span className="text-[13px] font-black text-foreground">
+              {bowler?.wickets ?? 0}/{bowler?.runs ?? 0}
+            </span>
+            <span>
+              {" "}
+              ({bowler?.overs ?? "0"}) · Econ {bowler?.economy ?? "–"}
+            </span>
+          </>
+        )}
+      </span>
+    </button>
+  );
+}
+
+/** Balls of the over being bowled (or the one that just ended), newest kept in view. */
+function ThisOverStrip({
+  balls,
+  label,
+  runs,
+  onOpenHistory,
+}: {
+  balls: string[];
+  label: string;
+  runs?: number;
+  onOpenHistory?: () => void;
+}) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollLeft = el.scrollWidth;
+  }, [balls.length]);
+  const clickable = Boolean(onOpenHistory);
+  return (
+    <button
+      type="button"
+      disabled={!clickable}
+      aria-label={clickable ? "Open all overs" : undefined}
+      onClick={onOpenHistory}
+      className="grid h-10 w-full shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-xl border bg-card px-3 text-left transition duration-100 enabled:active:bg-muted/70"
+    >
+      <span className="text-[9.5px] font-black uppercase leading-none tracking-wider text-muted-foreground">
+        {label}
+      </span>
+      <div
+        ref={scrollRef}
+        className="flex min-w-0 items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {balls.length === 0 ? (
+          <span className="text-[12px] text-muted-foreground">No ball bowled yet</span>
+        ) : (
+          balls.map((ball, i) => <BallBubble key={`${ball}-${i}`} label={ball} />)
+        )}
+      </div>
+      {runs != null && (
+        <span className="shrink-0 text-[12px] font-black tabular-nums">
+          = {runs}
+          {clickable && (
+            <ChevronRight className="-mr-1 ml-0.5 inline size-3.5 text-muted-foreground" />
+          )}
+        </span>
+      )}
+    </button>
+  );
+}
+
+/** Earlier overs, newest first. Fills whatever height is left above the scoring keys. */
+function RecentOvers({ rows, onOpen }: { rows: OverHistoryRow[]; onOpen: () => void }) {
+  if (rows.length === 0) return <div className="min-h-0 flex-1" />;
+  return (
+    <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border bg-card">
+      <ul className="min-h-0 flex-1 divide-y divide-border/50 overflow-y-auto">
+        {rows.map((row) => (
+          <li key={row.overNumber}>
+            <button
+              type="button"
+              onClick={onOpen}
+              className="grid h-9 w-full grid-cols-[38px_minmax(0,1fr)_auto] items-center gap-2 px-3 text-left active:bg-muted/70"
+            >
+              <span className="text-[10.5px] font-black uppercase tracking-wide text-muted-foreground">
+                Ov {row.overLabel}
+              </span>
+              <span className="flex min-w-0 items-center gap-1 overflow-hidden">
+                {row.chips.map((chip, i) => (
+                  <BallBubble key={`${chip}-${i}`} label={chip} small />
+                ))}
+              </span>
+              <span className="shrink-0 text-right text-[11.5px] font-bold tabular-nums text-muted-foreground">
+                <span className="font-black text-foreground">{row.runs}</span>
+                {row.wickets > 0 && <span className="text-destructive"> · {row.wickets}W</span>}
+                <span className="ml-1.5">{row.runningScore}</span>
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function BallBubble({ label, small }: { label: string; small?: boolean }) {
   const upper = formatBallNotation(label);
 
-  const wicket = /W/.test(upper);
+  const wicket = /W(?!D)/.test(upper);
   const four =
     upper === "4" || upper.endsWith("+4") || (upper.startsWith("NB") && upper.endsWith("5"));
   const six =
@@ -897,11 +940,16 @@ function BallBubble({ label }: { label: string }) {
   return (
     <span
       className={cn(
-        "inline-flex h-6 shrink-0 items-center justify-center rounded-full font-black tabular-nums leading-none",
-        isMulti ? "min-w-6 px-1.5 text-[10px]" : "w-6 text-[11px]",
+        "inline-flex shrink-0 items-center justify-center rounded-full font-black tabular-nums leading-none",
+        small ? "h-5" : "h-6",
+        isMulti
+          ? cn("px-1.5", small ? "min-w-5 text-[9px]" : "min-w-6 text-[10px]")
+          : small
+            ? "w-5 text-[10px]"
+            : "w-6 text-[11px]",
         wicket && "bg-destructive text-destructive-foreground",
-        four && "bg-[var(--score-four)] text-[var(--score-action-foreground)]",
-        six && "bg-[var(--score-six)] text-[var(--score-action-foreground)]",
+        four && !wicket && "bg-[var(--score-four)] text-[var(--score-action-foreground)]",
+        six && !wicket && "bg-[var(--score-six)] text-[var(--score-action-foreground)]",
         extra &&
           !four &&
           !six &&
@@ -927,16 +975,13 @@ function ScoringDock({
   onOut: () => void;
 }) {
   return (
-    <div className="rounded-2xl border bg-card/95 p-2 shadow-[0_4px_20px_-12px_oklch(0_0_0/45%)] backdrop-blur-xl">
-      <div className="mb-1.5 px-1 text-[11px] font-semibold text-muted-foreground">
-        Runs scored on this ball
-      </div>
+    <div>
       <div className="grid grid-cols-7 gap-1.5">
         {([0, 1, 2, 3, 4, 5, 6] as const).map((run) => (
           <RunKey key={run} value={run} disabled={disabled} onClick={() => onRun(run)} />
         ))}
       </div>
-      <div className="mt-2 grid grid-cols-5 gap-2">
+      <div className="mt-1.5 grid grid-cols-5 gap-1.5">
         <ExtraKey label="Wide" tone="wide" disabled={disabled} onClick={() => onExtra("Wide")} />
         <ExtraKey
           label="No ball"
@@ -971,9 +1016,16 @@ function RunKey({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className="grid h-14 w-full place-items-center rounded-xl border border-border/80 bg-background text-[24px] font-black tabular-nums text-foreground transition duration-100 active:bg-muted active:scale-[0.95] disabled:opacity-40"
+      className={cn(
+        "grid h-[52px] w-full place-items-center rounded-xl border text-[24px] font-black tabular-nums transition duration-100 active:scale-[0.95] disabled:opacity-40",
+        value === 4
+          ? "border-transparent bg-[var(--score-four)] text-[var(--score-action-foreground)]"
+          : value === 6
+            ? "border-transparent bg-[var(--score-six)] text-[var(--score-action-foreground)]"
+            : "border-border/80 bg-background text-foreground active:bg-muted",
+      )}
     >
-      {value}
+      {value === 0 ? "•" : value}
     </button>
   );
 }
@@ -995,7 +1047,7 @@ function ExtraKey({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "grid h-12 w-full place-items-center rounded-xl border px-0.5 text-[12.5px] font-black leading-none tracking-tight transition duration-100 active:scale-[0.95] disabled:opacity-40",
+        "grid h-11 w-full place-items-center rounded-xl border px-0.5 text-[12.5px] font-black leading-none tracking-tight transition duration-100 active:scale-[0.95] disabled:opacity-40",
         tone === "wide" &&
           "border-[var(--score-wide-border)] bg-[var(--score-wide-bg)] text-[var(--score-wide-fg)]",
         tone === "nb" &&
@@ -1091,7 +1143,7 @@ function PlayerPickerSheet({
                             type="button"
                             disabled={locked}
                             onClick={() => onSelect(player)}
-                            className="grid h-14 w-full grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-3 px-4 text-left transition duration-100 active:bg-muted disabled:opacity-45"
+                            className="grid h-12 w-full grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-3 px-4 text-left transition duration-100 active:bg-muted disabled:opacity-45"
                           >
                             <span className="grid size-9 place-items-center rounded-full bg-muted text-[12px] font-black text-foreground/80">
                               {initials(player.name)}
@@ -1105,12 +1157,14 @@ function PlayerPickerSheet({
                               >
                                 {player.name}
                               </span>
-                              <span className="block truncate text-[11px] text-muted-foreground">
+                              <span className="block truncate text-[11px] text-muted-foreground empty:hidden">
                                 {locked
                                   ? lockedMessage
                                   : bowled
                                     ? "Bowled earlier · Tap to continue"
-                                    : player.role || "Player"}
+                                    : player.role && player.role !== "Player"
+                                      ? player.role
+                                      : ""}
                               </span>
                             </span>
                             {locked && (
@@ -1138,29 +1192,21 @@ function FooterAction({
   label,
   onClick,
   disabled,
-  title,
-  tone,
 }: {
   icon: ReactNode;
   label: string;
   onClick: () => void;
   disabled?: boolean;
-  title?: string;
-  tone?: "danger";
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      title={title}
-      className={cn(
-        "grid h-12 w-full grid-rows-[auto_auto] place-items-center gap-0.5 rounded-xl transition duration-100 active:scale-[0.97] active:bg-muted disabled:opacity-40",
-        tone === "danger" ? "text-destructive" : "text-foreground/85",
-      )}
+      className="grid h-11 w-full grid-rows-[auto_auto] place-content-center place-items-center gap-0.5 rounded-lg text-foreground/85 transition duration-100 active:scale-[0.97] active:bg-muted disabled:opacity-35"
     >
       <span aria-hidden>{icon}</span>
-      <span className="text-[11px] font-bold leading-none">{label}</span>
+      <span className="text-[10.5px] font-bold leading-none">{label}</span>
     </button>
   );
 }

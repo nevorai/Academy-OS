@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetDescription,
   SheetTitle,
@@ -182,17 +180,12 @@ export function WicketSheet({
         className="flex max-h-[92dvh] flex-col rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl"
       >
         <div className="flex items-center justify-between px-4 pb-2 pt-3">
-          <div className="min-w-0 pr-2 text-left">
+          <div className="min-w-0 pr-10 text-left">
             <SheetTitle className="text-base">Wicket</SheetTitle>
             <SheetDescription className="text-xs">
               Pick how the batter is out. Add the runs and any wide or no-ball in the same step.
             </SheetDescription>
           </div>
-          <SheetClose asChild>
-            <Button variant="ghost" size="icon" className="size-8 rounded-full">
-              <X className="size-4" />
-            </Button>
-          </SheetClose>
         </div>
 
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-3 pb-3">

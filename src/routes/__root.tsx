@@ -224,15 +224,23 @@ function SplashHider() {
     if (!el) return;
     // Wait for the first real screen to paint, then fade out.
     let id2 = 0;
+    let done = false;
+    const hide = () => {
+      if (done) return;
+      done = true;
+      el.classList.add("hide");
+      setTimeout(() => el.remove(), 300);
+    };
     const id1 = requestAnimationFrame(() => {
-      id2 = requestAnimationFrame(() => {
-        el.classList.add("hide");
-        setTimeout(() => el.remove(), 300);
-      });
+      id2 = requestAnimationFrame(hide);
     });
+    // Animation frames never fire while the app is in the background (opened from a
+    // notification, another tab in front), which left the logo screen up forever.
+    const fallback = setTimeout(hide, 1200);
     return () => {
       cancelAnimationFrame(id1);
       cancelAnimationFrame(id2);
+      clearTimeout(fallback);
     };
   }, []);
   return null;

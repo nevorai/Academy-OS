@@ -865,9 +865,35 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
             striker={strikerStat}
             nonStriker={nonStrikerStat}
             bowler={bowlerStat}
-            overBalls={overHistory.flatMap((h) => h.chips)}
+            overBalls={overHistory.at(-1)?.chips ?? []}
             overHistory={overHistory}
             currentOverLabel={currentOverLabel}
+            totalOvers={session.match?.overs ?? null}
+            freeHit={session.matchState.innings.freeHit}
+            insights={{
+              extras: String(stats.team.extras.total),
+              lastWicket: (() => {
+                const w = stats.team.fallOfWickets.at(-1);
+                return w ? `${w.score}/${w.wicketNumber}` : undefined;
+              })(),
+            }}
+            requiredPicker={pendingBallIntent ? requiredPicker : null}
+            onPickerDismissed={() => setPendingBallIntent(null)}
+            bowledBowlerIds={bowledBowlerIds}
+            dismissedBatterIds={Array.from(session.matchState.innings.dismissedIds)}
+            dismissedBatterNames={Array.from(session.matchState.innings.dismissedNames)}
+            previousBowlerId={previousOverBowler?.bowlerAthleteId ?? null}
+            previousBowlerName={previousOverBowler?.bowlerName ?? null}
+            partnership={
+              stats.team.currentPartnership
+                ? {
+                    runs: stats.team.currentPartnership.runs,
+                    balls: stats.team.currentPartnership.balls,
+                  }
+                : undefined
+            }
+            onOpenScorecard={() => setScorecardOpen(true)}
+            onShareMatch={() => setShareOpen(true)}
             onSwapStrike={() => {
               const s = { ...session.striker };
               session.setStriker({ ...session.nonStriker, onStrike: true });
@@ -885,8 +911,10 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
             }}
             onUndo={() => {
               swapAfterBatterRef.current = false;
-              void session.undo();
+              void handleUndo();
             }}
+            onRedo={() => void handleRedo()}
+            canRedo={redoStack.length > 0}
             onFixBall={() => setFixOpen(true)}
             fixBar={ballFix.fix ? <BallFixBar fix={ballFix} /> : null}
             hideEndMatch={matchLocked}
@@ -1879,9 +1907,29 @@ function DemoScorerBody({
                   }
                 : undefined
             }
-            overBalls={overHistory.flatMap((h) => h.chips)}
+            overBalls={overHistory.at(-1)?.chips ?? []}
             overHistory={overHistory}
             currentOverLabel={currentOverLabel}
+            totalOvers={match.overs ?? null}
+            freeHit={session.matchState.innings.freeHit}
+            insights={{
+              extras: String(stats.team.extras.total),
+              lastWicket: (() => {
+                const w = stats.team.fallOfWickets.at(-1);
+                return w ? `${w.score}/${w.wicketNumber}` : undefined;
+              })(),
+            }}
+            requiredPicker={pendingBallIntent ? requiredPicker : null}
+            onPickerDismissed={() => setPendingBallIntent(null)}
+            bowledBowlerIds={bowledBowlerIds}
+            dismissedBatterIds={Array.from(session.matchState.innings.dismissedIds)}
+            dismissedBatterNames={Array.from(session.matchState.innings.dismissedNames)}
+            previousBowlerId={previousOverBowler?.bowlerAthleteId ?? null}
+            previousBowlerName={previousOverBowler?.bowlerName ?? null}
+            newBowlerNeeded={newBowlerStillNeeded}
+            onPickPlayer={(role, p) => setPlayer(role, p)}
+            awaitingNewBatter={session.matchState.innings.awaitingNewBatter}
+            awaitingNewBowler={session.matchState.innings.awaitingNewBowler}
             hideEndMatch={match.match_locked}
             onEndMatch={finalizeMatch}
             onOpenScorecard={() => setScorecardOpen(true)}
@@ -1916,8 +1964,10 @@ function DemoScorerBody({
             }}
             onUndo={() => {
               swapAfterBatterRef.current = false;
-              void session.undo();
+              void handleUndo();
             }}
+            onRedo={() => void handleRedo()}
+            canRedo={redoStack.length > 0}
             onFixBall={() => setFixOpen(true)}
             fixBar={ballFix.fix ? <BallFixBar fix={ballFix} /> : null}
             onSwapStrike={() => {

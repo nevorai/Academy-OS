@@ -102,14 +102,14 @@ export function StudentLoginRow({
             )}
           </div>
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
-            className="h-7 shrink-0 px-2 text-[11px] text-primary"
+            className="h-9 shrink-0 px-3 text-[13px]"
             disabled={busy}
             onClick={() => void act()}
           >
-            {busy ? <Loader2 className="size-3 animate-spin" /> : <KeyRound className="mr-1 size-3" />}
-            {hasLogin ? "Reset login" : "Create login"}
+            {busy ? <Loader2 className="size-3 animate-spin" /> : <KeyRound className="mr-1 size-4" />}
+            {hasLogin ? "Reset password" : "Create login"}
           </Button>
         </div>
         {shown && (

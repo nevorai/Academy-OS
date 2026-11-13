@@ -72,6 +72,9 @@ export function OfficialScorebook({
   const wrapRef = useRef<HTMLDivElement>(null);
   const paperRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  // Phones show one innings at a time (tabs); desktop, print and the PNG show both.
+  const [shownInnings, setShownInnings] = useState(0);
+  const [exporting, setExporting] = useState(false);
 
   const teamById = useMemo(() => {
     const m = new Map<string, ScorebookTeam>();
@@ -128,6 +131,8 @@ export function OfficialScorebook({
   const handlePng = async () => {
     if (!paperRef.current) return;
     try {
+      setExporting(true);
+      await new Promise((r) => setTimeout(r, 60));
       const mod = await import("html-to-image");
       const dataUrl = await mod.toPng(paperRef.current, {
         pixelRatio: 2,
@@ -142,6 +147,8 @@ export function OfficialScorebook({
     } catch (err) {
       console.error(err);
       toast.error("Image export failed");
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -171,26 +178,27 @@ export function OfficialScorebook({
       className={`scorebook-fs-wrap ${fullscreen ? "min-h-dvh bg-background" : ""}`}
     >
       {toolbar && (
-        <div className="scorebook-toolbar no-print mb-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl border bg-card px-3 py-2">
+        <div className="scorebook-toolbar no-print mb-2 flex items-center justify-between gap-1.5 rounded-2xl border bg-card px-2 py-1.5 sm:mb-4 sm:flex-wrap sm:gap-2 sm:px-3 sm:py-2">
           <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Official Scorebook
+            <span className="hidden sm:inline">Official Scorebook</span>
             {matchInfo.locked ? (
-              <Badge variant="secondary" className="ml-2 align-middle">
+              <Badge variant="secondary" className="align-middle sm:ml-2">
                 Final
               </Badge>
             ) : (
               <Badge
                 variant="outline"
-                className="ml-2 align-middle border-emerald-500/40 text-emerald-600 dark:text-emerald-400"
+                className="align-middle border-emerald-500/40 text-emerald-600 sm:ml-2 dark:text-emerald-400"
               >
                 Live
               </Badge>
             )}
           </div>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex gap-1 sm:flex-wrap sm:gap-1.5 [&>button]:px-2.5 sm:[&>button]:px-3 [&>button>svg]:hidden sm:[&>button>svg]:inline">
             <Button
               size="sm"
               variant="outline"
+              className="hidden sm:inline-flex"
               onClick={handleFullscreen}
               aria-label="Toggle fullscreen"
             >
@@ -201,19 +209,19 @@ export function OfficialScorebook({
             </Button>
             <Button size="sm" variant="outline" onClick={handlePrint} aria-label="Print scorebook">
               <Printer className="size-4" />
-              <span className="ml-1 text-[12px] sm:ml-1.5 sm:text-sm">Print</span>
+              <span className="text-[13px] sm:ml-1.5 sm:text-sm">Print</span>
             </Button>
             <Button size="sm" variant="outline" onClick={handlePrint} aria-label="Save as PDF">
               <FileText className="size-4" />
-              <span className="ml-1 text-[12px] sm:ml-1.5 sm:text-sm">PDF</span>
+              <span className="text-[13px] sm:ml-1.5 sm:text-sm">PDF</span>
             </Button>
             <Button size="sm" variant="outline" onClick={handlePng} aria-label="Download PNG">
               <ImageDown className="size-4" />
-              <span className="ml-1 text-[12px] sm:ml-1.5 sm:text-sm">PNG</span>
+              <span className="text-[13px] sm:ml-1.5 sm:text-sm">PNG</span>
             </Button>
             <Button size="sm" variant="outline" onClick={handleShare} aria-label="Share scorebook">
               <Share2 className="size-4" />
-              <span className="ml-1 text-[12px] sm:ml-1.5 sm:text-sm">Share</span>
+              <span className="text-[13px] sm:ml-1.5 sm:text-sm">Share</span>
             </Button>
             {fullscreen && onExitFullscreen && (
               <Button size="sm" variant="ghost" onClick={onExitFullscreen}>
@@ -238,7 +246,29 @@ export function OfficialScorebook({
             eventsByInnings={eventsByInnings}
           />
 
-          {orderedInnings.map((inn) => {
+          {orderedInnings.length > 1 && (
+            <div className="no-print mb-2 grid grid-cols-2 gap-1 rounded-xl border bg-muted/50 p-1 sm:hidden">
+              {orderedInnings.map((inn, i) => (
+                <button
+                  key={inn.id}
+                  type="button"
+                  onClick={() => setShownInnings(i)}
+                  aria-pressed={shownInnings === i}
+                  className={`h-10 truncate rounded-lg px-2 text-[13px] font-semibold ${
+                    shownInnings === i
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  {teamById.get(inn.batting_team_id)?.short_name ??
+                    teamById.get(inn.batting_team_id)?.name ??
+                    `Innings ${inn.innings_number}`}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {orderedInnings.map((inn, innIndex) => {
             const evs = eventsByInnings.get(inn.id) ?? [];
             const battingTeam = teamById.get(inn.batting_team_id);
             const bowlingTeam = inn.bowling_team_id ? teamById.get(inn.bowling_team_id) : null;
@@ -249,6 +279,9 @@ export function OfficialScorebook({
             return (
               <InningsBlock
                 key={inn.id}
+                hiddenOnPhone={
+                  !exporting && innIndex !== Math.min(shownInnings, orderedInnings.length - 1)
+                }
                 inningsNumber={inn.innings_number}
                 battingTeamName={battingTeam?.name ?? "Batting"}
                 bowlingTeamName={bowlingTeam?.name ?? "Bowling"}
@@ -448,7 +481,9 @@ function InningsBlock({
   bowlingTeamName,
   stats,
   playerOfMatch,
+  hiddenOnPhone = false,
 }: {
+  hiddenOnPhone?: boolean;
   inningsNumber: number;
   battingTeamName: string;
   bowlingTeamName: string;
@@ -456,7 +491,11 @@ function InningsBlock({
   playerOfMatch?: string | null;
 }) {
   return (
-    <section className="sb-card mb-3 rounded-2xl border bg-card/60 p-2.5 shadow-sm sm:mb-6 sm:p-5">
+    <section
+      className={`sb-card mb-3 rounded-2xl border bg-card/60 p-2.5 shadow-sm sm:mb-6 sm:p-5 ${
+        hiddenOnPhone ? "hidden sm:block print:block" : ""
+      }`}
+    >
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2 border-b-2 border-foreground/70 pb-2">
         <h2 className="text-sm font-black uppercase tracking-widest sm:text-base">
           Innings {inningsNumber} — {battingTeamName} batting
@@ -501,8 +540,8 @@ function InningsBlock({
 
 function SectionBlock({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="mt-5 first:mt-0">
-      <div className="mb-2 flex items-center gap-3">
+    <div className="mt-3 first:mt-0 sm:mt-5">
+      <div className="mb-1.5 flex items-center gap-3 sm:mb-2">
         <span
           className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-border"
           aria-hidden="true"
@@ -515,7 +554,7 @@ function SectionBlock({ title, children }: { title: string; children: React.Reac
           aria-hidden="true"
         />
       </div>
-      <div className="rounded-xl border bg-background/40 p-3 sm:p-4">{children}</div>
+      <div className="rounded-xl border bg-background/40 p-2 sm:p-4">{children}</div>
     </div>
   );
 }

@@ -52,7 +52,7 @@ const assignableMemberRoles = [
 
 export const Route = createFileRoute("/dashboard/staff")({
   head: () => ({
-    meta: [{ title: "Admins · Academy" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Coaches & team · Academy" }, { name: "robots", content: "noindex" }],
   }),
   component: AdminsPage,
 });
@@ -125,7 +125,7 @@ function AdminsPage() {
             <ShieldCheck className="size-5" />
           </div>
           <div className="flex-1">
-            <h1 className="text-lg font-semibold">Admins</h1>
+            <h1 className="text-lg font-semibold">Coaches &amp; team</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Owner is fixed. Promote any student to admin — like adding an admin in a WhatsApp
               group.

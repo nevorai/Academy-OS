@@ -1,7 +1,7 @@
 import { useState, type ComponentType } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { BadgeCheck, FileText, Layers, MessageCircle, Phone, ShieldAlert } from "lucide-react";
+import { MessageCircle, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ds/Card";
 import { ConfirmDeleteDialog } from "@/components/shared/ConfirmDeleteDialog";
@@ -27,9 +27,6 @@ export function MoreTab({ student, tenantId }: { student: PlayerStudent; tenantI
   const { isOwner } = usePermissions();
 
   const rows: Row[] = [
-    { icon: FileText, label: "Registration form", value: "View original registration", soon: true },
-    { icon: BadgeCheck, label: "Certificates", value: "Awards & certificates", soon: true },
-    { icon: ShieldAlert, label: "Medical", value: "Health & injury records", soon: true },
     {
       icon: Phone,
       label: "Emergency contact",
@@ -38,7 +35,6 @@ export function MoreTab({ student, tenantId }: { student: PlayerStudent; tenantI
         : "Not on file",
     },
     { icon: MessageCircle, label: "Address", value: student.address ?? "Not on file" },
-    { icon: Layers, label: "Documents", value: "ID card, report card", soon: true },
   ];
 
   return (

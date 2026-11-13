@@ -589,6 +589,21 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
+
+/* Installed iPhone app only (home-screen icon, status bar drawn over the page).
+   iOS bug: on a page that fits one screen, the layout area ends short of the real screen by the
+   status-bar height, so anything "fixed to the bottom" (the bottom navigation) floats a little
+   too high; on a long page (Fees) it sits right. That is why the bar jumped between tabs.
+   Making the document that much taller than the short area puts iOS in the same state as on a
+   long page, so the bar stays at the true bottom edge on every tab.
+   The scorer is left out: it is pinned to the screen edges itself and already confirmed right. */
+@supports (-webkit-touch-callout: none) {
+  @media (display-mode: standalone) {
+    html:not(:has(.scorer-root)) {
+      min-height: calc(100% + env(safe-area-inset-top, 0px));
+    }
+  }
+}
 body {
   -webkit-tap-highlight-color: transparent;
   /* NOTE: Do NOT set `touch-action: manipulation` on the body — on some

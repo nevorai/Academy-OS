@@ -22,7 +22,8 @@ type State =
 const WAIT_MS = 25_000;
 
 /**
- * Shown right after an enquiry is accepted: makes the player's login, sends it on
+ * Runs right after an enquiry is accepted. A player who applied through the public form
+ * already has their own login, so nothing is shown. Otherwise it makes the login, sends it on
  * WhatsApp when the academy has that connected, and shows the ID and password once
  * so the owner can pass them on. Safe to repeat: a player who already has a login
  * is skipped by the server.
@@ -63,10 +64,8 @@ export function AcceptedLoginDialog({
           whatsappSent: r.whatsappSent,
         });
       } else if (!r) {
-        setState({
-          status: "failed",
-          error: "This player already has a login. Use Reset password on the player page",
-        });
+        // Applied through the public form: they already chose their own password. Nothing to show.
+        onClose();
       } else {
         setState({ status: "failed", error: r.error ?? "Login was not created" });
       }
@@ -94,7 +93,8 @@ export function AcceptedLoginDialog({
 
   return (
     <Dialog
-      open={!!student}
+      // Stays hidden while it works, so a player who already has a login never sees a window.
+      open={!!student && state.status !== "working"}
       onOpenChange={(v) => {
         // The password is shown only once: do not close while it is being made.
         if (!v && state.status !== "working") onClose();

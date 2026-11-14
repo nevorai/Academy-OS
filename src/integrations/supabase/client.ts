@@ -30,6 +30,57 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
   };
 }
 
+// Keeps the sign-in in two places (localStorage and IndexedDB) and asks the browser not to evict
+// them, so an installed phone app that has been closed for days still opens signed in. Phones can
+// clear localStorage under storage pressure; the IndexedDB copy restores it.
+const IDB_NAME = "academy-auth";
+function idb(): Promise<IDBDatabase | null> {
+  return new Promise((resolve) => {
+    try {
+      const req = indexedDB.open(IDB_NAME, 1);
+      req.onupgradeneeded = () => req.result.createObjectStore("kv");
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => resolve(null);
+    } catch {
+      resolve(null);
+    }
+  });
+}
+async function idbOp<T>(mode: IDBTransactionMode, run: (s: IDBObjectStore) => IDBRequest<T>): Promise<T | null> {
+  const db = await idb();
+  if (!db) return null;
+  return new Promise((resolve) => {
+    try {
+      const req = run(db.transaction("kv", mode).objectStore("kv"));
+      req.onsuccess = () => resolve(req.result ?? null);
+      req.onerror = () => resolve(null);
+    } catch {
+      resolve(null);
+    }
+  });
+}
+const durableStorage = {
+  async getItem(key: string): Promise<string | null> {
+    let v: string | null = null;
+    try { v = localStorage.getItem(key); } catch { /* blocked */ }
+    if (v) return v;
+    v = (await idbOp<string>("readonly", (s) => s.get(key))) as string | null;
+    if (v) { try { localStorage.setItem(key, v); } catch { /* blocked */ } }
+    return v;
+  },
+  async setItem(key: string, value: string): Promise<void> {
+    try { localStorage.setItem(key, value); } catch { /* blocked */ }
+    await idbOp("readwrite", (s) => s.put(value, key));
+  },
+  async removeItem(key: string): Promise<void> {
+    try { localStorage.removeItem(key); } catch { /* blocked */ }
+    await idbOp("readwrite", (s) => s.delete(key));
+  },
+};
+if (typeof window !== "undefined") {
+  try { void navigator.storage?.persist?.(); } catch { /* not supported */ }
+}
+
 function createSupabaseClient() {
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
@@ -53,7 +104,7 @@ function createSupabaseClient() {
       fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
     },
     auth: {
-      storage: typeof window !== "undefined" ? localStorage : undefined,
+      storage: typeof window !== "undefined" ? durableStorage : undefined,
       persistSession: true,
       autoRefreshToken: true,
     },

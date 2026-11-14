@@ -170,7 +170,7 @@ export function AcademyAuthLayout({ children }: { children: ReactNode }) {
       <ThemeSwitch />
 
       <div className="relative z-10 -mt-5 flex min-h-[calc(100dvh-100px)] flex-col rounded-t-[20px] bg-auth-bg lg:mt-0 lg:min-h-dvh lg:rounded-none">
-        <main className="flex flex-1 items-start justify-center lg:items-center px-5 pb-6 pt-6 sm:px-8 lg:py-14">
+        <main className="flex flex-1 items-center justify-center px-5 pb-16 pt-6 sm:px-8 lg:py-14">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}

@@ -42,6 +42,9 @@ for (const t of rows) {
 const file = ".output/server/wrangler.json";
 const cfg = JSON.parse(fs.readFileSync(file, "utf8"));
 cfg.name = "nevorai-academy-os";
+// Nitro stamps the LOCAL date (India is ahead of UTC); Cloudflare rejects a date later than UTC today.
+const utc = new Date().toISOString().slice(0, 10);
+if (cfg.compatibility_date > utc) cfg.compatibility_date = utc;
 cfg.routes = [...hosts].sort().map((h) => ({ pattern: h, custom_domain: true }));
 if (cfg.routes.some((r) => r.pattern.includes("*"))) stop("a wildcard route is in the list.");
 delete cfg.placement; // no placement hint, so the edge cache in src/server.ts answers from the visitor data centre

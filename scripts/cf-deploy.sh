@@ -44,7 +44,7 @@ const cfg = JSON.parse(fs.readFileSync(file, "utf8"));
 cfg.name = "nevorai-academy-os";
 cfg.routes = [...hosts].sort().map((h) => ({ pattern: h, custom_domain: true }));
 if (cfg.routes.some((r) => r.pattern.includes("*"))) stop("a wildcard route is in the list.");
-cfg.placement = { region: "aws:ap-south-1" };
+delete cfg.placement; // no placement hint, so the edge cache in src/server.ts answers from the visitor data centre
 cfg.observability = { enabled: true };
 cfg.workers_dev = true;
 fs.writeFileSync(file, JSON.stringify(cfg, null, 2));

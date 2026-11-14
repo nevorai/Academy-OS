@@ -35,6 +35,11 @@ export const Route = createFileRoute("/auth")({
       { name: "robots", content: "noindex" },
     ],
   }),
+  // Server-rendered HTML is the same for every visitor (sign-in lives in the browser), so the edge
+  // keeps it for five minutes; a link with ?query is never cached (src/server.ts).
+  headers: () => ({
+    "Cache-Control": "public, max-age=0, s-maxage=300, stale-while-revalidate=3600",
+  }),
   component: AuthPage,
 });
 
@@ -86,6 +91,13 @@ function AuthPage() {
   const [mode, setMode] = useState<"signin" | "forgot" | "reset">(searchMode ?? "signin");
   const [identifier, setIdentifier] = useState("");
   const [email, setEmail] = useState("");
+  // Remember who signed in last on this phone, so only the password is left to type.
+  useEffect(() => {
+    try {
+      const last = localStorage.getItem("academy:last-id");
+      if (last) setIdentifier((cur) => cur || last);
+    } catch { /* storage blocked */ }
+  }, []);
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -127,6 +139,7 @@ function AuthPage() {
       setFormError("Enter your username, email or phone and your password.");
       return;
     }
+    try { localStorage.setItem("academy:last-id", id); } catch { /* storage blocked */ }
     setLoading(true);
     let result;
     if (isLikelyEmail(id)) {
@@ -264,6 +277,7 @@ function AuthPage() {
               label="Email, phone or Player ID"
               type="text"
               inputMode="text"
+              name="username"
               autoComplete="username"
               autoCapitalize="none"
               spellCheck={false}
@@ -273,6 +287,7 @@ function AuthPage() {
             />
             <PasswordInput
               id="password"
+              name="password"
               label="Password"
               autoComplete="current-password"
               value={password}

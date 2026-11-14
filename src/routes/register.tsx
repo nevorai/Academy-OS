@@ -65,6 +65,11 @@ export const Route = createFileRoute("/register")({
       },
     ],
   }),
+  // Server-rendered HTML is the same for every visitor (sign-in lives in the browser), so the edge
+  // keeps it for five minutes; a link with ?query is never cached (src/server.ts).
+  headers: () => ({
+    "Cache-Control": "public, max-age=0, s-maxage=300, stale-while-revalidate=3600",
+  }),
   component: () => (
     <TenantGate chrome="focus">
       <RegisterContent />

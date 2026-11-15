@@ -1,14 +1,18 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { SplashScreen } from "@/components/ds/SplashScreen";
 
 /**
  * PWA launch target. `start_url` in the tenant manifest points here so the
  * installed app opens straight into the router (never the marketing homepage).
  *
- * Client-only: session lives in `localStorage`, which the server can't read.
- * A quick native-feeling splash while we restore the session, then a router
- * redirect to /dashboard, /platform-admin, or /auth.
+ * Opening the app must feel instant, like Metrol CRM:
+ *  - the SAME logo as the boot screen stays up (no second logo, no progress line);
+ *  - the place this person went last time is remembered on the phone, so a
+ *    signed-in user goes there at once and the check runs in the background;
+ *  - the dashboard code starts downloading at the first moment, in parallel.
+ * First open on a phone: one database call (my_post_login_route), not three in a row.
  */
 export const Route = createFileRoute("/app-launch")({
   ssr: false,
@@ -18,66 +22,71 @@ export const Route = createFileRoute("/app-launch")({
   component: AppLaunch,
 });
 
+type Target = "/platform-admin" | "/dashboard" | "/student";
+const TARGETS: Target[] = ["/platform-admin", "/dashboard", "/student"];
+const cacheKey = (uid: string) => `acad.launch.${uid}`;
+
+function readTarget(uid: string): Target | null {
+  try {
+    const v = window.localStorage.getItem(cacheKey(uid)) as Target | null;
+    return v && TARGETS.includes(v) ? v : null;
+  } catch {
+    return null;
+  }
+}
+function writeTarget(uid: string, t: Target) {
+  try {
+    window.localStorage.setItem(cacheKey(uid), t);
+  } catch {
+    /* storage blocked: next open just asks the server again */
+  }
+}
+
+async function lookupTarget(): Promise<Target> {
+  const { data, error } = await supabase.rpc("my_post_login_route" as never);
+  if (error) return "/dashboard";
+  switch (data as unknown as string) {
+    case "platform_admin":
+      return "/platform-admin";
+    case "staff":
+      return "/dashboard";
+    default:
+      return "/student";
+  }
+}
+
 function AppLaunch() {
   const navigate = useNavigate();
-  const [message, setMessage] = useState("Nevorai Academy");
+  const router = useRouter();
 
   useEffect(() => {
     let cancelled = false;
+    // Start fetching the most likely screen's code right away.
+    router.preloadRoute({ to: "/dashboard" }).catch(() => {});
 
     (async () => {
       try {
-        const { data: sessionData } = await supabase.auth.getSession();
+        const { data } = await supabase.auth.getSession();
         if (cancelled) return;
-
-        const session = sessionData.session;
-        if (!session?.user) {
+        const uid = data.session?.user?.id;
+        if (!uid) {
           navigate({ to: "/auth", replace: true });
           return;
         }
 
-        // setMessage("Signing you in…");
-        // Check if we are running in a standalone window (PWA)
-        const isStandalone = 
-          window.matchMedia?.("(display-mode: standalone)").matches ||
-          (window.navigator as any).standalone === true ||
-          window.matchMedia?.("(display-mode: minimal-ui)").matches;
-
-        // Platform admins land on the admin console; everyone else on the
-        // owner dashboard. Falls back to /dashboard if the lookup errors.
-        let target: "/platform-admin" | "/dashboard" | "/student" = "/dashboard";
-        try {
-          const { data } = await supabase
-            .from("platform_admins")
-            .select("user_id")
-            .eq("user_id", session.user.id)
-            .maybeSingle();
-          if (data) {
-            target = "/platform-admin";
-          } else {
-            // Check if the user is a student (parent portal user)
-            const { data: student } = await supabase
-              .from("students")
-              .select("id, status")
-              .eq("user_id", session.user.id)
-              .maybeSingle();
-            
-            if (student) {
-              target = "/student";
-              
-              // If PWA launch and student is active, skip any landing/pending checks 
-              // and go straight to their dashboard.
-              if (isStandalone && student.status === 'active') {
-                target = "/student";
-              }
-            }
-          }
-        } catch {
-          /* ignore — default to /dashboard */
+        const known = readTarget(uid);
+        if (known) {
+          navigate({ to: known, replace: true });
+          // Refresh the remembered place for next time (role may have changed).
+          lookupTarget()
+            .then((t) => writeTarget(uid, t))
+            .catch(() => {});
+          return;
         }
 
-        if (cancelled) return;
-        navigate({ to: target, replace: true });
+        const target = await lookupTarget();
+        writeTarget(uid, target);
+        if (!cancelled) navigate({ to: target, replace: true });
       } catch {
         if (!cancelled) navigate({ to: "/auth", replace: true });
       }
@@ -86,38 +95,8 @@ function AppLaunch() {
     return () => {
       cancelled = true;
     };
-  }, [navigate]);
+  }, [navigate, router]);
 
-  return (
-    <div
-      className="fixed inset-0 grid place-items-center bg-background text-foreground"
-      style={{
-        paddingTop: "var(--app-safe-top)",
-        paddingBottom: "var(--app-safe-bottom)",
-      }}
-      role="status"
-      aria-live="polite"
-    >
-      <div className="flex flex-col items-center gap-6">
-        <div
-          className="grid h-20 w-20 place-items-center rounded-3xl text-4xl shadow-2xl animate-pulse"
-          style={{ backgroundColor: "transparent" }}
-        >
-          <img src="/api/public/tenant-icon" alt="" className="size-20 object-contain" onError={(e) => {
-            e.currentTarget.style.display = 'none';
-            if (e.currentTarget.parentElement) e.currentTarget.parentElement.innerText = '🏏';
-          }} />
-        </div>
-        <div className="flex flex-col items-center gap-2">
-          <div className="h-1 w-32 overflow-hidden rounded-full bg-muted">
-            <div className="h-full w-full origin-left animate-progress bg-primary" />
-          </div>
-          <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground font-semibold">
-            {message}
-          </p>
-        </div>
-      </div>
-
-    </div>
-  );
+  // Same screen as the boot splash, so nothing changes on screen while we route.
+  return <SplashScreen />;
 }

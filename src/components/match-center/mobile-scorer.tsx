@@ -297,6 +297,15 @@ export function MobileScorer(props: MobileScorerProps) {
 
   /* ---------- this over / recent overs ---------- */
   const history = props.overHistory ?? [];
+  // Once a ball is bowled, a batter at the crease cannot be swapped by tapping his name.
+  // A new batter comes only through a wicket or Retired. Before the first ball, fixing
+  // striker / non-striker by mistake is still allowed.
+  const inningsStarted =
+    history.length > 0 ||
+    (props.ballsInOver ?? 0) > 0 ||
+    (props.partnership?.balls ?? 0) > 0 ||
+    (props.partnership?.runs ?? 0) > 0 ||
+    !/^0(\.0)?$/.test(String(props.overs ?? "0"));
   const lastRow = history.length > 0 ? history[history.length - 1] : undefined;
   // Between overs the strip keeps showing the over that just ended until the next ball.
   const stripIsLastOver = Boolean(lastRow?.completed);
@@ -505,9 +514,18 @@ export function MobileScorer(props: MobileScorerProps) {
           />
 
           <section className="overflow-hidden rounded-xl border bg-card">
-            <BatterLine batter={props.striker} striker onClick={() => openPicker("striker")} />
+            <BatterLine
+              batter={props.striker}
+              striker
+              locked={inningsStarted}
+              onClick={() => openPicker("striker")}
+            />
             <div className="h-px bg-border/70" />
-            <BatterLine batter={props.nonStriker} onClick={() => openPicker("nonStriker")} />
+            <BatterLine
+              batter={props.nonStriker}
+              locked={inningsStarted}
+              onClick={() => openPicker("nonStriker")}
+            />
             <div className="h-px bg-border/70" />
             <BowlerLine
               bowler={props.bowler}
@@ -784,20 +802,25 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
 function BatterLine({
   batter,
   striker,
+  locked,
   onClick,
 }: {
   batter?: BatterStats;
   striker?: boolean;
+  locked?: boolean;
   onClick: () => void;
 }) {
   const empty = !batter?.name;
+  const frozen = Boolean(locked) && !empty;
   const name = batter?.name ?? (striker ? "Select striker" : "Select non-striker");
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={frozen ? undefined : onClick}
+      aria-disabled={frozen || undefined}
       className={cn(
-        "relative grid h-11 w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 pl-3 pr-3 text-left transition duration-100 active:bg-muted/70",
+        "relative grid h-11 w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 pl-3 pr-3 text-left transition duration-100",
+        frozen ? "cursor-default" : "active:bg-muted/70",
         striker && !empty && "bg-[var(--score-striker-bg)]",
         empty && "bg-[var(--score-wait-bg)]",
       )}

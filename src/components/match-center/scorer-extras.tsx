@@ -33,6 +33,17 @@ export function useExtraEntry({
     toast.success(kind === "Wide" ? "Wide added (+1)" : "No ball added (+1)", { duration: 1500 });
   };
 
+  /** From the bubble above the key: the penalty run plus the extra runs tapped. */
+  const submitExtra = (kind: "Wide" | "No Ball", mode: "bat" | "bye" | "leg_bye", runs: number) => {
+    if (kind === "Wide") requestSubmit(ballHelpers.wide(1 + runs));
+    else
+      requestSubmit(
+        mode === "bat"
+          ? ballHelpers.noBall(runs, 0)
+          : ballHelpers.noBall(0, runs, mode === "leg_bye"),
+      );
+  };
+
   const extrasModals = (
     <>
       <ExtraRunsModal
@@ -69,5 +80,5 @@ export function useExtraEntry({
     </>
   );
 
-  return { extraKind, setExtraKind, quickExtra, extrasModals };
+  return { extraKind, setExtraKind, quickExtra, submitExtra, extrasModals };
 }

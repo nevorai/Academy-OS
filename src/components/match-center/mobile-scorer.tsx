@@ -84,6 +84,8 @@ export interface MobileScorerProps {
   onExtra: (kind: "Wide" | "No Ball" | "Bye" | "Leg Bye") => void;
   /** One tap on Wide or No ball: save it at once with no extra runs. */
   onQuickExtra?: (kind: "Wide" | "No Ball") => void;
+  /** Bubble above the key: a wide or no-ball with extra runs on top of the penalty run. */
+  onExtraRuns?: (kind: "Wide" | "No Ball", mode: "bat" | "bye" | "leg_bye", runs: number) => void;
   onOut: () => void;
 
   onOpenStrikerPicker: () => void;
@@ -526,6 +528,7 @@ export function MobileScorer(props: MobileScorerProps) {
             onRun={props.onRun}
             onExtra={props.onExtra}
             onQuickExtra={props.onQuickExtra}
+            onExtraRuns={props.onExtraRuns}
             onOut={props.onOut}
           />
         </div>
@@ -1012,16 +1015,113 @@ function ScoringDock({
   onRun,
   onExtra,
   onQuickExtra,
+  onExtraRuns,
   onOut,
 }: {
   disabled?: boolean;
   onRun: (r: 0 | 1 | 2 | 3 | 4 | 5 | 6) => void;
   onExtra: (kind: "Wide" | "No Ball" | "Bye" | "Leg Bye") => void;
   onQuickExtra?: (kind: "Wide" | "No Ball") => void;
+  onExtraRuns?: (kind: "Wide" | "No Ball", mode: "bat" | "bye" | "leg_bye", runs: number) => void;
   onOut: () => void;
 }) {
+  // Hold Wide or No ball: a small glass strip opens right above the key.
+  const [bubble, setBubble] = useState<"Wide" | "No Ball" | null>(null);
+  const [mode, setMode] = useState<"bat" | "bye" | "leg_bye">("bat");
+  const openBubble = (kind: "Wide" | "No Ball") => {
+    try {
+      navigator.vibrate?.(10);
+    } catch {
+      /* haptics are optional */
+    }
+    setMode("bat");
+    if (onExtraRuns) setBubble(kind);
+    else onExtra(kind);
+  };
+  const isNb = bubble === "No Ball";
+  const MODES = ["bat", "bye", "leg_bye"] as const;
+  const MODE_LABEL = { bat: "Off the bat", bye: "Byes", leg_bye: "Leg byes" } as const;
+  const bubbleKeys: { runs: number; label: string; cls: string }[] = [
+    { runs: 1, label: "+1", cls: "bg-foreground/[0.07] text-foreground" },
+    { runs: 2, label: "+2", cls: "bg-foreground/[0.07] text-foreground" },
+    { runs: 3, label: "+3", cls: "bg-foreground/[0.07] text-foreground" },
+    { runs: 4, label: "4", cls: "bg-[#0A84FF]/15 text-[#0A6FE0] dark:text-[#64A9FF]" },
+    ...(isNb
+      ? [{ runs: 6, label: "6", cls: "bg-[#AF52DE]/15 text-[#8E3AC4] dark:text-[#D08CF5]" }]
+      : []),
+  ];
   return (
-    <div>
+    <div className="relative">
+      {bubble && (
+        <>
+          <button
+            type="button"
+            aria-label="Close"
+            className="fixed inset-0 z-30 cursor-default bg-black/15"
+            onClick={() => setBubble(null)}
+          />
+          <div
+            role="dialog"
+            aria-label={`${bubble}: extra runs`}
+            className="absolute inset-x-0 bottom-[calc(100%+10px)] z-40 origin-bottom rounded-[18px] bg-background/85 p-2.5 shadow-[0_14px_40px_rgba(0,0,0,0.24)] ring-1 ring-white/60 backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-150 dark:ring-white/10"
+          >
+            <div className="mb-2 flex items-center justify-between px-0.5">
+              <span className="text-[12.5px] font-bold">
+                {isNb ? "No ball" : "Wide"} · +1 added
+              </span>
+              {isNb ? (
+                <button
+                  type="button"
+                  onClick={() => setMode(MODES[(MODES.indexOf(mode) + 1) % 3])}
+                  className="rounded-full bg-foreground/[0.08] px-2.5 py-1 text-[11.5px] font-semibold text-foreground/80 active:opacity-60"
+                >
+                  {MODE_LABEL[mode]} ▾
+                </button>
+              ) : (
+                <span className="text-[11.5px] font-medium text-muted-foreground">
+                  tap extra runs
+                </span>
+              )}
+            </div>
+            <div className={cn("grid gap-1.5", isNb ? "grid-cols-6" : "grid-cols-5")}>
+              {bubbleKeys.map((k) => (
+                <button
+                  key={k.runs}
+                  type="button"
+                  onClick={() => {
+                    const kind = bubble;
+                    setBubble(null);
+                    onExtraRuns?.(kind, kind === "No Ball" ? mode : "bat", k.runs);
+                  }}
+                  className={cn(
+                    "h-[46px] rounded-xl text-[18px] font-bold tabular-nums transition active:scale-95",
+                    k.cls,
+                  )}
+                >
+                  {k.label}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => {
+                  setBubble(null);
+                  onOut();
+                }}
+                className="h-[46px] rounded-xl bg-[#FF3B30]/[0.13] text-[18px] font-bold text-[#E0281E] transition active:scale-95 dark:text-[#FF6A60]"
+              >
+                W
+              </button>
+            </div>
+            <span
+              aria-hidden
+              className={cn(
+                "absolute -bottom-[6px] size-3.5 rotate-45 rounded-[3px] bg-background/90",
+                isNb ? "left-[28%]" : "left-[8%]",
+              )}
+            />
+          </div>
+        </>
+      )}
       <div className="grid grid-cols-7 gap-1.5">
         {([0, 1, 2, 3, 4, 5, 6] as const).map((run) => (
           <RunKey key={run} value={run} disabled={disabled} onClick={() => onRun(run)} />
@@ -1034,7 +1134,7 @@ function ScoringDock({
           disabled={disabled}
           hint={onQuickExtra ? "hold: +runs" : undefined}
           onClick={() => (onQuickExtra ? onQuickExtra("Wide") : onExtra("Wide"))}
-          onLongPress={onQuickExtra ? () => onExtra("Wide") : undefined}
+          onLongPress={onQuickExtra ? () => openBubble("Wide") : undefined}
         />
         <ExtraKey
           label="No ball"
@@ -1042,7 +1142,7 @@ function ScoringDock({
           disabled={disabled}
           hint={onQuickExtra ? "hold: +runs" : undefined}
           onClick={() => (onQuickExtra ? onQuickExtra("No Ball") : onExtra("No Ball"))}
-          onLongPress={onQuickExtra ? () => onExtra("No Ball") : undefined}
+          onLongPress={onQuickExtra ? () => openBubble("No Ball") : undefined}
         />
         <ExtraKey label="Bye" tone="bye" disabled={disabled} onClick={() => onExtra("Bye")} />
         <ExtraKey

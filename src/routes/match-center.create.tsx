@@ -117,6 +117,20 @@ function panelWithTypedName(panel: TeamPanelState, typed: string): TeamPanelStat
   return { ...panel, draftName: typed };
 }
 
+/** Lower-case names that appear on more than one row of a squad. Two players with one name
+ *  are mixed up by the scorer, so the squad cannot be continued until each name is different. */
+function duplicateNames(names: string[]): Set<string> {
+  const seen = new Set<string>();
+  const dup = new Set<string>();
+  for (const raw of names) {
+    const n = raw.trim().toLowerCase();
+    if (!n) continue;
+    if (seen.has(n)) dup.add(n);
+    seen.add(n);
+  }
+  return dup;
+}
+
 const FORMAT_OPTIONS: { label: string; overs: number; value: string }[] = [
   { label: "T10 · 10 overs", overs: 10, value: "T10" },
   { label: "T20 · 20 overs", overs: 20, value: "T20" },
@@ -720,8 +734,10 @@ function CreateMatchPage() {
   const hasRolesB =
     panelB.players.some((p) => p.is_captain) && panelB.players.some((p) => p.is_keeper);
 
-  const step2Valid = readyA && panelA.players.length >= 2 && hasRolesA;
-  const step3Valid = readyB && panelB.players.length >= 2 && hasRolesB;
+  const noDupA = duplicateNames(panelA.players.map((p) => p.name)).size === 0;
+  const noDupB = duplicateNames(panelB.players.map((p) => p.name)).size === 0;
+  const step2Valid = readyA && panelA.players.length >= 2 && hasRolesA && noDupA;
+  const step3Valid = readyB && panelB.players.length >= 2 && hasRolesB && noDupB;
   const canStart = !validationError;
 
   const goBack = (e?: React.MouseEvent) => {
@@ -1710,7 +1726,9 @@ function NewTeamBody({
     ? "Team name is required"
     : players.length < 2
       ? "Add at least 2 players"
-      : !players.some((p) => p.is_captain)
+      : duplicateNames(players.map((p) => p.name)).size > 0
+        ? "Two players have the same name. Change one, for example Rahul 1 and Rahul 2"
+        : !players.some((p) => p.is_captain)
         ? "Pick a Captain (tap C)"
         : !players.some((p) => p.is_keeper)
           ? "Pick a Wicketkeeper (tap WK)"
@@ -1954,6 +1972,7 @@ function SquadSheet({
   };
 
   const total = Math.max(minRows, slots.length);
+  const dupNames = useMemo(() => duplicateNames(slots.map((x) => x?.name ?? "")), [slots]);
 
   return (
     <div>
@@ -1965,8 +1984,15 @@ function SquadSheet({
         {Array.from({ length: total }, (_, i) => {
           const p = slots[i] ?? null;
           const sugg = activeRow === i && p ? suggest(p.name) : [];
+          const isDup = !!p && dupNames.has(p.name.trim().toLowerCase());
           return (
-            <li key={i} className="relative flex h-12 items-center gap-1.5 px-2">
+            <li
+              key={i}
+              className={cn(
+                "relative flex h-12 items-center gap-1.5 px-2",
+                isDup && "bg-destructive/10",
+              )}
+            >
               <span className="w-5 shrink-0 text-center text-[12px] font-semibold tabular-nums text-muted-foreground">
                 {i + 1}
               </span>
@@ -2000,6 +2026,9 @@ function SquadSheet({
                 autoCorrect="off"
                 className="h-10 min-w-0 flex-1 rounded-lg bg-transparent px-2 text-[16px] font-semibold outline-none focus:bg-muted/60"
               />
+              {isDup && (
+                <span className="shrink-0 text-[11px] font-bold text-destructive">Same name</span>
+              )}
               {p && (
                 <>
                   <div className="flex shrink-0 items-center gap-1">

@@ -154,6 +154,16 @@ export function EditTeamsSheet({
     if (!teams) return;
     for (const t of teams) {
       if (!t.name.trim()) return toast.error("Team name is required");
+      const seen = new Set<string>();
+      for (const r of t.rows) {
+        const n = r.name.trim().toLowerCase();
+        if (!n) continue;
+        if (seen.has(n))
+          return toast.error(
+            `${t.name}: two players are named "${r.name.trim()}". Change one, for example ${r.name.trim()} 2`,
+          );
+        seen.add(n);
+      }
       if (!t.rows.some((r) => r.is_captain)) return toast.error(`${t.name}: pick a Captain`);
       if (!t.rows.some((r) => r.is_keeper)) return toast.error(`${t.name}: pick a Wicketkeeper`);
     }

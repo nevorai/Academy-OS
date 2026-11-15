@@ -1,12 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import type { DismissalType } from "@/lib/mc-ball-events-core";
 import type { PlayerOption } from "@/components/match-center/scoring-ui";
 import {
@@ -75,7 +70,7 @@ function Chip({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "h-11 rounded-xl border px-2 text-[13px] font-semibold transition active:scale-[0.98]",
+        "h-10 rounded-xl border px-2 text-[13px] font-semibold transition active:scale-[0.98]",
         active
           ? "border-primary bg-primary text-primary-foreground"
           : "border-border bg-background hover:bg-muted",
@@ -90,7 +85,7 @@ function Chip({
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1">
       <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
         {title}
       </div>
@@ -177,25 +172,28 @@ export function WicketSheet({
       <SheetContent
         side="bottom"
         overlayClassName="bg-background/35 backdrop-blur-[1px]"
-        className="flex max-h-[92dvh] flex-col rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl"
+        hideClose
+        className="flex max-h-[92dvh] flex-col gap-0 rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl"
       >
-        <div className="flex items-center justify-between px-4 pb-2 pt-3">
-          <div className="min-w-0 pr-10 text-left">
-            <SheetTitle className="text-base">Wicket</SheetTitle>
-            <SheetDescription className="text-xs">
-              Pick how the batter is out. Add the runs and any wide or no-ball in the same step.
-            </SheetDescription>
-          </div>
+        {/* Compact: one title line, no close cross up top. Cancel sits at the bottom,
+            next to the thumb, beside Record wicket. */}
+        <div className="px-3 pb-1.5 pt-2.5 text-left">
+          <SheetTitle className="text-[13px] font-black leading-none">
+            {kind ? "Wicket" : "Wicket · how is the batter out?"}
+          </SheetTitle>
+          <SheetDescription className="sr-only">
+            Pick how the batter is out. Add the runs and any wide or no-ball in the same step.
+          </SheetDescription>
         </div>
 
-        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-3 pb-3">
-          <div className="grid grid-cols-3 gap-2">
+        <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto px-3 pb-2.5">
+          <div className="grid grid-cols-4 gap-1.5">
             {KINDS.map((k) => (
               <Chip
                 key={k.kind}
                 active={kind === k.kind}
                 onClick={() => pickKind(k.kind)}
-                className="h-10 text-[12px]"
+                className="h-9 px-0.5 text-[11.5px] leading-tight"
               >
                 {k.label}
               </Chip>
@@ -249,7 +247,7 @@ export function WicketSheet({
                         key={n}
                         active={runs === n}
                         onClick={() => setRuns(n)}
-                        className="h-10 px-0"
+                        className="h-9 px-0"
                       >
                         {n}
                       </Chip>
@@ -309,19 +307,19 @@ export function WicketSheet({
                         : "Fielder (optional)"
                   }
                 >
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-1.5">
                     {fielders.map((f) => (
                       <Chip
                         key={f.id}
                         active={fielder?.id === f.id}
                         onClick={() => setFielder(fielder?.id === f.id ? null : f)}
-                        className="h-10 text-[12px]"
+                        className="h-9 text-[12px]"
                       >
                         <span className="block truncate">{f.name}</span>
                       </Chip>
                     ))}
                     {fielders.length === 0 && (
-                      <p className="col-span-2 text-xs text-muted-foreground">
+                      <p className="col-span-3 text-xs text-muted-foreground">
                         No fielding side listed for this match.
                       </p>
                     )}
@@ -333,15 +331,22 @@ export function WicketSheet({
         </div>
 
         <div
-          className="border-t border-border/60 px-3 pt-3"
-          style={{ paddingBottom: "calc(var(--app-safe-bottom) + .75rem)" }}
+          className="grid grid-cols-[1fr_2fr] gap-2 border-t border-border/60 px-3 pt-2"
+          style={{ paddingBottom: "calc(var(--app-safe-bottom) + .5rem)" }}
         >
           <Button
-            className="h-12 w-full text-sm font-bold"
-            disabled={!canConfirm}
-            onClick={confirm}
+            variant="outline"
+            className="h-11 text-sm font-bold"
+            onClick={() => onOpenChange(false)}
           >
-            {kind ? "Record wicket" : "Choose how the batter is out"}
+            Cancel
+          </Button>
+          <Button className="h-11 text-sm font-bold" disabled={!canConfirm} onClick={confirm}>
+            {fielderMissing
+              ? kind === "caught"
+                ? "Pick the catcher"
+                : "Pick the keeper"
+              : "Record wicket"}
           </Button>
         </div>
       </SheetContent>

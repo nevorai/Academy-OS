@@ -114,7 +114,7 @@ export function useBallActions<S extends SessionLike>({
 
   const onRun = (r: 0 | 1 | 2 | 3 | 4 | 5 | 6) => requestSubmit(ballHelpers.run(r) as Partial);
 
-  const { setExtraKind, quickExtra, submitExtra, extrasModals } = useExtraEntry({
+  const { setExtraKind, quickExtra, submitExtra, submitBye, extrasModals } = useExtraEntry({
     requestSubmit: requestSubmit as never,
     openWicket: () => {
       setWicketKind(null);
@@ -158,6 +158,7 @@ export function useBallActions<S extends SessionLike>({
     setExtraKind,
     quickExtra,
     submitExtra,
+    submitBye,
     extrasModals,
   };
 }

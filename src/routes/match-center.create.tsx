@@ -105,6 +105,18 @@ const emptyPanel = (mode: TeamMode = "existing"): TeamPanelState => ({
   players: [],
 });
 
+/**
+ * A team name typed on step 1. The team step then opens with the name already
+ * filled, so only the players are left to add. Clearing the box goes back to
+ * "pick a saved team". Players already added under a typed name are kept.
+ */
+function panelWithTypedName(panel: TeamPanelState, typed: string): TeamPanelState {
+  if (!typed.trim() && panel.mode !== "existing" && panel.players.length === 0)
+    return emptyPanel("existing");
+  if (panel.mode === "existing") return { ...emptyPanel("new"), draftName: typed };
+  return { ...panel, draftName: typed };
+}
+
 const FORMAT_OPTIONS: { label: string; overs: number; value: string }[] = [
   { label: "T10 · 10 overs", overs: 10, value: "T10" },
   { label: "T20 · 20 overs", overs: 20, value: "T20" },
@@ -699,7 +711,9 @@ function CreateMatchPage() {
   const readyB =
     panelB.mode === "existing" ? !!panelB.selectedTeamId : panelB.draftName.trim().length > 0;
 
-  const step1Valid = !!matchType && !!matchFormat && overs > 0;
+  const sameTypedNames =
+    teamAName !== "Team A" && teamAName.trim().toLowerCase() === teamBName.trim().toLowerCase();
+  const step1Valid = !!matchType && !!matchFormat && overs > 0 && !sameTypedNames;
 
   const hasRolesA =
     panelA.players.some((p) => p.is_captain) && panelA.players.some((p) => p.is_keeper);
@@ -732,8 +746,24 @@ function CreateMatchPage() {
     }
   };
 
+  /** What the name box on step 1 shows: the picked saved team, or what was typed. */
+  const stepOneName = (panel: TeamPanelState) =>
+    panel.mode === "existing"
+      ? (teams.find((t) => t.id === panel.selectedTeamId)?.name ?? "")
+      : panel.draftName;
+
   const stepTitle =
-    step === 1 ? "Match setup" : step === 2 ? "Team A" : step === 3 ? "Team B" : "Check and start";
+    step === 1
+      ? "Match setup"
+      : step === 2
+        ? teamAName === "Team A"
+          ? "Team A"
+          : `Team A · ${teamAName}`
+        : step === 3
+          ? teamBName === "Team B"
+            ? "Team B"
+            : `Team B · ${teamBName}`
+          : "Check and start";
 
   const canContinue =
     step === 1 ? step1Valid : step === 2 ? step2Valid : step === 3 ? step3Valid : true;
@@ -750,6 +780,10 @@ function CreateMatchPage() {
           setPlayingRules={setPlayingRules}
           overs={overs}
           setOvers={setOvers}
+          teamAName={stepOneName(panelA)}
+          teamBName={stepOneName(panelB)}
+          onTeamAName={(n) => setPanelA(panelWithTypedName(panelA, n))}
+          onTeamBName={(n) => setPanelB(panelWithTypedName(panelB, n))}
         />
       )}
 
@@ -883,11 +917,13 @@ function CreateMatchPage() {
       </div>
       {!canContinue && step === 1 && (
         <div className="text-[10px] text-center text-amber-600 font-bold bg-amber-50 dark:bg-amber-900/10 rounded-lg py-1 px-2 border border-amber-100 dark:border-amber-900/20">
-          {!matchFormat
-            ? "Select match overs"
-            : overs <= 0
-              ? "Invalid overs count"
-              : "Complete setup to continue"}
+          {sameTypedNames
+            ? "The two teams need different names"
+            : !matchFormat
+              ? "Select match overs"
+              : overs <= 0
+                ? "Invalid overs count"
+                : "Complete setup to continue"}
         </div>
       )}
       {!canStart && step === 4 && validationError && (
@@ -964,7 +1000,15 @@ function StepSetup({
   setPlayingRules,
   overs,
   setOvers,
+  teamAName,
+  teamBName,
+  onTeamAName,
+  onTeamBName,
 }: {
+  teamAName: string;
+  teamBName: string;
+  onTeamAName: (v: string) => void;
+  onTeamBName: (v: string) => void;
   matchType: string;
   setMatchType: (v: string) => void;
   matchFormat: string;
@@ -976,6 +1020,36 @@ function StepSetup({
 }) {
   return (
     <div className="space-y-6">
+      <section>
+        <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Teams
+        </Label>
+        <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+          <Input
+            value={teamAName}
+            onChange={(e) => onTeamAName(e.target.value)}
+            placeholder="Team A name"
+            aria-label="Team A name"
+            maxLength={40}
+            autoCapitalize="words"
+            className="h-12 text-base font-semibold"
+          />
+          <span className="text-xs font-black uppercase text-muted-foreground">vs</span>
+          <Input
+            value={teamBName}
+            onChange={(e) => onTeamBName(e.target.value)}
+            placeholder="Team B name"
+            aria-label="Team B name"
+            maxLength={40}
+            autoCapitalize="words"
+            className="h-12 text-base font-semibold"
+          />
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Next you only add the players. Leave blank to pick a saved team.
+        </p>
+      </section>
+
       <section>
         <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
           Match type

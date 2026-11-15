@@ -21,57 +21,18 @@ export function BallFixSheet({
   onOpenChange: (open: boolean) => void;
   fix: BallFix;
 }) {
-  const [picked, setPicked] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!open) setPicked(null);
-  }, [open]);
-
-  const pickedIndex = picked ? fix.balls.findIndex((b) => b.id === picked) : -1;
-  const pickedBall = pickedIndex >= 0 ? fix.balls[pickedIndex] : null;
-  // balls are newest first, so everything before the picked one in the list comes after it in play
-  const laterCount = pickedIndex >= 0 ? pickedIndex : 0;
-
-  const goBack = async () => {
-    if (!picked) return;
-    onOpenChange(false);
-    await fix.rewindTo(picked);
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[85dvh] gap-3 overflow-hidden p-0 sm:max-w-md">
         <DialogHeader className="px-4 pt-4 text-left">
           <DialogTitle>Which ball was wrong?</DialogTitle>
           <DialogDescription>
-            Tap the ball. Then score it again with the normal buttons. The balls after it come back
-            by themselves.
+            Tap the ball and score it again with the normal buttons. The balls after it wait and
+            come back when you finish. Tapped the wrong one? Cancel puts it all back.
           </DialogDescription>
         </DialogHeader>
 
-        {pickedBall ? (
-          <div className="space-y-3 px-4 pb-4">
-            <div className="rounded-lg border bg-muted/40 p-3 text-sm">
-              <div className="font-semibold">
-                {pickedBall.overLabel} · {pickedBall.chip}
-              </div>
-              <div className="text-muted-foreground">{pickedBall.who}</div>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {laterCount === 0
-                ? "This is the last ball. It is taken off so you can score it again."
-                : `This ball and the ${laterCount} ball${laterCount === 1 ? "" : "s"} after it are taken off the scorecard and held. The public score shows fewer balls until you tap Re-apply.`}
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" className="h-12" onClick={() => setPicked(null)}>
-                Choose another
-              </Button>
-              <Button className="h-12" onClick={() => void goBack()}>
-                Score it again
-              </Button>
-            </div>
-          </div>
-        ) : (
+        {
           <div className="max-h-[60dvh] overflow-y-auto px-2 pb-3">
             {fix.balls.length === 0 ? (
               <p className="px-2 py-6 text-center text-sm text-muted-foreground">
@@ -84,11 +45,10 @@ export function BallFixSheet({
                     <button
                       type="button"
                       onClick={() => {
-                        // The last ball has nothing after it, so one tap is enough.
-                        if (i === 0) {
-                          onOpenChange(false);
-                          void fix.rewindTo(b.id);
-                        } else setPicked(b.id);
+                        // One tap goes straight to scoring it again. No second box:
+                        // the bar above the keys has "Cancel, keep the old ball".
+                        onOpenChange(false);
+                        void fix.rewindTo(b.id);
                       }}
                       className="flex min-h-14 w-full items-center gap-3 rounded-md px-2 py-2 text-left hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:outline-none"
                     >
@@ -107,7 +67,7 @@ export function BallFixSheet({
                       <span className="min-w-0 flex-1">
                         <span className="block text-sm font-medium">
                           {b.overLabel}
-                          {i === 0 ? " · last ball (one tap)" : ""}
+                          {i === 0 ? " · last ball" : ""}
                         </span>
                         <span className="block truncate text-xs text-muted-foreground">
                           {b.who}
@@ -119,7 +79,7 @@ export function BallFixSheet({
               </ul>
             )}
           </div>
-        )}
+        }
       </DialogContent>
     </Dialog>
   );

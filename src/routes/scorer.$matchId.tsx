@@ -433,6 +433,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     setExtraKind,
     quickExtra,
     submitExtra,
+    submitBye,
     extrasModals,
   } = useBallActions({
     session,
@@ -758,6 +759,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
             onExtra={(kind) => setExtraKind(kind)}
             onQuickExtra={quickExtra}
             onExtraRuns={submitExtra}
+            onByeRuns={submitBye}
             onOut={() => {
               setWicketKind(null);
               setDismissOpen(true);
@@ -1422,6 +1424,7 @@ function DemoScorerBody({
     setExtraKind,
     quickExtra,
     submitExtra,
+    submitBye,
     extrasModals,
   } = useBallActions({
     session,
@@ -1629,6 +1632,7 @@ function DemoScorerBody({
             onExtra={(kind) => setExtraKind(kind)}
             onQuickExtra={quickExtra}
             onExtraRuns={submitExtra}
+            onByeRuns={submitBye}
             onOut={() => {
               setWicketKind(null);
               setDismissOpen(true);

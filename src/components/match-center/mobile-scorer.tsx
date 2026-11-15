@@ -86,6 +86,7 @@ export interface MobileScorerProps {
   onQuickExtra?: (kind: "Wide" | "No Ball") => void;
   /** Bubble above the key: a wide or no-ball with extra runs on top of the penalty run. */
   onExtraRuns?: (kind: "Wide" | "No Ball", mode: "bat" | "bye" | "leg_bye", runs: number) => void;
+  onByeRuns?: (kind: "Bye" | "Leg Bye", runs: number) => void;
   onOut: () => void;
 
   onOpenStrikerPicker: () => void;
@@ -529,6 +530,7 @@ export function MobileScorer(props: MobileScorerProps) {
             onExtra={props.onExtra}
             onQuickExtra={props.onQuickExtra}
             onExtraRuns={props.onExtraRuns}
+            onByeRuns={props.onByeRuns}
             onOut={props.onOut}
           />
         </div>
@@ -1024,6 +1026,7 @@ function ScoringDock({
   onExtra,
   onQuickExtra,
   onExtraRuns,
+  onByeRuns,
   onOut,
 }: {
   disabled?: boolean;
@@ -1031,10 +1034,12 @@ function ScoringDock({
   onExtra: (kind: "Wide" | "No Ball" | "Bye" | "Leg Bye") => void;
   onQuickExtra?: (kind: "Wide" | "No Ball") => void;
   onExtraRuns?: (kind: "Wide" | "No Ball", mode: "bat" | "bye" | "leg_bye", runs: number) => void;
+  /** Tap Bye or Leg bye: the same glass strip opens above the key; a tap on a run saves it. */
+  onByeRuns?: (kind: "Bye" | "Leg Bye", runs: number) => void;
   onOut: () => void;
 }) {
-  // Hold Wide or No ball: a small glass strip opens right above the key.
-  const [bubble, setBubble] = useState<"Wide" | "No Ball" | null>(null);
+  // Hold Wide or No ball, or tap Bye or Leg bye: a small glass strip opens right above the key.
+  const [bubble, setBubble] = useState<"Wide" | "No Ball" | "Bye" | "Leg Bye" | null>(null);
   const [mode, setMode] = useState<"bat" | "bye" | "leg_bye">("bat");
   const openBubble = (kind: "Wide" | "No Ball") => {
     try {
@@ -1046,18 +1051,30 @@ function ScoringDock({
     if (onExtraRuns) setBubble(kind);
     else onExtra(kind);
   };
+  const openByeBubble = (kind: "Bye" | "Leg Bye") => {
+    if (onByeRuns) setBubble(kind);
+    else onExtra(kind);
+  };
   const isNb = bubble === "No Ball";
+  const isBye = bubble === "Bye" || bubble === "Leg Bye";
   const MODES = ["bat", "bye", "leg_bye"] as const;
   const MODE_LABEL = { bat: "Off the bat", bye: "Byes", leg_bye: "Leg byes" } as const;
-  const bubbleKeys: { runs: number; label: string; cls: string }[] = [
-    { runs: 1, label: "+1", cls: "bg-foreground/[0.07] text-foreground" },
-    { runs: 2, label: "+2", cls: "bg-foreground/[0.07] text-foreground" },
-    { runs: 3, label: "+3", cls: "bg-foreground/[0.07] text-foreground" },
-    { runs: 4, label: "4", cls: "bg-[#0A84FF]/15 text-[#0A6FE0] dark:text-[#64A9FF]" },
-    ...(isNb
-      ? [{ runs: 6, label: "6", cls: "bg-[#AF52DE]/15 text-[#8E3AC4] dark:text-[#D08CF5]" }]
-      : []),
-  ];
+  const plainKey = "bg-foreground/[0.07] text-foreground";
+  const bubbleKeys: { runs: number; label: string; cls: string }[] = isBye
+    ? [1, 2, 3, 4, 5, 6].map((n) => ({
+        runs: n,
+        label: String(n),
+        cls: n === 4 ? "bg-[#0A84FF]/15 text-[#0A6FE0] dark:text-[#64A9FF]" : plainKey,
+      }))
+    : [
+        { runs: 1, label: "+1", cls: "bg-foreground/[0.07] text-foreground" },
+        { runs: 2, label: "+2", cls: "bg-foreground/[0.07] text-foreground" },
+        { runs: 3, label: "+3", cls: "bg-foreground/[0.07] text-foreground" },
+        { runs: 4, label: "4", cls: "bg-[#0A84FF]/15 text-[#0A6FE0] dark:text-[#64A9FF]" },
+        ...(isNb
+          ? [{ runs: 6, label: "6", cls: "bg-[#AF52DE]/15 text-[#8E3AC4] dark:text-[#D08CF5]" }]
+          : []),
+      ];
   return (
     <div className="relative">
       {bubble && (
@@ -1070,12 +1087,16 @@ function ScoringDock({
           />
           <div
             role="dialog"
-            aria-label={`${bubble}: extra runs`}
+            aria-label={isBye ? `${bubble}: runs` : `${bubble}: extra runs`}
             className="absolute inset-x-0 bottom-[calc(100%+10px)] z-40 origin-bottom rounded-[18px] bg-background/85 p-2.5 shadow-[0_14px_40px_rgba(0,0,0,0.24)] ring-1 ring-white/60 backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-150 dark:ring-white/10"
           >
             <div className="mb-2 flex items-center justify-between px-0.5">
               <span className="text-[12.5px] font-bold">
-                {isNb ? "No ball" : "Wide"} · +1 added
+                {isBye
+                  ? bubble === "Bye"
+                    ? "Bye"
+                    : "Leg bye"
+                  : `${isNb ? "No ball" : "Wide"} · +1 added`}
               </span>
               {isNb ? (
                 <button
@@ -1087,11 +1108,11 @@ function ScoringDock({
                 </button>
               ) : (
                 <span className="text-[11.5px] font-medium text-muted-foreground">
-                  tap extra runs
+                  {isBye ? "tap runs · not the batter's" : "tap extra runs"}
                 </span>
               )}
             </div>
-            <div className={cn("grid gap-1.5", isNb ? "grid-cols-6" : "grid-cols-5")}>
+            <div className={cn("grid gap-1.5", isNb || isBye ? "grid-cols-6" : "grid-cols-5")}>
               {bubbleKeys.map((k) => (
                 <button
                   key={k.runs}
@@ -1099,7 +1120,8 @@ function ScoringDock({
                   onClick={() => {
                     const kind = bubble;
                     setBubble(null);
-                    onExtraRuns?.(kind, kind === "No Ball" ? mode : "bat", k.runs);
+                    if (kind === "Bye" || kind === "Leg Bye") onByeRuns?.(kind, k.runs);
+                    else onExtraRuns?.(kind, kind === "No Ball" ? mode : "bat", k.runs);
                   }}
                   className={cn(
                     "h-[46px] rounded-xl text-[18px] font-bold tabular-nums transition active:scale-95",
@@ -1109,22 +1131,30 @@ function ScoringDock({
                   {k.label}
                 </button>
               ))}
-              <button
-                type="button"
-                onClick={() => {
-                  setBubble(null);
-                  onOut();
-                }}
-                className="h-[46px] rounded-xl bg-[#FF3B30]/[0.13] text-[18px] font-bold text-[#E0281E] transition active:scale-95 dark:text-[#FF6A60]"
-              >
-                W
-              </button>
+              {!isBye && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBubble(null);
+                    onOut();
+                  }}
+                  className="h-[46px] rounded-xl bg-[#FF3B30]/[0.13] text-[18px] font-bold text-[#E0281E] transition active:scale-95 dark:text-[#FF6A60]"
+                >
+                  W
+                </button>
+              )}
             </div>
             <span
               aria-hidden
               className={cn(
                 "absolute -bottom-[6px] size-3.5 rotate-45 rounded-[3px] bg-background/90",
-                isNb ? "left-[28%]" : "left-[8%]",
+                bubble === "Leg Bye"
+                  ? "left-[68%]"
+                  : bubble === "Bye"
+                    ? "left-[48%]"
+                    : isNb
+                      ? "left-[28%]"
+                      : "left-[8%]",
               )}
             />
           </div>
@@ -1152,12 +1182,12 @@ function ScoringDock({
           onClick={() => (onQuickExtra ? onQuickExtra("No Ball") : onExtra("No Ball"))}
           onLongPress={onQuickExtra ? () => openBubble("No Ball") : undefined}
         />
-        <ExtraKey label="Bye" tone="bye" disabled={disabled} onClick={() => onExtra("Bye")} />
+        <ExtraKey label="Bye" tone="bye" disabled={disabled} onClick={() => openByeBubble("Bye")} />
         <ExtraKey
           label="Leg bye"
           tone="lb"
           disabled={disabled}
-          onClick={() => onExtra("Leg Bye")}
+          onClick={() => openByeBubble("Leg Bye")}
         />
         <ExtraKey label="OUT" tone="out" disabled={disabled} onClick={onOut} />
       </div>

@@ -1061,15 +1061,10 @@ function ScoringDock({
   onByeRuns?: (kind: "Bye" | "Leg Bye", runs: number) => void;
   onOut: () => void;
 }) {
-  // Hold Wide or No ball, or tap Bye or Leg bye: a small glass strip opens right above the key.
+  // Tap Wide, No ball, Bye or Leg bye: a small glass strip opens right above the key.
   const [bubble, setBubble] = useState<"Wide" | "No Ball" | "Bye" | "Leg Bye" | null>(null);
   const [mode, setMode] = useState<"bat" | "bye" | "leg_bye">("bat");
   const openBubble = (kind: "Wide" | "No Ball") => {
-    try {
-      navigator.vibrate?.(10);
-    } catch {
-      /* haptics are optional */
-    }
     setMode("bat");
     if (onExtraRuns) setBubble(kind);
     else onExtra(kind);
@@ -1135,6 +1130,28 @@ function ScoringDock({
                 </span>
               )}
             </div>
+            {!isBye && (
+              <button
+                type="button"
+                onClick={() => {
+                  const kind = bubble;
+                  setBubble(null);
+                  if (kind === "Wide" || kind === "No Ball") {
+                    if (onQuickExtra) onQuickExtra(kind);
+                    else onExtra(kind);
+                  }
+                }}
+                className="mb-2 flex h-[48px] w-full items-center justify-center gap-2 rounded-xl bg-primary text-[15px] font-bold text-primary-foreground transition active:scale-[0.98]"
+              >
+                {isNb ? "Just a No ball" : "Just a Wide"}
+                <span className="text-[12px] font-semibold opacity-80">1 run, no extra</span>
+              </button>
+            )}
+            {!isBye && (
+              <div className="mb-1.5 px-0.5 text-[11.5px] font-medium text-muted-foreground">
+                {isNb ? "Or runs on top of the no ball" : "Or extra runs on top of the wide"}
+              </div>
+            )}
             <div className={cn("grid gap-1.5", isNb || isBye ? "grid-cols-6" : "grid-cols-5")}>
               {bubbleKeys.map((k) => (
                 <button
@@ -1193,17 +1210,13 @@ function ScoringDock({
           label="Wide"
           tone="wide"
           disabled={disabled}
-          hint={onQuickExtra ? "hold: +runs" : undefined}
-          onClick={() => (onQuickExtra ? onQuickExtra("Wide") : onExtra("Wide"))}
-          onLongPress={onQuickExtra ? () => openBubble("Wide") : undefined}
+          onClick={() => openBubble("Wide")}
         />
         <ExtraKey
           label="No ball"
           tone="nb"
           disabled={disabled}
-          hint={onQuickExtra ? "hold: +runs" : undefined}
-          onClick={() => (onQuickExtra ? onQuickExtra("No Ball") : onExtra("No Ball"))}
-          onLongPress={onQuickExtra ? () => openBubble("No Ball") : undefined}
+          onClick={() => openBubble("No Ball")}
         />
         <ExtraKey label="Bye" tone="bye" disabled={disabled} onClick={() => openByeBubble("Bye")} />
         <ExtraKey

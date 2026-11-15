@@ -842,6 +842,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
             onPickPlayer={(role, p) => setPlayer(role, p)}
             awaitingNewBatter={session.matchState.innings.awaitingNewBatter}
             awaitingNewBowler={session.matchState.innings.awaitingNewBowler}
+            ballsInOver={session.matchState.innings.ballsInOver}
           />
         )}
       </div>
@@ -1699,6 +1700,7 @@ function DemoScorerBody({
             onPickPlayer={(role, p) => setPlayer(role, p)}
             awaitingNewBatter={session.matchState.innings.awaitingNewBatter}
             awaitingNewBowler={session.matchState.innings.awaitingNewBowler}
+            ballsInOver={session.matchState.innings.ballsInOver}
             hideEndMatch={match.match_locked}
             onEndMatch={finalizeMatch}
             onOpenScorecard={() => setScorecardOpen(true)}

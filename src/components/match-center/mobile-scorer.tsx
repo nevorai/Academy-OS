@@ -96,6 +96,8 @@ export interface MobileScorerProps {
   awaitingNewBatter?: boolean;
   awaitingNewBatterRole?: "striker" | "nonStriker";
   awaitingNewBowler?: boolean;
+  /** Legal balls already bowled in the over in progress (0 to 5). */
+  ballsInOver?: number;
   previousBowlerName?: string | null;
   previousBowlerId?: string | null;
   bowledBowlerIds?: string[];
@@ -144,7 +146,8 @@ export function MobileScorer(props: MobileScorerProps) {
   const [scorecardExpanded, setScorecardExpanded] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [confirm, setConfirm] = useState<null | {
-    kind: "end-match" | "finish-innings" | "delete-ball";
+    kind: "end-match" | "finish-innings" | "delete-ball" | "mid-over-bowler";
+    player?: PlayerOption;
   }>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
 
@@ -260,6 +263,20 @@ export function MobileScorer(props: MobileScorerProps) {
         run: () => {
           closeAll();
           props.onFinishInnings?.();
+        },
+      };
+    }
+    if (confirm.kind === "mid-over-bowler" && confirm.player) {
+      const player = confirm.player;
+      const bowled = props.ballsInOver ?? 0;
+      const current = props.bowler?.name ?? "the current bowler";
+      return {
+        title: "Change bowler mid-over?",
+        description: `This over is not finished: ${bowled} of 6 balls bowled by ${current}. A bowler is changed in the middle of an over only if he is injured or cannot continue. ${player.name} will bowl the last ${6 - bowled} ball${6 - bowled === 1 ? "" : "s"} of this over.`,
+        action: `Yes, ${player.name} bowls on`,
+        run: () => {
+          closeAll();
+          props.onPickPlayer?.("bowler", player);
         },
       };
     }
@@ -563,6 +580,15 @@ export function MobileScorer(props: MobileScorerProps) {
         bowledIds={pickerOpen === "bowler" ? (props.bowledBowlerIds ?? []) : []}
         onSelect={(p) => {
           if (!pickerOpen || isIllegalBowler(p)) return;
+          // Mid-over change: the over is not complete, so ask first.
+          const bowled = props.ballsInOver ?? 0;
+          const isSame = Boolean(props.bowler?.name && props.bowler.name === p.name);
+          if (pickerOpen === "bowler" && !props.awaitingNewBowler && bowled > 0 && !isSame) {
+            setConfirm({ kind: "mid-over-bowler", player: p });
+            autoPickerRef.current = null;
+            setPickerOpen(null);
+            return;
+          }
           props.onPickPlayer?.(pickerOpen, p);
           autoPickerRef.current = null;
           setPickerOpen(null);
@@ -628,7 +654,11 @@ export function MobileScorer(props: MobileScorerProps) {
                 <AlertDialogDescription>{confirmMeta.description}</AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>
+                  {confirm?.kind === "mid-over-bowler"
+                    ? `Keep ${props.bowler?.name ?? "current bowler"}`
+                    : "Cancel"}
+                </AlertDialogCancel>
                 <AlertDialogAction
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   onClick={confirmMeta.run}

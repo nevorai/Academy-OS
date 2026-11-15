@@ -1092,13 +1092,12 @@ export function IconCloseButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-
 /**
- * One popup for a no-ball or a wide. The 1 penalty run is counted by the app
- * (the rules engine adds it), so the scorer only taps what happened ON TOP:
- * nothing, +1, +2, +3, a four, a six, or a wicket. One tap submits.
- * No-ball only: a small switch says if the extra runs were off the bat, byes
- * or leg byes. On a wide every extra run is a wide, so there is no switch.
+ * One popup for a no-ball or a wide, in the iOS bottom-sheet style: frosted
+ * surface, grabber, soft neutral keys, a segmented switch, one red wicket row.
+ * The 1 penalty run is counted by the app, so the scorer only taps what came
+ * ON TOP. One tap saves the ball. On a wide every extra run is a wide, so only
+ * a no-ball has the "Runs from" switch.
  */
 export function ExtraDeliverySheet({
   open,
@@ -1115,80 +1114,126 @@ export function ExtraDeliverySheet({
 }) {
   const [mode, setMode] = useState<"bat" | "bye" | "leg_bye">("bat");
   const isNb = kind === "No Ball";
-  const short = isNb ? "NB" : "WD";
+  // iOS system colours, matched to the Wide (amber) and No ball (orange) keys.
+  const accent = isNb ? "#FF7A2F" : "#F5A524";
   const modes: { key: "bat" | "bye" | "leg_bye"; label: string }[] = [
-    { key: "bat", label: "Off bat" },
+    { key: "bat", label: "Off the bat" },
     { key: "bye", label: "Byes" },
     { key: "leg_bye", label: "Leg byes" },
   ];
-  const buttons: { runs: number; big: string; small: string; cls: string }[] = [
-    { runs: 0, big: short, small: "No extra run", cls: "bg-sky-500 text-white" },
-    { runs: 1, big: "+1", small: "1 run", cls: "bg-emerald-600 text-white" },
-    { runs: 2, big: "+2", small: "2 runs", cls: "bg-emerald-600 text-white" },
-    { runs: 3, big: "+3", small: "3 runs", cls: "bg-emerald-600 text-white" },
-    { runs: 4, big: "4", small: "Four", cls: "bg-blue-600 text-white" },
-    ...(isNb ? [{ runs: 6, big: "6", small: "Six", cls: "bg-violet-600 text-white" }] : []),
+  const keys: { runs: number; big: string; small: string; tint?: "blue" | "violet" }[] = [
+    { runs: 0, big: "0", small: "Just the " + (isNb ? "no-ball" : "wide") },
+    { runs: 1, big: "1", small: "run" },
+    { runs: 2, big: "2", small: "runs" },
+    { runs: 3, big: "3", small: "runs" },
+    { runs: 4, big: "4", small: "Four", tint: "blue" },
+    ...(isNb ? [{ runs: 6, big: "6", small: "Six", tint: "violet" as const }] : []),
   ];
-  const submit = (runs: number) => {
-    onSubmit(isNb ? mode : "bat", runs);
-    setMode("bat");
+  const tap = (fn: () => void) => {
+    try {
+      navigator.vibrate?.(8);
+    } catch {
+      /* haptics are optional */
+    }
+    fn();
   };
+  const submit = (runs: number) =>
+    tap(() => {
+      onSubmit(isNb ? mode : "bat", runs);
+      setMode("bat");
+    });
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="rounded-t-[28px] border-t-0 p-5 pb-8 shadow-2xl">
-        <SheetHeader className="mb-3 text-center">
-          <SheetTitle className="text-xl font-black">{kind}</SheetTitle>
-          <SheetDescription className="text-sm font-semibold text-emerald-700">
-            The {isNb ? "no-ball" : "wide"} run is already counted. Tap only what came on top.
-          </SheetDescription>
-        </SheetHeader>
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-          {buttons.map((b) => (
-            <button
-              key={b.runs}
-              type="button"
-              onClick={() => submit(b.runs)}
-              className={cn(
-                "flex h-20 flex-col items-center justify-center rounded-2xl active:scale-95",
-                b.cls,
-              )}
-            >
-              <span className="text-2xl font-black leading-none">{b.big}</span>
-              <span className="mt-1 text-[11px] font-semibold opacity-90">{b.small}</span>
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={onWicket}
-            className="flex h-20 flex-col items-center justify-center rounded-2xl bg-red-600 text-white active:scale-95"
-          >
-            <span className="text-2xl font-black leading-none">W</span>
-            <span className="mt-1 text-[11px] font-semibold opacity-90">Wicket</span>
-          </button>
-        </div>
-        {isNb && (
-          <div className="mt-4 flex items-center gap-2">
-            <span className="text-xs font-semibold text-muted-foreground">Extra runs were:</span>
-            {modes.map((m) => (
-              <Button
-                key={m.key}
-                size="sm"
-                variant={mode === m.key ? "default" : "outline"}
-                className="h-9 rounded-full px-3 text-xs font-bold"
-                onClick={() => setMode(m.key)}
+      <SheetContent
+        side="bottom"
+        hideClose
+        className="mx-auto w-full max-w-[480px] rounded-t-[28px] border-0 bg-background/90 p-0 shadow-[0_-8px_40px_rgba(0,0,0,0.18)] backdrop-blur-2xl sm:rounded-[28px]"
+      >
+        <div className="px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2.5">
+          <div className="mx-auto mb-3 h-[5px] w-9 rounded-full bg-foreground/20" />
+          <SheetHeader className="mb-4 space-y-0.5 text-center">
+            <SheetTitle className="text-[17px] font-semibold tracking-tight">{kind}</SheetTitle>
+            <SheetDescription className="text-[13px] text-muted-foreground">
+              +1 for the {isNb ? "no-ball" : "wide"} is already added. Tap any extra runs.
+            </SheetDescription>
+          </SheetHeader>
+
+          {isNb && (
+            <div className="mb-4">
+              <div className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Extra runs came from
+              </div>
+              <div className="grid grid-cols-3 gap-0.5 rounded-[11px] bg-foreground/[0.07] p-0.5">
+                {modes.map((m) => (
+                  <button
+                    key={m.key}
+                    type="button"
+                    onClick={() => setMode(m.key)}
+                    className={cn(
+                      "h-9 rounded-[9px] text-[13px] font-semibold transition",
+                      mode === m.key
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground active:opacity-60",
+                    )}
+                  >
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Extra runs
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {keys.map((k) => (
+              <button
+                key={k.runs}
+                type="button"
+                onClick={() => submit(k.runs)}
+                className={cn(
+                  "flex h-[68px] flex-col items-center justify-center rounded-2xl transition active:scale-[0.96] active:opacity-80",
+                  k.runs === 0 && "col-span-3 h-14 flex-row gap-2 text-white shadow-sm",
+                  k.runs !== 0 && !k.tint && "bg-foreground/[0.06] text-foreground",
+                  k.tint === "blue" && "bg-[#0A84FF]/15 text-[#0A6FE0] dark:text-[#64A9FF]",
+                  k.tint === "violet" && "bg-[#AF52DE]/15 text-[#9A3FCB] dark:text-[#D08CF5]",
+                )}
+                style={
+                  k.runs === 0
+                    ? { background: `linear-gradient(180deg, ${accent}, ${accent}E6)` }
+                    : undefined
+                }
               >
-                {m.label}
-              </Button>
+                {k.runs === 0 ? (
+                  <span className="text-[16px] font-semibold">{k.small}</span>
+                ) : (
+                  <>
+                    <span className="text-[26px] font-semibold leading-none tabular-nums">
+                      +{k.big}
+                    </span>
+                    <span className="mt-1 text-[11px] font-medium opacity-70">{k.small}</span>
+                  </>
+                )}
+              </button>
             ))}
           </div>
-        )}
-        <Button
-          variant="ghost"
-          className="mt-3 h-10 w-full rounded-full text-sm font-semibold"
-          onClick={() => onOpenChange(false)}
-        >
-          Cancel
-        </Button>
+
+          <button
+            type="button"
+            onClick={() => tap(onWicket)}
+            className="mt-3 flex h-12 w-full items-center justify-center rounded-2xl bg-[#FF3B30]/12 text-[16px] font-semibold text-[#E0281E] transition active:scale-[0.98] active:opacity-80 dark:text-[#FF6A60]"
+          >
+            Wicket on this ball
+          </button>
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="mt-1.5 h-11 w-full text-[16px] font-medium text-muted-foreground active:opacity-60"
+          >
+            Cancel
+          </button>
+        </div>
       </SheetContent>
     </Sheet>
   );

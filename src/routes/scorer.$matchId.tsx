@@ -13,7 +13,7 @@ import {
 } from "@/components/match-center/scoring-ui";
 import { MobileScorer } from "@/components/match-center/mobile-scorer";
 import { EditTeamsSheet } from "@/components/match-center/edit-teams-sheet";
-import { useExtraEntry } from "@/components/match-center/scorer-extras";
+import { useBallActions } from "@/components/match-center/use-ball-actions";
 import { WicketSheet, type WicketSheetResult } from "@/components/match-center/wicket-sheet";
 import { Button } from "@/components/ui/button";
 import {
@@ -477,100 +477,35 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   // (connection status handled implicitly by MobileScorer; kept for future use)
 
   /* ---------- ball submission ---------- */
-  const [redoStack, setRedoStack] = useState<Awaited<ReturnType<typeof session.undo>>[]>([]);
-  // One ball at a time: a fast double tap must never save two balls.
-  const savingBallRef = useRef(false);
-  const submit = async (partial: Parameters<typeof session.submitBall>[0]): Promise<boolean> => {
-    if (savingBallRef.current) return false;
-    savingBallRef.current = true;
-    try {
-      await session.submitBall(partial);
-      setRedoStack([]);
-      return true;
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to record ball");
-      return false;
-    } finally {
-      savingBallRef.current = false;
-    }
-  };
-  const requestSubmit = (partial: Parameters<typeof session.submitBall>[0]) => {
-    const needsBatter =
+  const {
+    redoStack,
+    submit,
+    requestSubmit,
+    handleUndo,
+    handleRedo,
+    onRun,
+    handleWicket,
+    setExtraKind,
+    quickExtra,
+    extrasModals,
+  } = useBallActions({
+    session,
+    striker,
+    nonStriker,
+    mustPickBeforeBall:
       Boolean(incomingBatterRole) ||
       !strikerSelected ||
       !nonStrikerSelected ||
       strikerDismissed ||
-      nonStrikerDismissed;
-    if (needsBatter || bowlerPickerNeededForBall) {
-      setPendingBallIntent(partial);
-      return;
-    }
-    void submit(partial);
-  };
-
-  useEffect(() => {
-    if (!pendingBallIntent || requiredPicker) return;
-    const next = pendingBallIntent;
-    setPendingBallIntent(null);
-    void submit(next);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingBallIntent, requiredPicker]);
-  const handleUndo = async () => {
-    try {
-      const removed = await session.undo();
-      if (removed) setRedoStack((s) => [...s, removed]);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to undo");
-    }
-  };
-  const handleRedo = async () => {
-    const next = redoStack[redoStack.length - 1];
-    if (!next) return;
-    setRedoStack((s) => s.slice(0, -1));
-    try {
-      await session.submitBall({
-        runsOffBat: next.runs_off_bat ?? 0,
-        extraType: (next.extra_type ?? null) as ExtraType | null,
-        extraRuns: next.extra_runs ?? 0,
-        dismissalType: (next.dismissal_type ?? null) as DismissalType | null,
-        dismissedAthleteId: next.dismissed_athlete_id ?? null,
-        dismissedName: next.dismissed_name ?? null,
-        fielderAthleteId: next.fielder_athlete_id ?? null,
-        fielderName: next.fielder_name ?? null,
-        comment: next.comment ?? null,
-      });
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to redo");
-      setRedoStack((s) => [...s, next]);
-    }
-  };
-
-  const onRun = (r: 0 | 1 | 2 | 3 | 4 | 5 | 6) => requestSubmit(ballHelpers.run(r));
-
-  const { setExtraKind, quickExtra, extrasModals } = useExtraEntry({
-    requestSubmit,
-    openWicket: () => {
-      setWicketKind(null);
-      setDismissOpen(true);
-    },
+      nonStrikerDismissed ||
+      Boolean(bowlerPickerNeededForBall),
+    requiredPicker,
+    pendingBallIntent,
+    setPendingBallIntent,
+    swapAfterBatterRef,
+    setDismissOpen,
+    setWicketKind,
   });
-
-  const handleWicket = async (r: WicketSheetResult) => {
-    setDismissOpen(false);
-    const dismissedRef =
-      r.dismissed === "non-striker"
-        ? { id: nonStriker.athleteId, name: nonStriker.name }
-        : { id: striker.athleteId, name: striker.name };
-    const ok = await submit({
-      ...r.partial,
-      fielderAthleteId: r.fielder?.id && !r.fielder.id.startsWith("ext:") ? r.fielder.id : null,
-      fielderName: r.fielder?.name ?? null,
-      dismissedAthleteId: dismissedRef.id,
-      dismissedName: dismissedRef.name,
-    });
-    // Run out after the batters crossed: the next batter picked takes the other end.
-    swapAfterBatterRef.current = ok && r.crossed;
-  };
 
   /* ---------- start innings if needed ---------- */
   const noInnings = !session.loading && !session.activeInnings && !!session.match;
@@ -990,7 +925,6 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
       />
 
       {extrasModals}
-
 
       {/* Scorecard sheet */}
       <Sheet open={scorecardOpen} onOpenChange={setScorecardOpen}>
@@ -1574,98 +1508,35 @@ function DemoScorerBody({
   // commentary intentionally omitted from compact mobile UI — available via scorecard.
 
   /* ---------- ball submission ---------- */
-  const [redoStack, setRedoStack] = useState<Awaited<ReturnType<typeof session.undo>>[]>([]);
-  // One ball at a time: a fast double tap must never save two balls.
-  const savingBallRef = useRef(false);
-  const submit = async (partial: Parameters<typeof session.submitBall>[0]): Promise<boolean> => {
-    if (savingBallRef.current) return false;
-    savingBallRef.current = true;
-    try {
-      await session.submitBall(partial);
-      setRedoStack([]);
-      return true;
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to record ball");
-      return false;
-    } finally {
-      savingBallRef.current = false;
-    }
-  };
-  const requestSubmit = (partial: Parameters<typeof session.submitBall>[0]) => {
-    const needsBatter =
+  const {
+    redoStack,
+    submit,
+    requestSubmit,
+    handleUndo,
+    handleRedo,
+    onRun,
+    handleWicket,
+    setExtraKind,
+    quickExtra,
+    extrasModals,
+  } = useBallActions({
+    session,
+    striker,
+    nonStriker,
+    mustPickBeforeBall:
       Boolean(incomingBatterRole) ||
       !strikerSelected ||
       !nonStrikerSelected ||
       strikerDismissed ||
-      nonStrikerDismissed;
-    if (needsBatter || bowlerPickerNeededForBall) {
-      setPendingBallIntent(partial);
-      return;
-    }
-    void submit(partial);
-  };
-
-  useEffect(() => {
-    if (!pendingBallIntent || requiredPicker) return;
-    const next = pendingBallIntent;
-    setPendingBallIntent(null);
-    void submit(next);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingBallIntent, requiredPicker]);
-  const handleUndo = async () => {
-    try {
-      const removed = await session.undo();
-      if (removed) setRedoStack((s) => [...s, removed]);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to undo");
-    }
-  };
-  const handleRedo = async () => {
-    const next = redoStack[redoStack.length - 1];
-    if (!next) return;
-    setRedoStack((s) => s.slice(0, -1));
-    try {
-      await session.submitBall({
-        runsOffBat: next.runs_off_bat ?? 0,
-        extraType: (next.extra_type ?? null) as ExtraType | null,
-        extraRuns: next.extra_runs ?? 0,
-        dismissalType: (next.dismissal_type ?? null) as DismissalType | null,
-        dismissedAthleteId: next.dismissed_athlete_id ?? null,
-        dismissedName: next.dismissed_name ?? null,
-        fielderAthleteId: next.fielder_athlete_id ?? null,
-        fielderName: next.fielder_name ?? null,
-        comment: next.comment ?? null,
-      });
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to redo");
-      setRedoStack((s) => [...s, next]);
-    }
-  };
-  const onRun = (r: 0 | 1 | 2 | 3 | 4 | 5 | 6) => requestSubmit(ballHelpers.run(r));
-  const { setExtraKind, quickExtra, extrasModals } = useExtraEntry({
-    requestSubmit,
-    openWicket: () => {
-      setWicketKind(null);
-      setDismissOpen(true);
-    },
+      nonStrikerDismissed ||
+      Boolean(bowlerPickerNeededForBall),
+    requiredPicker,
+    pendingBallIntent,
+    setPendingBallIntent,
+    swapAfterBatterRef,
+    setDismissOpen,
+    setWicketKind,
   });
-
-  const handleWicket = async (r: WicketSheetResult) => {
-    setDismissOpen(false);
-    const dismissedRef =
-      r.dismissed === "non-striker"
-        ? { id: nonStriker.athleteId, name: nonStriker.name }
-        : { id: striker.athleteId, name: striker.name };
-    const ok = await submit({
-      ...r.partial,
-      fielderAthleteId: r.fielder?.id && !r.fielder.id.startsWith("ext:") ? r.fielder.id : null,
-      fielderName: r.fielder?.name ?? null,
-      dismissedAthleteId: dismissedRef.id,
-      dismissedName: dismissedRef.name,
-    });
-    // Run out after the batters crossed: the next batter picked takes the other end.
-    swapAfterBatterRef.current = ok && r.crossed;
-  };
 
   const resultLine = (() => {
     const ms = session.matchState;
@@ -1976,7 +1847,6 @@ function DemoScorerBody({
         }}
       />
       {extrasModals}
-
 
       {/* Scorecard sheet */}
       <Sheet open={scorecardOpen} onOpenChange={setScorecardOpen}>

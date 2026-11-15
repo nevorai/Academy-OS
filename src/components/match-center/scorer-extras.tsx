@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { ballHelpers } from "@/hooks/use-scoring-session";
+import { ballHelpers, extraDeliveryInput } from "@/lib/mc-scoring-core";
 import { ByeRunsPopup, ExtraDeliveryPopup } from "@/components/match-center/dial-popup";
 
 /**
@@ -35,13 +35,7 @@ export function useExtraEntry({
 
   /** From the bubble above the key: the penalty run plus the extra runs tapped. */
   const submitExtra = (kind: "Wide" | "No Ball", mode: "bat" | "bye" | "leg_bye", runs: number) => {
-    if (kind === "Wide") requestSubmit(ballHelpers.wide(1 + runs));
-    else
-      requestSubmit(
-        mode === "bat"
-          ? ballHelpers.noBall(runs, 0)
-          : ballHelpers.noBall(0, runs, mode === "leg_bye"),
-      );
+    requestSubmit(extraDeliveryInput(kind, mode, runs));
   };
 
   const extrasModals = (
@@ -64,13 +58,7 @@ export function useExtraEntry({
         onSubmit={(mode, runs) => {
           const k = extraKind;
           setExtraKind(null);
-          if (k === "Wide") requestSubmit(ballHelpers.wide(1 + runs));
-          else
-            requestSubmit(
-              mode === "bat"
-                ? ballHelpers.noBall(runs, 0)
-                : ballHelpers.noBall(0, runs, mode === "leg_bye"),
-            );
+          if (k) requestSubmit(extraDeliveryInput(k === "Wide" ? "Wide" : "No Ball", mode, runs));
         }}
         onWicket={() => {
           setExtraKind(null);

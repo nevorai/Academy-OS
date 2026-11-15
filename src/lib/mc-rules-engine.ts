@@ -16,7 +16,30 @@
  * ================================================================ */
 
 import type { DismissalType, ExtraType, MCBallEvent, MCInnings } from "@/lib/mc-ball-events";
-import { BallEventError, countsAsBall } from "@/lib/mc-ball-events-core";
+import {
+  BallEventError,
+  NON_DELIVERY_DISMISSALS,
+  countsAsBall,
+} from "@/lib/mc-ball-events-core";
+
+/**
+ * Was a ball actually bowled? A batter retiring or being timed out, and penalty
+ * runs, happen BETWEEN balls: no bowler bowls them. They must not count as the
+ * new over having started, and the bowler rules do not apply to them.
+ */
+export function isDeliveryEvent(e: {
+  extra_type?: string | null;
+  dismissal_type?: string | null;
+}): boolean {
+  if (e.extra_type === "penalty") return false;
+  if (
+    !e.extra_type &&
+    e.dismissal_type &&
+    (NON_DELIVERY_DISMISSALS as readonly string[]).includes(e.dismissal_type)
+  )
+    return false;
+  return true;
+}
 
 /* ---------------- Modern dismissal set (MCC Laws) ---------------- */
 
@@ -359,8 +382,11 @@ export function replayInnings(events: MCBallEvent[], opts: ReplayOptions = {}): 
       curOverLegal = 0;
     }
     curOverNum = e.over_number;
-    curOverBowlerId = e.bowler_athlete_id;
-    curOverBowlerName = e.bowler_name;
+    const bowled = isDeliveryEvent(e);
+    if (bowled || curOverEvents.length === 0) {
+      curOverBowlerId = e.bowler_athlete_id;
+      curOverBowlerName = e.bowler_name;
+    }
     curOverEvents.push(e);
 
     const total = totalRunsForBall(e);
@@ -417,7 +443,9 @@ export function replayInnings(events: MCBallEvent[], opts: ReplayOptions = {}): 
       curOverNum = e.over_number + 1;
       curOverBowlerId = null;
       curOverBowlerName = null;
-    } else {
+    } else if (bowled) {
+      // Only a ball that was really bowled proves the new over has its bowler.
+      // A batter retiring between two overs leaves "new bowler needed" as it is.
       awaitingNewBowler = false;
     }
   }
@@ -612,7 +640,14 @@ export function validateBallDraft(
     bowler_name: draft.bowlerName ?? null,
   });
 
-  if (state.innings.awaitingNewBowler) {
+  // Retiring / timed out / penalty runs: nobody bowls, so the bowler rules below
+  // (new bowler after an over, overs quota) do not apply.
+  const isDelivery = isDeliveryEvent({
+    extra_type: extraType,
+    dismissal_type: dt,
+  });
+
+  if (isDelivery && state.innings.awaitingNewBowler) {
     // A new bowler must be assigned. Verify he isn't the previous over's bowler.
     // Compare by key so guest (name-only) bowlers are checked too.
     const prevOver = state.innings.completedOvers[state.innings.completedOvers.length - 1];
@@ -632,7 +667,7 @@ export function validateBallDraft(
   // Bowler quota (ICC playing conditions: a fifth of the innings, rounded up —
   // 4 overs in a T20). Only enforced for limited-overs matches.
   const quota = maxOversPerBowler(ctx.totalOvers ?? null);
-  if (quota && draftBowlerKey) {
+  if (isDelivery && quota && draftBowlerKey) {
     const bowled = state.innings.bowlerLegalBalls.get(draftBowlerKey) ?? 0;
     if (bowled >= quota * 6)
       throw new BallEventError(

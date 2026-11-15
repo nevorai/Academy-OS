@@ -18,11 +18,12 @@
  * ================================================================ */
 
 import type { DismissalType, ExtraType, MCBallEvent } from "@/lib/mc-ball-events";
-import { countsAsBall, NO_BALL_LEG_BYES_COMMENT } from "@/lib/mc-ball-events-core";
+import { countsAsBall, hasBallNote, NO_BALL_LEG_BYES_COMMENT } from "@/lib/mc-ball-events-core";
 import {
   ballSwapsStrike,
   bowlerRunsForBall,
   isBowlerCredited,
+  isDeliveryEvent,
   isWicketDismissal,
   totalRunsForBall,
 } from "@/lib/mc-rules-engine";
@@ -143,15 +144,25 @@ export function computeBatting(events: MCBallEvent[]): BattingTable {
 
   for (const e of events) {
     // Register both batters at the crease (defines batting order).
-    ensure(e.non_striker_athlete_id, e.non_striker_name);
+    const nonStrikerRow = ensure(e.non_striker_athlete_id, e.non_striker_name);
     const striker = ensure(e.striker_athlete_id, e.striker_name);
+    // A batter who retired hurt and is back at the crease is batting again:
+    // he is "not out" until a real dismissal is recorded.
+    for (const back of [striker, nonStrikerRow]) {
+      if (back && !back.notOut && back.dismissalType === "retired_hurt") {
+        back.notOut = true;
+        back.dismissalType = null;
+        back.fielder = null;
+      }
+    }
     if (!striker) continue;
 
     const extra = e.extra_type as ExtraType | null;
     const off = e.runs_off_bat ?? 0;
 
     // Ball faced: any delivery except a wide counts (no-ball is faced).
-    const faced = extra !== "wide";
+    // A batter retiring or being timed out, and penalty runs, are not balls.
+    const faced = extra !== "wide" && isDeliveryEvent(e);
     if (faced) striker.balls += 1;
 
     // Runs off bat count toward the batter's runs.
@@ -515,7 +526,7 @@ export function computeExtras(events: MCBallEvent[]): ExtrasBreakdown {
     else if (t === "no_ball") {
       noBalls += 1; // +off-bat is batter runs; ex is byes or leg byes run off the no-ball
       if (ex > 0) {
-        if (e.comment === NO_BALL_LEG_BYES_COMMENT) legByes += ex;
+        if (hasBallNote(e.comment, NO_BALL_LEG_BYES_COMMENT)) legByes += ex;
         else byes += ex;
       }
     }
@@ -594,7 +605,10 @@ export function computeOverHistory(
   events: MCBallEvent[],
   chipLabel: (e: MCBallEvent) => string,
 ): OverHistoryRow[] {
-  const rows = new Map<number, OverHistoryRow & { _score: number; _wkts: number }>();
+  const rows = new Map<
+    number,
+    OverHistoryRow & { _score: number; _wkts: number; _bowled?: boolean }
+  >();
   let score = 0;
   let totalWickets = 0;
   for (const e of events) {
@@ -618,6 +632,12 @@ export function computeOverHistory(
         _wkts: 0,
       };
       rows.set(e.over_number, row);
+    }
+    // The over belongs to whoever bowled its first real ball (a batter retiring
+    // before it carries the previous over's bowler).
+    if (isDeliveryEvent(e) && !row._bowled) {
+      row._bowled = true;
+      row.bowler = e.bowler_name ?? "";
     }
     row.chips.push(chipLabel(e));
     row.runs += totalRunsForBall(e);

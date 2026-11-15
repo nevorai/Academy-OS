@@ -62,7 +62,8 @@ export function deliveriesAllowedFor(kind: DismissalType, freeHit = false): Deli
   if (isNonDeliveryKind(kind)) return ["legal"];
   const out: DeliveryKind[] = [];
   if (dismissalAllowedOnDelivery(kind, null, freeHit)) out.push("legal");
-  if (dismissalAllowedOnDelivery(kind, "wide", false)) out.push("wide");
+  // A free hit that is called wide is still a free hit: no stumping off it.
+  if (dismissalAllowedOnDelivery(kind, "wide", freeHit)) out.push("wide");
   if (dismissalAllowedOnDelivery(kind, "no_ball", false)) out.push("no_ball");
   return out;
 }

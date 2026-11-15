@@ -19,13 +19,13 @@ import {
   type MCBallEvent,
   type MCInnings,
 } from "@/lib/mc-ball-events";
+import { replayInnings, type MatchState } from "@/lib/mc-rules-engine";
 import {
-  applyStrikeAfterBall,
-  replayInnings,
-  validateBallDraft,
-  type MatchState,
-} from "@/lib/mc-rules-engine";
-import { NO_BALL_LEG_BYES_COMMENT } from "@/lib/mc-ball-events-core";
+  isRetryableSaveError,
+  lineupBeforeBall,
+  prepareBall,
+  saveWithRetry,
+} from "@/lib/mc-scoring-core";
 import { wicketLimitForTeam } from "@/lib/mc-match-rules";
 
 
@@ -127,74 +127,6 @@ function buildCurrentOver(events: MCBallEvent[]): CurrentOverState {
   // rely on the stored flag (may be stale on optimistic / legacy rows).
   const legal = overEvents.filter((e) => countsAsBall(e)).length;
   return { overNumber: lastOver, ballsBowled: legal, events: overEvents };
-}
-
-function countCompletedLegalDeliveries(events: MCBallEvent[]) {
-  return events.filter((e) => countsAsBall(e)).length;
-}
-
-function logScoringOverCheckpoint(
-  _phase: "before recording" | "after recording",
-  _completedLegalBalls: number,
-) {
-  // no-op: previously logged to console on every ball; removed to keep
-  // rapid tapping responsive and DevTools quiet.
-}
-
-function samePlayerRef(
-  a: { athleteId?: string | null; name?: string | null },
-  b: { athleteId?: string | null; name?: string | null },
-) {
-  return (
-    Boolean(a.athleteId && b.athleteId && a.athleteId === b.athleteId) ||
-    Boolean(!a.athleteId && !b.athleteId && a.name && b.name && a.name === b.name)
-  );
-}
-
-function clearDismissedBatter(
-  pair: { striker: CurrentBatterState; nonStriker: CurrentBatterState },
-  event: MCBallEvent,
-) {
-  const dismissed = {
-    athleteId: event.dismissed_athlete_id,
-    name: event.dismissed_name,
-  };
-  if (!dismissed.athleteId && !dismissed.name) return pair;
-
-  const emptyStriker: CurrentBatterState = { athleteId: null, name: null, onStrike: true };
-  const emptyNonStriker: CurrentBatterState = { athleteId: null, name: null, onStrike: false };
-
-  if (samePlayerRef(pair.striker, dismissed)) {
-    return { ...pair, striker: emptyStriker };
-  }
-  if (samePlayerRef(pair.nonStriker, dismissed)) {
-    return { ...pair, nonStriker: emptyNonStriker };
-  }
-  return pair;
-}
-
-function matchStateForSelectedBatters(
-  state: MatchState,
-  striker: CurrentBatterState,
-  nonStriker: CurrentBatterState,
-): MatchState {
-  if (!state.innings.awaitingNewBatter) return state;
-  const strikerReady =
-    Boolean(striker.athleteId || striker.name) &&
-    !(striker.athleteId && state.innings.dismissedIds.has(striker.athleteId)) &&
-    !(striker.name && state.innings.dismissedNames.has(striker.name));
-  const nonStrikerReady =
-    Boolean(nonStriker.athleteId || nonStriker.name) &&
-    !(nonStriker.athleteId && state.innings.dismissedIds.has(nonStriker.athleteId)) &&
-    !(nonStriker.name && state.innings.dismissedNames.has(nonStriker.name));
-  if (!strikerReady || !nonStrikerReady || samePlayerRef(striker, nonStriker)) return state;
-  return {
-    ...state,
-    innings: {
-      ...state.innings,
-      awaitingNewBatter: false,
-    },
-  };
 }
 
 function makeClientEventId() {
@@ -415,170 +347,107 @@ export function useScoringSession(
       if (match?.status === "completed" || match?.status === "archived")
         throw new BallEventError("MATCH_COMPLETED", "Match is no longer active.");
       
-      const latestMatchState = replayInnings(eventsRef.current, {
-        totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
-        maxWickets: wicketLimit,
-        target: activeInnings.target ?? null,
-      });
-
-      if (latestMatchState.matchShouldEnd) {
-        throw new BallEventError("MATCH_COMPLETED", "Match has already reached a conclusion.");
-      }
       const currentStriker = strikerRef.current;
       const currentNonStriker = nonStrikerRef.current;
       const currentBowler = bowlerRef.current;
-
-      if (!currentStriker.athleteId && !currentStriker.name)
-        throw new BallEventError("NO_STRIKER", "Select the striker.");
-      if (!currentBowler.athleteId && !currentBowler.name)
-        throw new BallEventError("NO_BOWLER", "Select the bowler.");
-
       const priorEvents = eventsRef.current;
-      const completedLegalBallsBefore = countCompletedLegalDeliveries(priorEvents);
-      logScoringOverCheckpoint("before recording", completedLegalBallsBefore);
-      
-      // Rules-engine validation against the reconstructed state.
-      validateBallDraft(
-        {
-          strikerAthleteId: currentStriker.athleteId,
-          strikerName: currentStriker.name,
-          nonStrikerAthleteId: currentNonStriker.athleteId,
-          nonStrikerName: currentNonStriker.name,
-          bowlerAthleteId: currentBowler.athleteId,
-          bowlerName: currentBowler.name,
-          ...partial,
-        },
-        matchStateForSelectedBatters(latestMatchState, currentStriker, currentNonStriker),
-        {
-          innings: activeInnings,
-          events: priorEvents,
-          matchStatus: match?.status ?? null,
-          totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
-        },
-      );
 
-
-      const pos = nextPosition(priorEvents);
-      const optimistic: MCBallEvent = {
-        id: makeClientEventId(),
-        tenant_id: opts.tenantId,
-        match_id: matchId,
-        innings_id: activeInnings.id,
-        sequence_number: pos.sequenceNumber,
-        over_number: pos.overNumber,
-        ball_number: pos.ballNumber,
-        is_legal_delivery: countsAsBall({
-          extra_type: partial.extraType ?? null,
-          dismissal_type: partial.dismissalType ?? null,
-        }),
-        striker_athlete_id: currentStriker.athleteId,
-        striker_name: currentStriker.name,
-        non_striker_athlete_id: currentNonStriker.athleteId,
-        non_striker_name: currentNonStriker.name,
-        bowler_athlete_id: currentBowler.athleteId,
-        bowler_name: currentBowler.name,
-        runs_off_bat: partial.runsOffBat ?? 0,
-        extra_type: partial.extraType ?? null,
-        extra_runs: partial.extraRuns ?? 0,
-        dismissal_type: partial.dismissalType ?? null,
-        dismissed_athlete_id: partial.dismissedAthleteId ?? null,
-        dismissed_name: partial.dismissedName ?? null,
-        fielder_athlete_id: partial.fielderAthleteId ?? null,
-        fielder_name: partial.fielderName ?? null,
-        comment: partial.comment ?? null,
-        created_at: new Date().toISOString(),
-        created_by: opts.userId ?? null,
-      } as MCBallEvent;
+      // Rules check + the row to save + who bats next: one shared, tested function.
+      const prepared = prepareBall({
+        events: priorEvents,
+        lineup: { striker: currentStriker, nonStriker: currentNonStriker, bowler: currentBowler },
+        input: partial,
+        innings: activeInnings,
+        matchStatus: match?.status ?? null,
+        totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
+        maxWickets: wicketLimit,
+        ids: {
+          eventId: makeClientEventId(),
+          tenantId: opts.tenantId,
+          matchId,
+          createdBy: opts.userId ?? null,
+        },
+      });
+      const optimistic = prepared.event;
 
       eventsRef.current = [...priorEvents, optimistic];
       setEvents(eventsRef.current);
-      logScoringOverCheckpoint(
-        "after recording",
-        completedLegalBallsBefore + (optimistic.is_legal_delivery ? 1 : 0),
-      );
 
-      // Auto strike rotation for the UI pointer (state is still derived from
-      // events — this only updates the *selected* striker/non-striker).
-      const legalBefore = priorEvents.filter(
-        (e) =>
-          e.over_number === optimistic.over_number &&
-          countsAsBall(e),
-      ).length;
-      const overCompleted = optimistic.is_legal_delivery && legalBefore + 1 >= 6;
-      const rotated = applyStrikeAfterBall(
-        { striker: currentStriker, nonStriker: currentNonStriker },
-        optimistic,
-        overCompleted,
-      );
-      const next = optimistic.dismissal_type
-        ? clearDismissedBatter(
-            {
-              striker: { ...rotated.striker, onStrike: true },
-              nonStriker: { ...rotated.nonStriker, onStrike: false },
-            },
-            optimistic,
-          )
-        : {
-            striker: { ...rotated.striker, onStrike: true },
-            nonStriker: { ...rotated.nonStriker, onStrike: false },
-          };
+      // Strike rotation for the UI pointer (state is still derived from events).
       if (
-        next.striker.athleteId !== currentStriker.athleteId ||
-        next.striker.name !== currentStriker.name ||
-        next.nonStriker.athleteId !== currentNonStriker.athleteId ||
-        next.nonStriker.name !== currentNonStriker.name
+        prepared.striker.athleteId !== currentStriker.athleteId ||
+        prepared.striker.name !== currentStriker.name ||
+        prepared.nonStriker.athleteId !== currentNonStriker.athleteId ||
+        prepared.nonStriker.name !== currentNonStriker.name
       ) {
-        setStriker(next.striker);
-        setNonStriker(next.nonStriker);
+        setStriker(prepared.striker);
+        setNonStriker(prepared.nonStriker);
       }
 
-      // Chain the network write behind any in-flight ones so sequence
-      // numbers stay ordered on the backend. The optimistic UI update
-      // above has already been applied synchronously, and we do NOT
-      // await the network here — that way rapid taps never queue behind
-      // slow round-trips (bad connection at the ground, long matches,
-      // etc.). If the write eventually fails we surface it via console
-      // and revert the optimistic row.
+      // Saves go one after another so the order on the server is the order tapped.
+      // The screen has already moved on; we do NOT wait for the network here, so
+      // fast taps never queue behind a slow connection at the ground.
+      //
+      // A dropped connection retries the SAME row (same place in the over, same
+      // batters) for about 30 seconds. If it still cannot be saved, this ball and
+      // every ball tapped after it come off the screen together, so what the
+      // scorer sees is always what is saved.
+      const stillOnScreen = () => eventsRef.current.some((ev) => ev.id === optimistic.id);
+      let toldSlow = false;
       const networkPromise = netQueueRef.current
         .catch(() => {})
-        .then(() =>
-          appendBallEvent({
-            eventId: optimistic.id,
-            tenantId: opts.tenantId!,
-            matchId,
-            inningsId: activeInnings.id,
-            strikerAthleteId: currentStriker.athleteId,
-            strikerName: currentStriker.name,
-            nonStrikerAthleteId: currentNonStriker.athleteId,
-            nonStrikerName: currentNonStriker.name,
-            bowlerAthleteId: currentBowler.athleteId,
-            bowlerName: currentBowler.name,
-            createdBy: opts.userId ?? null,
-            priorEvents,
-            ...partial,
-          }).then(() => undefined),
-        )
+        .then(() => {
+          if (!stillOnScreen()) return undefined; // an earlier ball failed and took this one off
+          return saveWithRetry(
+            () =>
+              appendBallEvent({
+                eventId: optimistic.id,
+                tenantId: opts.tenantId!,
+                matchId,
+                inningsId: activeInnings.id,
+                strikerAthleteId: currentStriker.athleteId,
+                strikerName: currentStriker.name,
+                nonStrikerAthleteId: currentNonStriker.athleteId,
+                nonStrikerName: currentNonStriker.name,
+                bowlerAthleteId: currentBowler.athleteId,
+                bowlerName: currentBowler.name,
+                createdBy: opts.userId ?? null,
+                priorEvents,
+                ...partial,
+              }).then(() => undefined),
+            {
+              onRetry: () => {
+                if (toldSlow) return;
+                toldSlow = true;
+                toast.message("Weak internet. Saving the ball again...", { duration: 4000 });
+              },
+            },
+          );
+        })
         .catch((e) => {
-          console.error("[scoring] append failed, reverting", e);
-          toast.error("Ball not saved — network error. Retrying...");
-          
-          // Basic retry logic
-          const retry = () => submitBall(partial);
-          setTimeout(retry, 2000);
-
-          const wasLatest = eventsRef.current.at(-1)?.id === optimistic.id;
-          if (!wasLatest) {
-            // If it's not the latest ball, we have a rotation mismatch risk.
-            // Block further input until sync? For now, we revert and toast.
-            toast.error("Sync error: rotation may be incorrect. Please refresh.");
-          }
-
-          eventsRef.current = eventsRef.current.filter((event) => event.id !== optimistic.id);
+          console.error("[scoring] ball not saved", e);
+          const idx = eventsRef.current.findIndex((ev) => ev.id === optimistic.id);
+          if (idx < 0) return;
+          const dropped = eventsRef.current.length - idx;
+          eventsRef.current = eventsRef.current.slice(0, idx);
           setEvents(eventsRef.current);
-          if (wasLatest) {
-            setStriker(currentStriker);
-            setNonStriker(currentNonStriker);
-            setBowler(currentBowler);
+          setStriker(currentStriker);
+          setNonStriker(currentNonStriker);
+          setBowler(currentBowler);
+          if (isRetryableSaveError(e)) {
+            toast.error(
+              dropped === 1
+                ? "No internet: the last ball was NOT saved. Enter it again."
+                : `No internet: the last ${dropped} balls were NOT saved. Enter them again.`,
+              { duration: 10000 },
+            );
+          } else {
+            // The server refused the ball (for example another phone is scoring
+            // this match). Show what is really saved.
+            toast.error("That ball could not be saved. The score was refreshed.", {
+              duration: 8000,
+            });
+            void load();
           }
         });
       netQueueRef.current = networkPromise.catch(() => {});
@@ -596,6 +465,7 @@ export function useScoringSession(
       setNonStriker,
       setBowler,
       wicketLimit,
+      load,
     ],
   );
 
@@ -615,20 +485,10 @@ export function useScoringSession(
       // so re-seating them from the removed event correctly reverses wickets
       // (dismissed batter returns), strike rotations, and end-of-over bowler
       // changes in a single step.
-      setStriker({
-        athleteId: removed.striker_athlete_id ?? null,
-        name: removed.striker_name ?? null,
-        onStrike: true,
-      });
-      setNonStriker({
-        athleteId: removed.non_striker_athlete_id ?? null,
-        name: removed.non_striker_name ?? null,
-        onStrike: false,
-      });
-      setBowler({
-        athleteId: removed.bowler_athlete_id ?? null,
-        name: removed.bowler_name ?? null,
-      });
+      const before = lineupBeforeBall(removed);
+      setStriker(before.striker);
+      setNonStriker(before.nonStriker);
+      setBowler(before.bowler);
     }
     return removed;
   }, [activeInnings, setBowler, setStriker, setNonStriker]);
@@ -666,54 +526,6 @@ export function useScoringSession(
  * Each returns a partial for `submitBall`.
  * ================================================================ */
 
-export const ballHelpers = {
-  run: (runs: 0 | 1 | 2 | 3 | 4 | 5 | 6) => ({
-    runsOffBat: runs,
-    extraType: null,
-    extraRuns: 0,
-  }),
-  wide: (runs: number = 1) => ({
-    runsOffBat: 0,
-    extraType: "wide" as const,
-    extraRuns: runs,
-  }),
-  /**
-   * No-ball. The +1 penalty is added by the rules engine automatically.
-   * `batRuns` = runs off the bat while the ball was live (0..6).
-   * `byes`    = bye/leg-bye runs completed off the no-ball (rare).
-   * `extra_runs` on a no-ball stores ONLY those byes — never the penalty.
-   */
-  noBall: (batRuns: number = 0, byes: number = 0, legByes: boolean = false) => ({
-    runsOffBat: batRuns,
-    extraType: "no_ball" as const,
-    extraRuns: byes,
-    ...(legByes && byes > 0 ? { comment: NO_BALL_LEG_BYES_COMMENT } : {}),
-  }),
-  bye: (runs: number) => ({
-    runsOffBat: 0,
-    extraType: "bye" as const,
-    extraRuns: runs,
-  }),
-  legBye: (runs: number) => ({
-    runsOffBat: 0,
-    extraType: "leg_bye" as const,
-    extraRuns: runs,
-  }),
-  wicket: (
-    kind: AppendBallInput["dismissalType"],
-    extras?: {
-      fielderAthleteId?: string | null;
-      fielderName?: string | null;
-      dismissedAthleteId?: string | null;
-      dismissedName?: string | null;
-    },
-  ) => ({
-    runsOffBat: 0,
-    extraType: null,
-    extraRuns: 0,
-    dismissalType: kind ?? null,
-    ...extras,
-  }),
-};
+export { ballHelpers } from "@/lib/mc-scoring-core";
 
 export { countsAsBall, isLegalDelivery, nextPosition };

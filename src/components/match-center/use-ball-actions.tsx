@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ballHelpers } from "@/hooks/use-scoring-session";
-import type { DismissalType, ExtraType, MCBallEvent } from "@/lib/mc-ball-events";
+import type { DismissalType, MCBallEvent } from "@/lib/mc-ball-events";
+import { inputFromEvent, lineupBeforeBall, wicketInput } from "@/lib/mc-scoring-core";
 import type { WicketSheetResult } from "@/components/match-center/wicket-sheet";
 import { useExtraEntry } from "@/components/match-center/scorer-extras";
 
@@ -12,6 +13,9 @@ import { useExtraEntry } from "@/components/match-center/scorer-extras";
 interface SessionLike {
   submitBall: (partial: never) => Promise<unknown>;
   undo: () => Promise<MCBallEvent | null | undefined | void>;
+  setStriker: (b: { athleteId: string | null; name: string | null; onStrike: boolean }) => void;
+  setNonStriker: (b: { athleteId: string | null; name: string | null; onStrike: boolean }) => void;
+  setBowler: (b: { athleteId: string | null; name: string | null }) => void;
 }
 
 interface PlayerRef {
@@ -27,7 +31,6 @@ export function useBallActions<S extends SessionLike>({
   requiredPicker,
   pendingBallIntent,
   setPendingBallIntent,
-  swapAfterBatterRef,
   setDismissOpen,
   setWicketKind,
 }: {
@@ -39,7 +42,6 @@ export function useBallActions<S extends SessionLike>({
   requiredPicker: unknown;
   pendingBallIntent: Parameters<S["submitBall"]>[0] | null;
   setPendingBallIntent: (p: Parameters<S["submitBall"]>[0] | null) => void;
-  swapAfterBatterRef: { current: boolean };
   setDismissOpen: (v: boolean) => void;
   setWicketKind: (k: DismissalType | null) => void;
 }) {
@@ -90,23 +92,23 @@ export function useBallActions<S extends SessionLike>({
 
   const handleRedo = async () => {
     const next = redoStack[redoStack.length - 1];
-    if (!next) return;
+    if (!next || savingBallRef.current) return;
+    savingBallRef.current = true;
     setRedoStack((s) => s.slice(0, -1));
     try {
-      await session.submitBall({
-        runsOffBat: next.runs_off_bat ?? 0,
-        extraType: (next.extra_type ?? null) as ExtraType | null,
-        extraRuns: next.extra_runs ?? 0,
-        dismissalType: (next.dismissal_type ?? null) as DismissalType | null,
-        dismissedAthleteId: next.dismissed_athlete_id ?? null,
-        dismissedName: next.dismissed_name ?? null,
-        fielderAthleteId: next.fielder_athlete_id ?? null,
-        fielderName: next.fielder_name ?? null,
-        comment: next.comment ?? null,
-      } as never);
+      // The ball goes back with the batters and bowler it was first scored with.
+      // Without this, a redo across a wicket or an over change failed ("Select
+      // the striker", "same bowler cannot bowl consecutive overs").
+      const before = lineupBeforeBall(next);
+      session.setStriker(before.striker);
+      session.setNonStriker(before.nonStriker);
+      session.setBowler(before.bowler);
+      await session.submitBall(inputFromEvent(next) as never);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to redo");
       setRedoStack((s) => [...s, next]);
+    } finally {
+      savingBallRef.current = false;
     }
   };
 
@@ -122,19 +124,27 @@ export function useBallActions<S extends SessionLike>({
 
   const handleWicket = async (r: WicketSheetResult) => {
     setDismissOpen(false);
-    const dismissedRef =
-      r.dismissed === "non-striker"
-        ? { id: nonStriker.athleteId, name: nonStriker.name }
-        : { id: striker.athleteId, name: striker.name };
-    const ok = await submit({
-      ...r.partial,
-      fielderAthleteId: r.fielder?.id && !r.fielder.id.startsWith("ext:") ? r.fielder.id : null,
-      fielderName: r.fielder?.name ?? null,
-      dismissedAthleteId: dismissedRef.id,
-      dismissedName: dismissedRef.name,
-    } as Partial);
-    // Run out after the batters crossed: the next batter picked takes the other end.
-    swapAfterBatterRef.current = ok && r.crossed;
+    await submit(
+      wicketInput(
+        {
+          partial: r.partial,
+          dismissed: r.dismissed,
+          fielder: r.fielder
+            ? {
+                athleteId: r.fielder.id && !r.fielder.id.startsWith("ext:") ? r.fielder.id : null,
+                name: r.fielder.name ?? null,
+              }
+            : null,
+          // Saved with the ball, so the batter who is left stands at the right
+          // end after undo, redo and when the scorer is opened again.
+          crossed: r.crossed,
+        },
+        {
+          striker: { athleteId: striker.athleteId ?? null, name: striker.name ?? null },
+          nonStriker: { athleteId: nonStriker.athleteId ?? null, name: nonStriker.name ?? null },
+        },
+      ) as Partial,
+    );
   };
 
   return {

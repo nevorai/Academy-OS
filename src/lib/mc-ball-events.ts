@@ -6,8 +6,10 @@ import {
   LEGAL_EXTRAS,
   countsAsBall,
   isLegalDelivery,
+  nextPosition,
   type DismissalType,
   type ExtraType,
+  type OverBallPosition,
 } from "@/lib/mc-ball-events-core";
 
 /* ================================================================
@@ -28,8 +30,8 @@ export type MCInningsUpdate = Database["public"]["Tables"]["mc_innings"]["Update
 export type MCBallEvent = Database["public"]["Tables"]["mc_ball_events"]["Row"];
 export type MCBallEventInsert = Database["public"]["Tables"]["mc_ball_events"]["Insert"];
 
-export { BallEventError, ILLEGAL_EXTRAS, LEGAL_EXTRAS, countsAsBall, isLegalDelivery };
-export type { DismissalType, ExtraType };
+export { BallEventError, ILLEGAL_EXTRAS, LEGAL_EXTRAS, countsAsBall, isLegalDelivery, nextPosition };
+export type { DismissalType, ExtraType, OverBallPosition };
 
 /* ================================================================
  * Innings
@@ -124,48 +126,7 @@ export async function listMatchBallEvents(
   return data ?? [];
 }
 
-/* --------- Positional helpers derived from prior events --------- */
-
-export interface OverBallPosition {
-  overNumber: number;
-  ballNumber: number; // 1-based legal delivery counter within the over
-  sequenceNumber: number; // monotonic across the innings
-}
-
-/**
- * Compute the position of the NEXT ball to be recorded, from prior events.
- * Uses `over_number` and `is_legal_delivery` — never derived stats.
- */
-export function nextPosition(events: MCBallEvent[]): OverBallPosition {
-  if (events.length === 0) {
-    return { overNumber: 0, ballNumber: 1, sequenceNumber: 1 };
-  }
-  const last = events[events.length - 1];
-  const nextSeq = (last.sequence_number ?? events.length) + 1;
-
-  // Count legal deliveries so far in `last.over_number`. Re-derive from
-  // extra_type — a stale `is_legal_delivery` flag must never influence the
-  // position of the next ball.
-  const legalInOver = events.filter(
-    (e) => e.over_number === last.over_number && countsAsBall(e),
-  ).length;
-
-  if (legalInOver >= 6) {
-    return {
-      overNumber: last.over_number + 1,
-      ballNumber: 1,
-      sequenceNumber: nextSeq,
-    };
-  }
-
-  // Same over — ball number is legal-count so far + 1 for legal, else same
-  // legal position (still labelled by next legal ball).
-  return {
-    overNumber: last.over_number,
-    ballNumber: legalInOver + 1,
-    sequenceNumber: nextSeq,
-  };
-}
+/* --------- Positional helpers live in mc-ball-events-core.ts (nextPosition) --------- */
 
 /* --------- Append (single source of truth for scoring) --------- */
 
@@ -261,8 +222,28 @@ export async function appendBallEvent(input: AppendBallInput): Promise<MCBallEve
     .insert(payload)
     .select("*")
     .single();
-  if (error) throw new BallEventError("DB_ERROR", error.message);
+  if (error) {
+    const code = (error as { code?: string }).code ?? "";
+    // The same ball sent twice (the first try landed but its answer was lost on a
+    // weak connection): the row is already saved, so this is a success.
+    if (code === "23505" && /mc_ball_events_pkey/.test(`${error.message} ${error.details ?? ""}`)) {
+      return payload as unknown as MCBallEvent;
+    }
+    const err = new BallEventError("DB_ERROR", error.message);
+    err.retryable = isConnectionFailure(code);
+    throw err;
+  }
   return data;
+}
+
+/**
+ * No error code means the request never reached the database (no internet,
+ * timeout). PGRST0xx = the API could not reach the database. Those are worth
+ * trying again; a refused row (rule, duplicate, permission) is not.
+ */
+export function isConnectionFailure(code: string | null | undefined): boolean {
+  if (!code) return true;
+  return /^PGRST00\d$/.test(code) || code === "57014" || code === "40001" || code === "40P01";
 }
 
 /* --------- Undo (remove the most recent event) --------- */

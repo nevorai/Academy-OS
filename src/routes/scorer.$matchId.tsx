@@ -34,6 +34,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useScoringSession, ballHelpers } from "@/hooks/use-scoring-session";
 import { useBallFix } from "@/hooks/use-ball-fix";
+import { isEmptySeat, pickerState, resumeLineup } from "@/lib/mc-scoring-core";
 import { BallFixBar, BallFixSheet } from "@/components/match-center/ball-fix-ui";
 import { useScoringLock } from "@/hooks/use-scoring-lock";
 import {
@@ -181,22 +182,6 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
       athleteId: squad?.athlete_profile_id ?? null,
       name: opt.name,
     };
-    if (swapAfterBatterRef.current && (slot === "striker" || slot === "nonStriker")) {
-      swapAfterBatterRef.current = false;
-      const survivor = slot === "striker" ? session.nonStriker : session.striker;
-      if (slot === "striker") {
-        session.setStriker({ athleteId: survivor.athleteId, name: survivor.name, onStrike: true });
-        session.setNonStriker({ ...payload, onStrike: false });
-      } else {
-        session.setStriker({ ...payload, onStrike: true });
-        session.setNonStriker({
-          athleteId: survivor.athleteId,
-          name: survivor.name,
-          onStrike: false,
-        });
-      }
-      return;
-    }
     if (slot === "striker") session.setStriker({ ...payload, onStrike: true });
     else if (slot === "nonStriker") session.setNonStriker({ ...payload, onStrike: false });
     else session.setBowler(payload);
@@ -205,10 +190,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   /* ---------- modal state ---------- */
   const [dismissOpen, setDismissOpen] = useState(false);
   const [wicketKind, setWicketKind] = useState<DismissalType | null>(null);
-  const swapAfterBatterRef = useRef(false);
-  const ballFix = useBallFix(session, () => {
-    swapAfterBatterRef.current = false;
-  });
+  const ballFix = useBallFix(session);
   const [fixOpen, setFixOpen] = useState(false);
   const [newBatterOpen, setNewBatterOpen] = useState(false);
   const [newBowlerOpen, setNewBowlerOpen] = useState(false);
@@ -241,32 +223,18 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   /* ---------- hydrate current players from event log on resume ---------- */
   useEffect(() => {
     if (session.loading) return;
-    const rs = session.matchState.innings.striker;
-    const rn = session.matchState.innings.nonStriker;
-    const rb = session.matchState.innings.bowler;
-    const strikerEmpty = !session.striker.athleteId && !session.striker.name;
-    const nonStrikerEmpty = !session.nonStriker.athleteId && !session.nonStriker.name;
-    const bowlerEmpty = !session.bowler.athleteId && !session.bowler.name;
-    if (strikerEmpty && (rs.athleteId || rs.name)) {
-      const dismissed =
-        (rs.athleteId && session.matchState.innings.dismissedIds.has(rs.athleteId)) ||
-        (rs.name && session.matchState.innings.dismissedNames.has(rs.name));
-      if (!dismissed)
-        session.setStriker({ athleteId: rs.athleteId, name: rs.name, onStrike: true });
-    }
-    if (nonStrikerEmpty && (rn.athleteId || rn.name)) {
-      const dismissed =
-        (rn.athleteId && session.matchState.innings.dismissedIds.has(rn.athleteId)) ||
-        (rn.name && session.matchState.innings.dismissedNames.has(rn.name));
-      if (!dismissed)
-        session.setNonStriker({ athleteId: rn.athleteId, name: rn.name, onStrike: false });
-    }
-    if (bowlerEmpty && (rb.athleteId || rb.name) && !session.matchState.innings.awaitingNewBowler) {
-      session.setBowler({ athleteId: rb.athleteId, name: rb.name });
-    }
+    // Only EMPTY seats are filled, from the last saved ball, with the same code
+    // that moved the batters when that ball was scored (see resumeLineup).
+    const resume = resumeLineup(session.events, session.matchState);
+    if (isEmptySeat(session.striker) && !isEmptySeat(resume.striker))
+      session.setStriker(resume.striker);
+    if (isEmptySeat(session.nonStriker) && !isEmptySeat(resume.nonStriker))
+      session.setNonStriker(resume.nonStriker);
+    if (isEmptySeat(session.bowler) && !isEmptySeat(resume.bowler)) session.setBowler(resume.bowler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     session.loading,
+    session.events.length,
     session.matchState.innings.striker.athleteId,
     session.matchState.innings.striker.name,
     session.matchState.innings.nonStriker.athleteId,
@@ -280,6 +248,10 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   useEffect(() => {
     if (session.matchState.inningsShouldEnd && !inningsCompleteOpen) {
       setInningsCompleteOpen(true);
+    }
+    // The last ball was undone (or fixed): the innings is on again, so the box goes.
+    if (!session.matchState.inningsShouldEnd && inningsCompleteOpen) {
+      setInningsCompleteOpen(false);
     }
   }, [session.matchState.inningsShouldEnd, inningsCompleteOpen]);
 
@@ -420,52 +392,25 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   });
 
   const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
-  const strikerSelected = Boolean(striker.athleteId || striker.name);
-  const nonStrikerSelected = Boolean(nonStriker.athleteId || nonStriker.name);
-  const bowlerSelected = Boolean(bowlerRef.athleteId || bowlerRef.name);
-  const strikerDismissed = Boolean(
-    (striker.athleteId && session.matchState.innings.dismissedIds.has(striker.athleteId)) ||
-    (striker.name && session.matchState.innings.dismissedNames.has(striker.name)),
+  // The batter list opens by itself only when the saved balls really leave a seat
+  // empty. On the first frame after loading, the seats are not filled in yet; the
+  // check below reads the saved balls directly so that frame cannot open a list.
+  const awaitingNewBatterNow = useMemo(() => {
+    if (!session.matchState.innings.awaitingNewBatter) return false;
+    const seats = resumeLineup(session.events, session.matchState);
+    return isEmptySeat(seats.striker) || isEmptySeat(seats.nonStriker);
+  }, [session.events, session.matchState]);
+
+  // Which seat (if any) must be filled before the next ball: shared, tested logic.
+  const {
+    newBowlerStillNeeded,
+    mustPickBeforeBall,
+    requiredPicker,
+  } = pickerState(
+    { striker, nonStriker, bowler: bowlerRef },
+    session.matchState,
+    Boolean(pendingBallIntent),
   );
-  const nonStrikerDismissed = Boolean(
-    (nonStriker.athleteId && session.matchState.innings.dismissedIds.has(nonStriker.athleteId)) ||
-    (nonStriker.name && session.matchState.innings.dismissedNames.has(nonStriker.name)),
-  );
-  const incomingBatterRole =
-    !strikerSelected || strikerDismissed
-      ? "striker"
-      : !nonStrikerSelected || nonStrikerDismissed
-        ? "nonStriker"
-        : null;
-  const sameAsPreviousBowler = Boolean(
-    previousOverBowler &&
-    ((bowlerRef.athleteId &&
-      previousOverBowler.bowlerAthleteId &&
-      bowlerRef.athleteId === previousOverBowler.bowlerAthleteId) ||
-      (bowlerRef.name &&
-        previousOverBowler.bowlerName &&
-        bowlerRef.name === previousOverBowler.bowlerName)),
-  );
-  const newBowlerStillNeeded = Boolean(
-    session.matchState.innings.awaitingNewBowler && (!bowlerSelected || sameAsPreviousBowler),
-  );
-  const bowlerPickerNeededForBall = newBowlerStillNeeded || !bowlerSelected;
-  // Auto-open picker rules:
-  //   - Batter picker opens only when a wicket falls / a slot is empty.
-  //   - Bowler picker DOES NOT force open at end-of-over. It only auto-opens
-  //     when the scorer taps a scoring button and there's no bowler yet
-  //     (i.e. a pendingBallIntent is queued).
-  const requiredPicker = session.matchState.inningsShouldEnd
-    ? null
-    : incomingBatterRole
-      ? incomingBatterRole
-      : !strikerSelected
-        ? "striker"
-        : !nonStrikerSelected
-          ? "nonStriker"
-          : bowlerPickerNeededForBall && pendingBallIntent
-            ? "bowler"
-            : null;
 
   /* ---------- header text ---------- */
   const teamMap = new Map((teamsQ.data ?? []).map((t) => [t.id, t]));
@@ -493,17 +438,10 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     session,
     striker,
     nonStriker,
-    mustPickBeforeBall:
-      Boolean(incomingBatterRole) ||
-      !strikerSelected ||
-      !nonStrikerSelected ||
-      strikerDismissed ||
-      nonStrikerDismissed ||
-      Boolean(bowlerPickerNeededForBall),
+    mustPickBeforeBall,
     requiredPicker,
     pendingBallIntent,
     setPendingBallIntent,
-    swapAfterBatterRef,
     setDismissOpen,
     setWicketKind,
   });
@@ -557,8 +495,11 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     }
   };
 
+  // One tap only: a double tap must not close the innings and start the next one twice.
+  const startingInningsRef = useRef(false);
   const startSecondInnings = async () => {
-    if (!session.match || !session.activeInnings) return;
+    if (!session.match || !session.activeInnings || startingInningsRef.current) return;
+    startingInningsRef.current = true;
     const target = session.matchState.innings.runs + 1;
     try {
       // 1. Close the first innings first with error check
@@ -587,6 +528,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     } catch (e) {
       console.error("Error starting second innings:", e);
       toast.error(e instanceof Error ? e.message : "Could not start next innings");
+    } finally {
+      startingInningsRef.current = false;
     }
   };
 
@@ -674,14 +617,16 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
       } else if (ev.key.toLowerCase() === "w") {
         setWicketKind(null);
         setDismissOpen(true);
-      } else if (ev.key.toLowerCase() === "u") void session.undo();
+      } else if (ev.key.toLowerCase() === "u") {
+        void handleUndo();
+      }
       else if (ev.key.toLowerCase() === "d") setExtraKind("Wide");
       else if (ev.key.toLowerCase() === "n") setExtraKind("No Ball");
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onRun, session.undo]);
+  }, [onRun, handleUndo]);
 
   /* ---------- render ---------- */
   const teamAShort =
@@ -818,7 +763,6 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
               setDismissOpen(true);
             }}
             onUndo={() => {
-              swapAfterBatterRef.current = false;
               void handleUndo();
             }}
             onRedo={() => void handleRedo()}
@@ -842,7 +786,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
             battingOptions={battingOptions}
             bowlingOptions={bowlingOptions}
             onPickPlayer={(role, p) => setPlayer(role, p)}
-            awaitingNewBatter={session.matchState.innings.awaitingNewBatter}
+            awaitingNewBatter={awaitingNewBatterNow}
             awaitingNewBowler={session.matchState.innings.awaitingNewBowler}
             ballsInOver={session.matchState.innings.ballsInOver}
           />
@@ -985,6 +929,10 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
             </div>
           </div>
           <DialogFooter className="gap-2">
+            {/* The last ball was a mistake (a wrong wicket, a wrong run): take it off here. */}
+            <Button variant="ghost" onClick={() => void handleUndo()}>
+              Undo last ball
+            </Button>
             <Button variant="outline" onClick={() => setScorecardOpen(true)}>
               Review scorecard
             </Button>
@@ -1282,10 +1230,7 @@ function DemoScorerBody({
   /* ---------- modal state ---------- */
   const [dismissOpen, setDismissOpen] = useState(false);
   const [wicketKind, setWicketKind] = useState<DismissalType | null>(null);
-  const swapAfterBatterRef = useRef(false);
-  const ballFix = useBallFix(session, () => {
-    swapAfterBatterRef.current = false;
-  });
+  const ballFix = useBallFix(session);
   const [fixOpen, setFixOpen] = useState(false);
   const [newBatterOpen, setNewBatterOpen] = useState(false);
   const [newBowlerOpen, setNewBowlerOpen] = useState(false);
@@ -1306,6 +1251,10 @@ function DemoScorerBody({
   useEffect(() => {
     if (session.matchState.inningsShouldEnd && !inningsCompleteOpen) {
       setInningsCompleteOpen(true);
+    }
+    // The last ball was undone (or fixed): the innings is on again, so the box goes.
+    if (!session.matchState.inningsShouldEnd && inningsCompleteOpen) {
+      setInningsCompleteOpen(false);
     }
   }, [session.matchState.inningsShouldEnd, inningsCompleteOpen]);
 
@@ -1345,22 +1294,6 @@ function DemoScorerBody({
 
   const setPlayer = (slot: "striker" | "nonStriker" | "bowler", opt: PlayerOption) => {
     const payload = { athleteId: opt.id.startsWith("ext:") ? null : opt.id, name: opt.name };
-    if (swapAfterBatterRef.current && (slot === "striker" || slot === "nonStriker")) {
-      swapAfterBatterRef.current = false;
-      const survivor = slot === "striker" ? session.nonStriker : session.striker;
-      if (slot === "striker") {
-        session.setStriker({ athleteId: survivor.athleteId, name: survivor.name, onStrike: true });
-        session.setNonStriker({ ...payload, onStrike: false });
-      } else {
-        session.setStriker({ ...payload, onStrike: true });
-        session.setNonStriker({
-          athleteId: survivor.athleteId,
-          name: survivor.name,
-          onStrike: false,
-        });
-      }
-      return;
-    }
     if (slot === "striker") session.setStriker({ ...payload, onStrike: true });
     else if (slot === "nonStriker") session.setNonStriker({ ...payload, onStrike: false });
     else session.setBowler(payload);
@@ -1457,49 +1390,16 @@ function DemoScorerBody({
   );
 
   const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
-  const strikerSelected = Boolean(striker.athleteId || striker.name);
-  const nonStrikerSelected = Boolean(nonStriker.athleteId || nonStriker.name);
-  const bowlerSelected = Boolean(bowlerRef.athleteId || bowlerRef.name);
-  const strikerDismissed = Boolean(
-    (striker.athleteId && session.matchState.innings.dismissedIds.has(striker.athleteId)) ||
-    (striker.name && session.matchState.innings.dismissedNames.has(striker.name)),
+  // Which seat (if any) must be filled before the next ball: shared, tested logic.
+  const {
+    newBowlerStillNeeded,
+    mustPickBeforeBall,
+    requiredPicker,
+  } = pickerState(
+    { striker, nonStriker, bowler: bowlerRef },
+    session.matchState,
+    Boolean(pendingBallIntent),
   );
-  const nonStrikerDismissed = Boolean(
-    (nonStriker.athleteId && session.matchState.innings.dismissedIds.has(nonStriker.athleteId)) ||
-    (nonStriker.name && session.matchState.innings.dismissedNames.has(nonStriker.name)),
-  );
-  const incomingBatterRole =
-    !strikerSelected || strikerDismissed
-      ? "striker"
-      : !nonStrikerSelected || nonStrikerDismissed
-        ? "nonStriker"
-        : null;
-  const sameAsPreviousBowler = Boolean(
-    previousOverBowler &&
-    ((bowlerRef.athleteId &&
-      previousOverBowler.bowlerAthleteId &&
-      bowlerRef.athleteId === previousOverBowler.bowlerAthleteId) ||
-      (bowlerRef.name &&
-        previousOverBowler.bowlerName &&
-        bowlerRef.name === previousOverBowler.bowlerName)),
-  );
-  const newBowlerStillNeeded = Boolean(
-    session.matchState.innings.awaitingNewBowler && (!bowlerSelected || sameAsPreviousBowler),
-  );
-  const bowlerPickerNeededForBall = newBowlerStillNeeded || !bowlerSelected;
-  // Auto-open picker: never forces bowler at end-of-over — only when a
-  // scoring intent is queued and no bowler is set.
-  const requiredPicker = session.matchState.inningsShouldEnd
-    ? null
-    : incomingBatterRole
-      ? incomingBatterRole
-      : !strikerSelected
-        ? "striker"
-        : !nonStrikerSelected
-          ? "nonStriker"
-          : bowlerPickerNeededForBall && pendingBallIntent
-            ? "bowler"
-            : null;
 
   const matchWithTeams = (demo.matches.find((m) => m.id === matchId) ?? match) as MatchWithTeams;
   const teamA = matchWithTeams.team_a;
@@ -1527,17 +1427,10 @@ function DemoScorerBody({
     session,
     striker,
     nonStriker,
-    mustPickBeforeBall:
-      Boolean(incomingBatterRole) ||
-      !strikerSelected ||
-      !nonStrikerSelected ||
-      strikerDismissed ||
-      nonStrikerDismissed ||
-      Boolean(bowlerPickerNeededForBall),
+    mustPickBeforeBall,
     requiredPicker,
     pendingBallIntent,
     setPendingBallIntent,
-    swapAfterBatterRef,
     setDismissOpen,
     setWicketKind,
   });
@@ -1604,14 +1497,16 @@ function DemoScorerBody({
       } else if (ev.key.toLowerCase() === "w") {
         setWicketKind(null);
         setDismissOpen(true);
-      } else if (ev.key.toLowerCase() === "u") void session.undo();
+      } else if (ev.key.toLowerCase() === "u") {
+        void handleUndo();
+      }
       else if (ev.key.toLowerCase() === "d") setExtraKind("Wide");
       else if (ev.key.toLowerCase() === "n") setExtraKind("No Ball");
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onRun, session.undo]);
+  }, [onRun, handleUndo]);
 
   const isLive = !match.match_locked && (activeInnings?.status as string) === "in_progress";
 
@@ -1739,7 +1634,6 @@ function DemoScorerBody({
               setDismissOpen(true);
             }}
             onUndo={() => {
-              swapAfterBatterRef.current = false;
               void handleUndo();
             }}
             onRedo={() => void handleRedo()}

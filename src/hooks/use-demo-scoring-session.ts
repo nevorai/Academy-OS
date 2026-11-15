@@ -8,13 +8,8 @@ import {
   type MCBallEvent,
   type MCInnings,
 } from "@/lib/mc-ball-events";
-import {
-  applyStrikeAfterBall,
-  replayInnings,
-  validateBallDraft,
-  type MatchState,
-} from "@/lib/mc-rules-engine";
-import { formatLiveOver } from "@/lib/mc-statistics-engine";
+import { replayInnings, type MatchState } from "@/lib/mc-rules-engine";
+import { lineupBeforeBall, prepareBall, resumeLineup } from "@/lib/mc-scoring-core";
 import { wicketLimitForTeam } from "@/lib/mc-match-rules";
 import { updateDemoData, findDemoDatasetByMatchId, useDemoRevision } from "@/lib/mc-demo/store";
 import type {
@@ -29,16 +24,6 @@ type MCMatchSquad = Database["public"]["Tables"]["mc_match_squads"]["Row"];
 
 function countCompletedLegalDeliveries(events: MCBallEvent[]) {
   return events.filter((e) => countsAsBall(e)).length;
-}
-
-function logScoringOverCheckpoint(
-  phase: "before recording" | "after recording",
-  completedLegalBalls: number,
-) {
-  console.info(`[scoring-event] ${phase}`, {
-    completedLegalBalls,
-    formattedOver: formatLiveOver(completedLegalBalls),
-  });
 }
 
 /**
@@ -138,17 +123,11 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
   // Reconstruct current striker/non-striker/bowler from the event tail so
   // the panels stay in sync after page reload.
   const lastEvent = events[events.length - 1];
-  const inferredStriker =
-    matchState.innings.striker.athleteId || matchState.innings.striker.name
-      ? { ...matchState.innings.striker, onStrike: true }
-      : { athleteId: null, name: null, onStrike: true };
-  const inferredNonStriker =
-    matchState.innings.nonStriker.athleteId || matchState.innings.nonStriker.name
-      ? { ...matchState.innings.nonStriker, onStrike: false }
-      : { athleteId: null, name: null, onStrike: false };
-  const inferredBowler = lastEvent
-    ? { athleteId: lastEvent.bowler_athlete_id, name: lastEvent.bowler_name }
-    : { athleteId: null, name: null };
+  // Same "who is at the crease when the scorer opens" code as the live scorer.
+  const resumed = useMemo(() => resumeLineup(events, matchState), [events, matchState]);
+  const inferredStriker = resumed.striker;
+  const inferredNonStriker = resumed.nonStriker;
+  const inferredBowler = resumed.bowler;
 
   // Local UI overrides for striker/non-striker/bowler (nulls fall back to inferred).
   const [strikerOverride, setStrikerOverride] = useState<CurrentBatterState | null>(null);
@@ -221,64 +200,6 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
     [],
   );
 
-  const samePlayerRef = (
-    a: { athleteId?: string | null; name?: string | null },
-    b: { athleteId?: string | null; name?: string | null },
-  ) =>
-    Boolean(a.athleteId && b.athleteId && a.athleteId === b.athleteId) ||
-    Boolean(!a.athleteId && !b.athleteId && a.name && b.name && a.name === b.name);
-
-  const clearDismissedBatter = (
-    pair: { striker: CurrentBatterState; nonStriker: CurrentBatterState },
-    event: MCBallEvent,
-  ) => {
-    const dismissed = {
-      athleteId: event.dismissed_athlete_id,
-      name: event.dismissed_name,
-    };
-    if (!dismissed.athleteId && !dismissed.name) return pair;
-    if (samePlayerRef(pair.striker, dismissed)) {
-      return {
-        ...pair,
-        striker: { athleteId: null, name: null, onStrike: true },
-      };
-    }
-    if (samePlayerRef(pair.nonStriker, dismissed)) {
-      return {
-        ...pair,
-        nonStriker: { athleteId: null, name: null, onStrike: false },
-      };
-    }
-    return pair;
-  };
-
-  const matchStateForSelectedBatters = (
-    state: MatchState,
-    selectedStriker: CurrentBatterState = striker,
-    selectedNonStriker: CurrentBatterState = nonStriker,
-  ): MatchState => {
-    if (!state.innings.awaitingNewBatter) return state;
-    const strikerReady =
-      Boolean(selectedStriker.athleteId || selectedStriker.name) &&
-      !(selectedStriker.athleteId && state.innings.dismissedIds.has(selectedStriker.athleteId)) &&
-      !(selectedStriker.name && state.innings.dismissedNames.has(selectedStriker.name));
-    const nonStrikerReady =
-      Boolean(selectedNonStriker.athleteId || selectedNonStriker.name) &&
-      !(
-        selectedNonStriker.athleteId && state.innings.dismissedIds.has(selectedNonStriker.athleteId)
-      ) &&
-      !(selectedNonStriker.name && state.innings.dismissedNames.has(selectedNonStriker.name));
-    if (!strikerReady || !nonStrikerReady || samePlayerRef(selectedStriker, selectedNonStriker))
-      return state;
-    return {
-      ...state,
-      innings: {
-        ...state.innings,
-        awaitingNewBatter: false,
-      },
-    };
-  };
-
   const currentOver = useMemo<CurrentOverState>(() => {
     if (events.length === 0) return { overNumber: 0, ballsBowled: 0, events: [] };
     const lastOver = events[events.length - 1].over_number;
@@ -335,73 +256,31 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
       const currentNonStriker = nonStrikerRef.current;
       const currentBowler = bowlerRef.current;
 
-      if (!currentStriker.athleteId && !currentStriker.name) throw new Error("Select the striker.");
-      if (!currentBowler.athleteId && !currentBowler.name) throw new Error("Select the bowler.");
-
       const priorEvents = eventsRef.current;
       const completedLegalBallsBefore = countCompletedLegalDeliveries(priorEvents);
-      logScoringOverCheckpoint("before recording", completedLegalBallsBefore);
-      const latestMatchState = replayInnings(priorEvents, {
+      const pos = nextPosition(priorEvents);
+
+      // Same rules check and same "who bats next" code as the live scorer.
+      const prepared = prepareBall({
+        events: priorEvents,
+        lineup: { striker: currentStriker, nonStriker: currentNonStriker, bowler: currentBowler },
+        input: partial,
+        innings: activeInnings,
+        matchStatus: match?.status ?? null,
         totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
         maxWickets: wicketLimit,
-        target: activeInnings.target ?? null,
-      });
-
-      // Reuse the same rules-engine as production.
-      validateBallDraft(
-        {
-          strikerAthleteId: currentStriker.athleteId,
-          strikerName: currentStriker.name,
-          nonStrikerAthleteId: currentNonStriker.athleteId,
-          nonStrikerName: currentNonStriker.name,
-          bowlerAthleteId: currentBowler.athleteId,
-          bowlerName: currentBowler.name,
-          ...partial,
+        enforceBowlerQuota: false,
+        blockWhenMatchOver: false,
+        ids: {
+          eventId: `demo-ev-${matchId}-${activeInnings.innings_number}-${pos.sequenceNumber}`,
+          tenantId,
+          matchId,
+          createdBy: null,
         },
-        matchStateForSelectedBatters(latestMatchState, currentStriker, currentNonStriker),
-        {
-          innings: activeInnings,
-          events: priorEvents,
-          matchStatus: match?.status ?? null,
-        },
-      );
-
-      const pos = nextPosition(priorEvents);
-      const legal = countsAsBall({
-        extra_type: partial.extraType ?? null,
-        dismissal_type: partial.dismissalType ?? null,
       });
-
-      const created = {
-        id: `demo-ev-${matchId}-${activeInnings.innings_number}-${pos.sequenceNumber}`,
-        tenant_id: tenantId,
-        match_id: matchId,
-        innings_id: activeInnings.id,
-        sequence_number: pos.sequenceNumber,
-        over_number: pos.overNumber,
-        ball_number: pos.ballNumber,
-        is_legal_delivery: legal,
-        striker_athlete_id: currentStriker.athleteId,
-        striker_name: currentStriker.name,
-        non_striker_athlete_id: currentNonStriker.athleteId,
-        non_striker_name: currentNonStriker.name,
-        bowler_athlete_id: currentBowler.athleteId,
-        bowler_name: currentBowler.name,
-        runs_off_bat: partial.runsOffBat ?? 0,
-        extra_type: partial.extraType ?? null,
-        extra_runs: partial.extraRuns ?? 0,
-        dismissal_type: partial.dismissalType ?? null,
-        dismissed_athlete_id: partial.dismissedAthleteId ?? null,
-        dismissed_name: partial.dismissedName ?? null,
-        fielder_athlete_id: partial.fielderAthleteId ?? null,
-        fielder_name: partial.fielderName ?? null,
-        comment: partial.comment ?? null,
-        created_at: new Date().toISOString(),
-        created_by: null,
-      } as unknown as MCBallEvent;
+      const created = prepared.event;
+      const legal = created.is_legal_delivery;
       eventsRef.current = [...priorEvents, created];
-      logScoringOverCheckpoint("after recording", completedLegalBallsBefore + (legal ? 1 : 0));
-
       // Update innings aggregate cache too so list views agree at a glance.
       const total = (partial.runsOffBat ?? 0) + (partial.extraRuns ?? 0);
       const wicket = partial.dismissalType ? 1 : 0;
@@ -438,29 +317,8 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
       });
 
       // Strike rotation for local UI pointer.
-      const legalBefore = priorEvents.filter(
-        (e) =>
-          e.over_number === created.over_number &&
-          countsAsBall(e),
-      ).length;
-      const overCompleted = created.is_legal_delivery && legalBefore + 1 >= 6;
-      const rotated = applyStrikeAfterBall(
-        { striker: currentStriker, nonStriker: currentNonStriker },
-        created,
-        overCompleted,
-      );
-      const next = created.dismissal_type
-        ? clearDismissedBatter(
-            {
-              striker: { ...rotated.striker, onStrike: true },
-              nonStriker: { ...rotated.nonStriker, onStrike: false },
-            },
-            created,
-          )
-        : {
-            striker: { ...rotated.striker, onStrike: true },
-            nonStriker: { ...rotated.nonStriker, onStrike: false },
-          };
+      const next = prepared;
+      const overCompleted = prepared.overCompleted;
       if (
         next.striker.athleteId !== currentStriker.athleteId ||
         next.striker.name !== currentStriker.name ||
@@ -511,12 +369,14 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
           : i,
       );
     });
-    // Clear overrides so replay derives the correct pointers.
-    setStrikerOverride(null);
-    setNonStrikerOverride(null);
-    setBowlerOverride(null);
+    // Everyone goes back to where they stood just before the removed ball
+    // (same as the live scorer), so picks made before that ball are kept.
+    const before = lineupBeforeBall(last);
+    setStrikerImmediate(before.striker);
+    setNonStrikerImmediate(before.nonStriker);
+    setBowlerImmediate(before.bowler);
     return last;
-  }, [tenantId, activeInnings]);
+  }, [tenantId, activeInnings, setStrikerImmediate, setNonStrikerImmediate, setBowlerImmediate]);
 
   const reload = useCallback(async () => {
     // No-op — demo store is live via useSyncExternalStore subscribers.

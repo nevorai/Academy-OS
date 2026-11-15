@@ -397,7 +397,7 @@
   .scorer-match-scroll {
     -webkit-overflow-scrolling: touch;
     scrollbar-gutter: stable both-edges;
-    overscroll-behavior: contain;
+    overscroll-behavior: none;
   }
 }
 
@@ -610,7 +610,7 @@ body {
      Android WebViews and older iOS Safari builds this interferes with
      vertical panning of the page. Apply it only to interactive controls
      (buttons/links) via their own styles. */
-  overscroll-behavior-y: contain;
+  overscroll-behavior-y: none;
 }
 
 
@@ -998,4 +998,51 @@ main:has(> .pub-inner) + footer {
   :root {
     --app-safe-top: env(safe-area-inset-top, 0px);
   }
+}
+
+
+/* ============================================================
+   App, not website (Adarsh, 2026-11-15)
+   1. No rubber band: pulling a page down must not drag the content, the top
+      bar or the bottom tabs. "contain" still bounces on iPhone; "none" does not.
+   2. No text selection or Copy / Look Up menu on a long press. Typing fields
+      stay selectable, and anything marked .selectable can still be copied.
+   ============================================================ */
+html,
+body {
+  overscroll-behavior: none;
+}
+.overflow-y-auto,
+.overflow-auto,
+.overflow-y-scroll,
+.overflow-x-auto {
+  overscroll-behavior: none;
+}
+.scorer-root,
+.scorer-root * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+@media (pointer: coarse) {
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  a,
+  img,
+  button {
+    -webkit-touch-callout: none;
+    -webkit-user-drag: none;
+  }
+}
+input,
+textarea,
+select,
+[contenteditable="true"],
+.selectable,
+.selectable * {
+  -webkit-user-select: text !important;
+  user-select: text !important;
 }

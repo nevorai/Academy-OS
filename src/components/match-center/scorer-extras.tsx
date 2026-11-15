@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { ballHelpers } from "@/hooks/use-scoring-session";
-import { ExtraDeliverySheet, ExtraRunsModal } from "@/components/match-center/scoring-ui";
+import { ByeRunsPopup, ExtraDeliveryPopup } from "@/components/match-center/dial-popup";
 
 /**
  * Wide / No ball / Bye / Leg bye entry, shared by the live scorer and the demo
@@ -46,7 +46,7 @@ export function useExtraEntry({
 
   const extrasModals = (
     <>
-      <ExtraRunsModal
+      <ByeRunsPopup
         open={extraKind === "Bye" || extraKind === "Leg Bye"}
         onOpenChange={(v) => !v && setExtraKind(null)}
         kind={extraKind ?? ""}
@@ -57,7 +57,7 @@ export function useExtraEntry({
           else if (kind === "Leg Bye") requestSubmit(ballHelpers.legBye(runs));
         }}
       />
-      <ExtraDeliverySheet
+      <ExtraDeliveryPopup
         open={extraKind === "No Ball" || extraKind === "Wide"}
         onOpenChange={(v) => !v && setExtraKind(null)}
         kind={extraKind === "Wide" ? "Wide" : "No Ball"}

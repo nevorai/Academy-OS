@@ -122,7 +122,12 @@ describe("strike rotation (Law 18 / Law 33.6)", () => {
   });
 
   it("swaps strike at the end of a completed over", () => {
-    const st = replayInnings(over(0, Array.from({ length: 6 }, () => ({ runs_off_bat: 0 }))));
+    const st = replayInnings(
+      over(
+        0,
+        Array.from({ length: 6 }, () => ({ runs_off_bat: 0 })),
+      ),
+    );
     expect(st.innings.striker.name).toBe("B");
     expect(st.innings.nonStriker.name).toBe("A");
     expect(st.innings.awaitingNewBowler).toBe(true);
@@ -140,9 +145,7 @@ describe("maiden overs (Law 17.4)", () => {
   });
 
   it("byes and leg-byes do NOT break a maiden", () => {
-    const st = replayInnings(
-      over(0, [{ extra_type: "bye", extra_runs: 4 }, ...sixDots.slice(1)]),
-    );
+    const st = replayInnings(over(0, [{ extra_type: "bye", extra_runs: 4 }, ...sixDots.slice(1)]));
     expect(st.innings.runs).toBe(4);
     expect(st.innings.completedOvers[0].isMaiden).toBe(true);
   });
@@ -232,18 +235,14 @@ describe("free hit (Law 21.18 / ICC T20)", () => {
 
 describe("wickets and innings completion", () => {
   it("counts wickets and requires a new batter", () => {
-    const st = replayInnings(
-      over(0, [{ dismissal_type: "bowled", dismissed_name: "A" }]),
-    );
+    const st = replayInnings(over(0, [{ dismissal_type: "bowled", dismissed_name: "A" }]));
     expect(st.innings.wickets).toBe(1);
     expect(st.innings.awaitingNewBatter).toBe(true);
     expect(st.innings.dismissedNames.has("A")).toBe(true);
   });
 
   it("retired hurt is not a wicket but still needs a replacement batter", () => {
-    const st = replayInnings(
-      over(0, [{ dismissal_type: "retired_hurt", dismissed_name: "A" }]),
-    );
+    const st = replayInnings(over(0, [{ dismissal_type: "retired_hurt", dismissed_name: "A" }]));
     expect(st.innings.wickets).toBe(0);
     expect(st.innings.awaitingNewBatter).toBe(true);
   });
@@ -267,9 +266,15 @@ describe("wickets and innings completion", () => {
   });
 
   it("signals overs finished when the quota of legal balls is used", () => {
-    const st = replayInnings(over(0, Array.from({ length: 6 }, () => ({ runs_off_bat: 0 }))), {
-      totalOvers: 1,
-    });
+    const st = replayInnings(
+      over(
+        0,
+        Array.from({ length: 6 }, () => ({ runs_off_bat: 0 })),
+      ),
+      {
+        totalOvers: 1,
+      },
+    );
     expect(st.inningsShouldEnd).toBe("overs_finished");
   });
 });
@@ -287,7 +292,10 @@ describe("bowler over quota (ICC: a fifth of the innings)", () => {
 
   it("tracks legal balls per bowler, including guest (name-only) bowlers", () => {
     const st = replayInnings([
-      ...over(0, Array.from({ length: 6 }, () => ({ bowler_name: "Guest Bowler" }))),
+      ...over(
+        0,
+        Array.from({ length: 6 }, () => ({ bowler_name: "Guest Bowler" })),
+      ),
       ...over(1, [{ bowler_name: "Other" }]),
     ]);
     expect(st.innings.bowlerLegalBalls.get("name:guest bowler")).toBe(6);
@@ -318,17 +326,17 @@ describe("validateBallDraft guards", () => {
 
   it("rejects the deprecated 'handled the ball' dismissal", () => {
     expect(() =>
-      validateBallDraft(
-        { ...base, dismissalType: "handled_ball" as never },
-        emptyState,
-        ctx,
-      ),
+      validateBallDraft({ ...base, dismissalType: "handled_ball" as never }, emptyState, ctx),
     ).toThrow();
   });
 
   it("rejects an impossible dismissal off a no ball", () => {
     expect(() =>
-      validateBallDraft({ ...base, extraType: "no_ball", dismissalType: "bowled" }, emptyState, ctx),
+      validateBallDraft(
+        { ...base, extraType: "no_ball", dismissalType: "bowled" },
+        emptyState,
+        ctx,
+      ),
     ).toThrow();
   });
 
@@ -384,10 +392,38 @@ describe("validateBallDraft guards", () => {
     );
     expect(wicketState.innings.awaitingNewBatter).toBe(true);
     expect(() =>
-      validateBallDraft({ strikerName: "A", nonStrikerName: "B", bowlerName: "Bowler 1" }, wicketState, ctx),
+      validateBallDraft(
+        { strikerName: "A", nonStrikerName: "B", bowlerName: "Bowler 1" },
+        wicketState,
+        ctx,
+      ),
     ).toThrow();
     expect(() =>
-      validateBallDraft({ strikerName: "C", nonStrikerName: "B", bowlerName: "Bowler 1" }, wicketState, ctx),
+      validateBallDraft(
+        { strikerName: "C", nonStrikerName: "B", bowlerName: "Bowler 1" },
+        wicketState,
+        ctx,
+      ),
     ).not.toThrow();
+  });
+});
+
+describe("resume after a wicket", () => {
+  it("does not keep asking for a new batter once later balls were bowled", () => {
+    const evs = [
+      ball({ striker_name: "A", non_striker_name: "B", runs_off_bat: 1 }),
+      ball({
+        striker_name: "B",
+        non_striker_name: "A",
+        dismissal_type: "bowled",
+        dismissed_name: "B",
+      }),
+    ];
+    expect(replayInnings(evs, { totalOvers: 20 }).innings.awaitingNewBatter).toBe(true);
+    const later = [...evs, ball({ striker_name: "C", non_striker_name: "A", runs_off_bat: 2 })];
+    const st = replayInnings(later, { totalOvers: 20 }).innings;
+    expect(st.awaitingNewBatter).toBe(false);
+    expect(st.striker.name).toBe("C");
+    expect(st.nonStriker.name).toBe("A");
   });
 });

@@ -186,8 +186,6 @@ export function dismissalAllowedOnDelivery(
   return true;
 }
 
-
-
 /* ---------------- Reconstructed state ---------------- */
 
 export interface CurrentPlayerRef {
@@ -280,7 +278,6 @@ export interface ReplayOptions {
   target?: number | null;
 }
 
-
 /**
  * Replay a full innings from its event log. Deterministic and pure.
  * Complexity: O(n) over events.
@@ -338,6 +335,10 @@ export function replayInnings(events: MCBallEvent[], opts: ReplayOptions = {}): 
   };
 
   for (const e of events) {
+    // A ball bowled after a wicket proves the new batter is already in. Without this
+    // reset the flag stayed true for the rest of the innings, so re-opening a live
+    // match asked "Select striker" again even though both batters were known.
+    awaitingNewBatter = false;
     // Track current bowler/striker from event (source of truth per-ball).
     if (e.striker_athlete_id || e.striker_name)
       striker = { athleteId: e.striker_athlete_id, name: e.striker_name };
@@ -420,7 +421,6 @@ export function replayInnings(events: MCBallEvent[], opts: ReplayOptions = {}): 
       awaitingNewBowler = false;
     }
   }
-
 
   // In-progress over summary (not yet completed)
   const currentOver: OverSummary | null =
@@ -562,7 +562,6 @@ export function validateBallDraft(
     );
   }
 
-
   // Batters
   if (!draft.strikerAthleteId && !draft.strikerName)
     throw new BallEventError("NO_STRIKER", "Striker is required.");
@@ -642,7 +641,6 @@ export function validateBallDraft(
       );
   }
 
-
   // Cannot re-dismiss
   if (isWicketDismissal(dt)) {
     if (draft.dismissedAthleteId) {
@@ -653,11 +651,7 @@ export function validateBallDraft(
         throw new BallEventError("DUPLICATE_WICKET", "This batter is already dismissed.");
     }
     // Caught and stumped need a fielder; a run out may not know who made the throw.
-    if (
-      (dt === "caught" || dt === "stumped") &&
-      !draft.fielderAthleteId &&
-      !draft.fielderName
-    )
+    if ((dt === "caught" || dt === "stumped") && !draft.fielderAthleteId && !draft.fielderName)
       throw new BallEventError("FIELDER_REQUIRED", `${dt.replace("_", " ")} requires a fielder.`);
   }
 

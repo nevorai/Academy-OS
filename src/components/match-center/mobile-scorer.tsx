@@ -473,7 +473,7 @@ export function MobileScorer(props: MobileScorerProps) {
       </header>
 
       <main
-        className="scorer-match-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        className="scorer-match-scroll min-h-0 flex-1 overflow-y-auto overscroll-none"
         {...swipeHandlers}
       >
         <div className="flex min-h-full flex-col gap-1.5 px-2.5 py-2">

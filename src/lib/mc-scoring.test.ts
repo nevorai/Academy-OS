@@ -61,3 +61,21 @@ describe('Scoring Labels (Task A, B, C)', () => {
     expect(formatBallNotation('WD2')).toBe('WD2');
   });
 });
+
+import { computeExtras } from "./mc-statistics-engine";
+import { NO_BALL_LEG_BYES_COMMENT } from "./mc-ball-events-core";
+
+describe("extras breakdown counts byes run off a no-ball", () => {
+  it("splits byes and leg byes off a no-ball", () => {
+    const mk = (o: Record<string, unknown>) =>
+      ({ extra_type: null, extra_runs: 0, runs_off_bat: 0, ...o }) as never;
+    const x = computeExtras([
+      mk({ extra_type: "no_ball", extra_runs: 2 }),
+      mk({ extra_type: "no_ball", extra_runs: 3, comment: NO_BALL_LEG_BYES_COMMENT }),
+      mk({ extra_type: "no_ball", extra_runs: 0, runs_off_bat: 4 }),
+    ]);
+    expect(x.noBalls).toBe(3);
+    expect(x.byes).toBe(2);
+    expect(x.legByes).toBe(3);
+  });
+});

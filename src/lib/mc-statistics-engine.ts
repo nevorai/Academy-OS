@@ -18,7 +18,7 @@
  * ================================================================ */
 
 import type { DismissalType, ExtraType, MCBallEvent } from "@/lib/mc-ball-events";
-import { countsAsBall } from "@/lib/mc-ball-events-core";
+import { countsAsBall, NO_BALL_LEG_BYES_COMMENT } from "@/lib/mc-ball-events-core";
 import {
   ballSwapsStrike,
   bowlerRunsForBall,
@@ -512,8 +512,13 @@ export function computeExtras(events: MCBallEvent[]): ExtrasBreakdown {
     const t = e.extra_type as ExtraType | null;
     const ex = e.extra_runs ?? 0;
     if (t === "wide") wides += ex;
-    else if (t === "no_ball")
-      noBalls += 1; // +off-bat is batter runs; +ex is byes off no-ball
+    else if (t === "no_ball") {
+      noBalls += 1; // +off-bat is batter runs; ex is byes or leg byes run off the no-ball
+      if (ex > 0) {
+        if (e.comment === NO_BALL_LEG_BYES_COMMENT) legByes += ex;
+        else byes += ex;
+      }
+    }
     else if (t === "bye") byes += ex;
     else if (t === "leg_bye") legByes += ex;
     else if (t === "penalty") penalty += ex;

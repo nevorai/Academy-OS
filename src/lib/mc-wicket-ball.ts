@@ -8,7 +8,7 @@
  * ================================================================ */
 
 import type { DismissalType, ExtraType } from "@/lib/mc-ball-events-core";
-import { NON_DELIVERY_DISMISSALS } from "@/lib/mc-ball-events-core";
+import { NON_DELIVERY_DISMISSALS, NO_BALL_LEG_BYES_COMMENT } from "@/lib/mc-ball-events-core";
 import { dismissalAllowedOnDelivery } from "@/lib/mc-rules-engine";
 
 export type DeliveryKind = "legal" | "wide" | "no_ball";
@@ -28,6 +28,7 @@ export interface WicketBallPartial {
   extraType: ExtraType | null;
   extraRuns: number;
   dismissalType: DismissalType;
+  comment?: string;
 }
 
 /** Dismissals where the batters may have run before the wicket fell. */
@@ -83,7 +84,13 @@ export function buildWicketBall(input: WicketBallInput): WicketBallPartial {
     // The engine adds the 1-run no-ball penalty itself; extra_runs holds byes only.
     return input.credit === "bat"
       ? { runsOffBat: runs, extraType: "no_ball", extraRuns: 0, dismissalType: kind }
-      : { runsOffBat: 0, extraType: "no_ball", extraRuns: runs, dismissalType: kind };
+      : {
+          runsOffBat: 0,
+          extraType: "no_ball",
+          extraRuns: runs,
+          dismissalType: kind,
+          ...(input.credit === "leg_bye" && runs > 0 ? { comment: NO_BALL_LEG_BYES_COMMENT } : {}),
+        };
   }
 
   if (input.credit === "bye" && runs > 0) {

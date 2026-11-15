@@ -6,8 +6,6 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   PlayerPickerModal,
-  ExtraRunsModal,
-  ExtraDeliverySheet,
   SquadDrawer,
   type PlayerOption,
   type BatterStats,
@@ -15,6 +13,7 @@ import {
 } from "@/components/match-center/scoring-ui";
 import { MobileScorer } from "@/components/match-center/mobile-scorer";
 import { EditTeamsSheet } from "@/components/match-center/edit-teams-sheet";
+import { useExtraEntry } from "@/components/match-center/scorer-extras";
 import { WicketSheet, type WicketSheetResult } from "@/components/match-center/wicket-sheet";
 import { Button } from "@/components/ui/button";
 import {
@@ -216,7 +215,6 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   const [pickStrikerOpen, setPickStrikerOpen] = useState(false);
   const [pickNonStrikerOpen, setPickNonStrikerOpen] = useState(false);
   const [pickBowlerOpen, setPickBowlerOpen] = useState(false);
-  const [extraKind, setExtraKind] = useState<"Wide" | "No Ball" | "Bye" | "Leg Bye" | null>(null);
   const [pickerRole, setPickerRole] = useState<"striker" | "nonStriker" | "bowler" | null>(null);
   const [playerPickerOpen, setPlayerPickerOpen] = useState(false);
   const [penaltyOpen, setPenaltyOpen] = useState(false);
@@ -549,25 +547,13 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const onRun = (r: 0 | 1 | 2 | 3 | 4 | 5 | 6) => requestSubmit(ballHelpers.run(r));
 
-  const onExtraRuns = (totalRuns: number) => {
-    if (!extraKind) return;
-    const kind = extraKind;
-    setExtraKind(null);
-
-    if (kind === "Wide") {
-      // In Wide scroller, total runs includes the 1-run wide penalty
-      // 1 = WD only, 5 = WD+4
-      requestSubmit(ballHelpers.wide(totalRuns));
-    } else if (kind === "No Ball") {
-      // In No Ball scroller, total runs includes the 1-run penalty.
-      // 1 = NB only, 7 = NB+6.
-      requestSubmit(ballHelpers.noBall(Math.max(0, totalRuns - 1), 0));
-    } else if (kind === "Bye") {
-      requestSubmit(ballHelpers.bye(totalRuns));
-    } else if (kind === "Leg Bye") {
-      requestSubmit(ballHelpers.legBye(totalRuns));
-    }
-  };
+  const { setExtraKind, quickExtra, extrasModals } = useExtraEntry({
+    requestSubmit,
+    openWicket: () => {
+      setWicketKind(null);
+      setDismissOpen(true);
+    },
+  });
 
   const handleWicket = async (r: WicketSheetResult) => {
     setDismissOpen(false);
@@ -889,12 +875,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
             }}
             onRun={onRun}
             onExtra={(kind) => setExtraKind(kind)}
-            onQuickExtra={(kind) => {
-              requestSubmit(kind === "Wide" ? ballHelpers.wide(1) : ballHelpers.noBall(0, 0));
-              toast.success(kind === "Wide" ? "Wide added (+1)" : "No ball added (+1)", {
-                duration: 1500,
-              });
-            }}
+            onQuickExtra={quickExtra}
             onOut={() => {
               setWicketKind(null);
               setDismissOpen(true);
@@ -1008,31 +989,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         }}
       />
 
-      <ExtraRunsModal
-        open={extraKind === "Bye" || extraKind === "Leg Bye"}
-        onOpenChange={(v) => !v && setExtraKind(null)}
-        kind={extraKind ?? ""}
-        onSelect={onExtraRuns}
-      />
-      <ExtraDeliverySheet
-        open={extraKind === "No Ball" || extraKind === "Wide"}
-        onOpenChange={(v) => !v && setExtraKind(null)}
-        kind={extraKind === "Wide" ? "Wide" : "No Ball"}
-        onSubmit={(mode, runs) => {
-          const k = extraKind;
-          setExtraKind(null);
-          if (k === "Wide") requestSubmit(ballHelpers.wide(1 + runs));
-          else
-            requestSubmit(
-              mode === "bat" ? ballHelpers.noBall(runs, 0) : ballHelpers.noBall(0, runs),
-            );
-        }}
-        onWicket={() => {
-          setExtraKind(null);
-          setWicketKind(null);
-          setDismissOpen(true);
-        }}
-      />
+      {extrasModals}
 
 
       {/* Scorecard sheet */}
@@ -1400,7 +1357,6 @@ function DemoScorerBody({
 
   // No-ball classification state for demo
   const [pickBowlerOpen, setPickBowlerOpen] = useState(false);
-  const [extraKind, setExtraKind] = useState<"Wide" | "No Ball" | "Bye" | "Leg Bye" | null>(null);
   const [scorecardOpen, setScorecardOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [inningsCompleteOpen, setInningsCompleteOpen] = useState(false);
@@ -1686,23 +1642,13 @@ function DemoScorerBody({
     }
   };
   const onRun = (r: 0 | 1 | 2 | 3 | 4 | 5 | 6) => requestSubmit(ballHelpers.run(r));
-  const onExtraRuns = (totalRuns: number) => {
-    if (!extraKind) return;
-    const kind = extraKind;
-    setExtraKind(null);
-
-    if (kind === "Wide") {
-      requestSubmit(ballHelpers.wide(totalRuns));
-    } else if (kind === "No Ball") {
-      // For No Ball, 1 means NB only (1 penalty run).
-      // Higher numbers mean NB + additional runs.
-      requestSubmit(ballHelpers.noBall(Math.max(0, totalRuns - 1), 0));
-    } else if (kind === "Bye") {
-      requestSubmit(ballHelpers.bye(totalRuns));
-    } else if (kind === "Leg Bye") {
-      requestSubmit(ballHelpers.legBye(totalRuns));
-    }
-  };
+  const { setExtraKind, quickExtra, extrasModals } = useExtraEntry({
+    requestSubmit,
+    openWicket: () => {
+      setWicketKind(null);
+      setDismissOpen(true);
+    },
+  });
 
   const handleWicket = async (r: WicketSheetResult) => {
     setDismissOpen(false);
@@ -1910,12 +1856,7 @@ function DemoScorerBody({
             onOpenBowlerPicker={() => setPickBowlerOpen(true)}
             onRun={onRun}
             onExtra={(kind) => setExtraKind(kind)}
-            onQuickExtra={(kind) => {
-              requestSubmit(kind === "Wide" ? ballHelpers.wide(1) : ballHelpers.noBall(0, 0));
-              toast.success(kind === "Wide" ? "Wide added (+1)" : "No ball added (+1)", {
-                duration: 1500,
-              });
-            }}
+            onQuickExtra={quickExtra}
             onOut={() => {
               setWicketKind(null);
               setDismissOpen(true);
@@ -2034,31 +1975,7 @@ function DemoScorerBody({
           setPickBowlerOpen(false);
         }}
       />
-      <ExtraRunsModal
-        open={extraKind === "Bye" || extraKind === "Leg Bye"}
-        onOpenChange={(v) => !v && setExtraKind(null)}
-        kind={extraKind ?? ""}
-        onSelect={onExtraRuns}
-      />
-      <ExtraDeliverySheet
-        open={extraKind === "No Ball" || extraKind === "Wide"}
-        onOpenChange={(v) => !v && setExtraKind(null)}
-        kind={extraKind === "Wide" ? "Wide" : "No Ball"}
-        onSubmit={(mode, runs) => {
-          const k = extraKind;
-          setExtraKind(null);
-          if (k === "Wide") requestSubmit(ballHelpers.wide(1 + runs));
-          else
-            requestSubmit(
-              mode === "bat" ? ballHelpers.noBall(runs, 0) : ballHelpers.noBall(0, runs),
-            );
-        }}
-        onWicket={() => {
-          setExtraKind(null);
-          setWicketKind(null);
-          setDismissOpen(true);
-        }}
-      />
+      {extrasModals}
 
 
       {/* Scorecard sheet */}

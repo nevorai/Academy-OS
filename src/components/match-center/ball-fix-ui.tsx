@@ -79,11 +79,17 @@ export function BallFixSheet({
               </p>
             ) : (
               <ul className="divide-y">
-                {fix.balls.map((b) => (
+                {fix.balls.map((b, i) => (
                   <li key={b.id}>
                     <button
                       type="button"
-                      onClick={() => setPicked(b.id)}
+                      onClick={() => {
+                        // The last ball has nothing after it, so one tap is enough.
+                        if (i === 0) {
+                          onOpenChange(false);
+                          void fix.rewindTo(b.id);
+                        } else setPicked(b.id);
+                      }}
                       className="flex min-h-14 w-full items-center gap-3 rounded-md px-2 py-2 text-left hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:outline-none"
                     >
                       <span
@@ -99,7 +105,10 @@ export function BallFixSheet({
                         {b.chip}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block text-sm font-medium">{b.overLabel}</span>
+                        <span className="block text-sm font-medium">
+                          {b.overLabel}
+                          {i === 0 ? " · last ball (one tap)" : ""}
+                        </span>
                         <span className="block truncate text-xs text-muted-foreground">
                           {b.who}
                         </span>

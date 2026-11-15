@@ -24,6 +24,9 @@ export type DismissalType =
   | "hit_ball_twice";
 
 /** Legal-extras count against the over's 6-ball budget. */
+/** Saved in the ball comment so a no-ball's byes can be told apart from leg byes. */
+export const NO_BALL_LEG_BYES_COMMENT = "Leg byes off the no-ball";
+
 export const LEGAL_EXTRAS: readonly ExtraType[] = ["bye", "leg_bye"];
 export const ILLEGAL_EXTRAS: readonly ExtraType[] = ["wide", "no_ball"];
 /** Penalty runs are awarded to the batting side but nobody bowls a ball. */

@@ -25,6 +25,7 @@ import {
   validateBallDraft,
   type MatchState,
 } from "@/lib/mc-rules-engine";
+import { NO_BALL_LEG_BYES_COMMENT } from "@/lib/mc-ball-events-core";
 import { wicketLimitForTeam } from "@/lib/mc-match-rules";
 
 
@@ -682,10 +683,11 @@ export const ballHelpers = {
    * `byes`    = bye/leg-bye runs completed off the no-ball (rare).
    * `extra_runs` on a no-ball stores ONLY those byes — never the penalty.
    */
-  noBall: (batRuns: number = 0, byes: number = 0) => ({
+  noBall: (batRuns: number = 0, byes: number = 0, legByes: boolean = false) => ({
     runsOffBat: batRuns,
     extraType: "no_ball" as const,
     extraRuns: byes,
+    ...(legByes && byes > 0 ? { comment: NO_BALL_LEG_BYES_COMMENT } : {}),
   }),
   bye: (runs: number) => ({
     runsOffBat: 0,

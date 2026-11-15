@@ -1091,3 +1091,75 @@ export function IconCloseButton({ onClick }: { onClick: () => void }) {
     </Button>
   );
 }
+
+
+/**
+ * One popup for a no-ball: choose where the extra runs came from (off the bat,
+ * byes, leg byes), then tap how many (0-6). One tap submits. The 1-run penalty
+ * is added by the rules engine, so the scorer never counts it.
+ */
+export function NoBallSheet({
+  open,
+  onOpenChange,
+  onSubmit,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onSubmit: (mode: "bat" | "bye" | "leg_bye", runs: number) => void;
+}) {
+  const [mode, setMode] = useState<"bat" | "bye" | "leg_bye">("bat");
+  const modes: { key: "bat" | "bye" | "leg_bye"; label: string }[] = [
+    { key: "bat", label: "Off bat" },
+    { key: "bye", label: "Byes" },
+    { key: "leg_bye", label: "Leg byes" },
+  ];
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" className="rounded-t-[28px] border-t-0 p-6 pb-10 shadow-2xl">
+        <SheetHeader className="mb-4 text-center">
+          <SheetTitle className="text-xl font-black">No Ball (+1)</SheetTitle>
+          <SheetDescription className="text-sm">
+            Runs scored on this ball, apart from the 1 penalty run
+          </SheetDescription>
+        </SheetHeader>
+        <div className="mb-4 grid grid-cols-3 gap-2">
+          {modes.map((m) => (
+            <Button
+              key={m.key}
+              variant={mode === m.key ? "default" : "outline"}
+              className="h-12 rounded-2xl text-base font-bold"
+              onClick={() => setMode(m.key)}
+            >
+              {m.label}
+            </Button>
+          ))}
+        </div>
+        <div className="grid grid-cols-4 gap-3">
+          {[0, 1, 2, 3, 4, 5, 6].map((r) => (
+            <Button
+              key={r}
+              variant="outline"
+              className="h-16 rounded-2xl text-2xl font-black"
+              onClick={() => {
+                onSubmit(mode, r);
+                setMode("bat");
+              }}
+            >
+              {r}
+              <span className="ml-1 text-[10px] font-semibold opacity-60">
+                = {r + 1}
+              </span>
+            </Button>
+          ))}
+          <Button
+            variant="ghost"
+            className="h-16 rounded-2xl text-sm font-semibold"
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}

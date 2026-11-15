@@ -15,7 +15,7 @@ VAULT="$HOME/nevorai-kaizen/scripts/vault.sh"
 
 echo "1/3 building ..."
 # Build-time switches (Vite bakes VITE_* in). Same values the Vercel production build had.
-export VITE_MEDIA_R2=1 VITE_PLATFORM_BASE_DOMAIN=nevorai.com VITE_DB_SCHEMA=academy VITE_STORAGE_BUCKET=academy-assets
+export VITE_BUILD_ID="$(git rev-parse --short HEAD)-$(date +%s)" VITE_MEDIA_R2=1 VITE_PLATFORM_BASE_DOMAIN=nevorai.com VITE_DB_SCHEMA=academy VITE_STORAGE_BUCKET=academy-assets
 bun run build >/dev/null || die "the build failed (run: bun run build). Nothing was deployed."
 [ -s .output/server/wrangler.json ] || die "no build output. Nothing was deployed."
 

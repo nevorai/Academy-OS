@@ -16,6 +16,11 @@ import { SplashScreen } from "@/components/ds/SplashScreen";
  */
 export const Route = createFileRoute("/app-launch")({
   ssr: false,
+  // The same small shell for every visitor (the session lives on the phone), so the edge keeps it:
+  // tapping the icon is answered from the nearest Cloudflare data centre, not rendered each time.
+  headers: () => ({
+    "Cache-Control": "public, max-age=0, s-maxage=3600",
+  }),
   head: () => ({
     meta: [{ title: "Nevorai Academy" }, { name: "robots", content: "noindex" }],
   }),

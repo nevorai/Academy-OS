@@ -49,6 +49,8 @@ function isH3SwallowedErrorBody(body: string): boolean {
 // host). A repeat visit is answered without rendering. Only anonymous GETs without a query string and only
 // 200 answers without Set-Cookie are stored. Off outside Workers (no `caches.default`).
 const ORIG_CC = "x-academy-orig-cc";
+// Each deploy gets its own cache keys, so a page stored before a deploy never points at old app files.
+const BUILD_ID: string = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_BUILD_ID ?? "";
 
 function edgeCache(): Cache | undefined {
   const c = (globalThis as unknown as { caches?: { default?: Cache } }).caches;
@@ -81,7 +83,9 @@ export default {
     try {
       const cache = edgeCache();
       if (cache && cacheable(request)) {
-        const key = new Request(new URL(request.url).toString(), { method: "GET" });
+        const keyUrl = new URL(request.url);
+        if (BUILD_ID) keyUrl.searchParams.set("__b", BUILD_ID);
+        const key = new Request(keyUrl.toString(), { method: "GET" });
         const hit = await cache.match(key).catch(() => undefined);
         if (hit) {
           const out = new Response(hit.body, hit);

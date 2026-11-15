@@ -919,6 +919,8 @@ function ThisOverStrip({
       </span>
       <div
         ref={scrollRef}
+        // Slides sideways only; an up/down swipe that starts here must still move the page.
+        style={{ overscrollBehaviorY: "auto" }}
         className="flex min-w-0 items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {balls.length === 0 ? (
@@ -944,19 +946,25 @@ function RecentOvers({ rows, onOpen }: { rows: OverHistoryRow[]; onOpen: () => v
   if (rows.length === 0) return <div className="min-h-0 flex-1" />;
   return (
     <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border bg-card">
-      <ul className="min-h-0 flex-1 divide-y divide-border/50 overflow-y-auto">
+      {/* NOT a scroller. The page (main) is the one thing that scrolls. As an
+          `overflow-y-auto` box with nothing to scroll, this list swallowed every swipe
+          that started on it (styles.css gives all such boxes overscroll-behavior: none),
+          so the screen only moved when the thumb started outside the list. */}
+      <ul className="divide-y divide-border/50">
         {rows.map((row) => (
           <li key={row.overNumber}>
             <button
               type="button"
               onClick={onOpen}
-              className="grid h-9 w-full grid-cols-[38px_minmax(0,1fr)_auto] items-center gap-2 px-3 text-left active:bg-muted/70"
+              className="grid min-h-9 w-full grid-cols-[38px_minmax(0,1fr)_auto] items-center gap-2 px-3 py-1 text-left active:bg-muted/70"
             >
               <span className="text-[10.5px] font-black uppercase tracking-wide text-muted-foreground">
                 Ov {row.overLabel}
               </span>
-              {/* A long over (wides, no-balls) slides sideways under the finger; nothing is cut off. */}
-              <span className="flex min-w-0 touch-pan-x items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {/* A long over (wides, no-balls) wraps to a second line. It must NOT be a
+                  sideways scroller: `touch-pan-x` here swallowed every up/down swipe that
+                  started on the balls, so the list only scrolled from its edges. */}
+              <span className="flex min-w-0 flex-wrap items-center gap-1">
                 {row.chips.map((chip, i) => (
                   <BallBubble key={`${chip}-${i}`} label={chip} small />
                 ))}

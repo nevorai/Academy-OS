@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import {
   PlayerPickerModal,
   ExtraRunsModal,
-  NoBallSheet,
+  ExtraDeliverySheet,
   SquadDrawer,
   type PlayerOption,
   type BatterStats,
@@ -883,6 +883,9 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
             }}
             onRun={onRun}
             onExtra={(kind) => setExtraKind(kind)}
+            onQuickExtra={(kind) =>
+              requestSubmit(kind === "Wide" ? ballHelpers.wide(1) : ballHelpers.noBall(0, 0))
+            }
             onOut={() => {
               setWicketKind(null);
               setDismissOpen(true);
@@ -997,19 +1000,28 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
       />
 
       <ExtraRunsModal
-        open={!!extraKind && extraKind !== "No Ball"}
+        open={extraKind === "Bye" || extraKind === "Leg Bye"}
         onOpenChange={(v) => !v && setExtraKind(null)}
         kind={extraKind ?? ""}
         onSelect={onExtraRuns}
       />
-      <NoBallSheet
-        open={extraKind === "No Ball"}
+      <ExtraDeliverySheet
+        open={extraKind === "No Ball" || extraKind === "Wide"}
         onOpenChange={(v) => !v && setExtraKind(null)}
+        kind={extraKind === "Wide" ? "Wide" : "No Ball"}
         onSubmit={(mode, runs) => {
+          const k = extraKind;
           setExtraKind(null);
-          requestSubmit(
-            mode === "bat" ? ballHelpers.noBall(runs, 0) : ballHelpers.noBall(0, runs),
-          );
+          if (k === "Wide") requestSubmit(ballHelpers.wide(1 + runs));
+          else
+            requestSubmit(
+              mode === "bat" ? ballHelpers.noBall(runs, 0) : ballHelpers.noBall(0, runs),
+            );
+        }}
+        onWicket={() => {
+          setExtraKind(null);
+          setWicketKind(null);
+          setDismissOpen(true);
         }}
       />
 
@@ -1883,6 +1895,9 @@ function DemoScorerBody({
             onOpenBowlerPicker={() => setPickBowlerOpen(true)}
             onRun={onRun}
             onExtra={(kind) => setExtraKind(kind)}
+            onQuickExtra={(kind) =>
+              requestSubmit(kind === "Wide" ? ballHelpers.wide(1) : ballHelpers.noBall(0, 0))
+            }
             onOut={() => {
               setWicketKind(null);
               setDismissOpen(true);
@@ -2002,19 +2017,28 @@ function DemoScorerBody({
         }}
       />
       <ExtraRunsModal
-        open={!!extraKind && extraKind !== "No Ball"}
+        open={extraKind === "Bye" || extraKind === "Leg Bye"}
         onOpenChange={(v) => !v && setExtraKind(null)}
         kind={extraKind ?? ""}
         onSelect={onExtraRuns}
       />
-      <NoBallSheet
-        open={extraKind === "No Ball"}
+      <ExtraDeliverySheet
+        open={extraKind === "No Ball" || extraKind === "Wide"}
         onOpenChange={(v) => !v && setExtraKind(null)}
+        kind={extraKind === "Wide" ? "Wide" : "No Ball"}
         onSubmit={(mode, runs) => {
+          const k = extraKind;
           setExtraKind(null);
-          requestSubmit(
-            mode === "bat" ? ballHelpers.noBall(runs, 0) : ballHelpers.noBall(0, runs),
-          );
+          if (k === "Wide") requestSubmit(ballHelpers.wide(1 + runs));
+          else
+            requestSubmit(
+              mode === "bat" ? ballHelpers.noBall(runs, 0) : ballHelpers.noBall(0, runs),
+            );
+        }}
+        onWicket={() => {
+          setExtraKind(null);
+          setWicketKind(null);
+          setDismissOpen(true);
         }}
       />
 

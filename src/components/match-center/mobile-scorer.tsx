@@ -82,6 +82,8 @@ export interface MobileScorerProps {
   disabled?: boolean;
   onRun: (r: 0 | 1 | 2 | 3 | 4 | 5 | 6) => void;
   onExtra: (kind: "Wide" | "No Ball" | "Bye" | "Leg Bye") => void;
+  /** One tap on Wide or No ball: save it at once with no extra runs. */
+  onQuickExtra?: (kind: "Wide" | "No Ball") => void;
   onOut: () => void;
 
   onOpenStrikerPicker: () => void;
@@ -506,6 +508,7 @@ export function MobileScorer(props: MobileScorerProps) {
             disabled={props.disabled}
             onRun={props.onRun}
             onExtra={props.onExtra}
+            onQuickExtra={props.onQuickExtra}
             onOut={props.onOut}
           />
         </div>
@@ -978,11 +981,13 @@ function ScoringDock({
   disabled,
   onRun,
   onExtra,
+  onQuickExtra,
   onOut,
 }: {
   disabled?: boolean;
   onRun: (r: 0 | 1 | 2 | 3 | 4 | 5 | 6) => void;
   onExtra: (kind: "Wide" | "No Ball" | "Bye" | "Leg Bye") => void;
+  onQuickExtra?: (kind: "Wide" | "No Ball") => void;
   onOut: () => void;
 }) {
   return (
@@ -993,12 +998,21 @@ function ScoringDock({
         ))}
       </div>
       <div className="mt-1.5 grid grid-cols-5 gap-1.5">
-        <ExtraKey label="Wide" tone="wide" disabled={disabled} onClick={() => onExtra("Wide")} />
+        <ExtraKey
+          label="Wide"
+          tone="wide"
+          disabled={disabled}
+          hint={onQuickExtra ? "hold: +runs" : undefined}
+          onClick={() => (onQuickExtra ? onQuickExtra("Wide") : onExtra("Wide"))}
+          onLongPress={onQuickExtra ? () => onExtra("Wide") : undefined}
+        />
         <ExtraKey
           label="No ball"
           tone="nb"
           disabled={disabled}
-          onClick={() => onExtra("No Ball")}
+          hint={onQuickExtra ? "hold: +runs" : undefined}
+          onClick={() => (onQuickExtra ? onQuickExtra("No Ball") : onExtra("No Ball"))}
+          onLongPress={onQuickExtra ? () => onExtra("No Ball") : undefined}
         />
         <ExtraKey label="Bye" tone="bye" disabled={disabled} onClick={() => onExtra("Bye")} />
         <ExtraKey
@@ -1046,17 +1060,47 @@ function ExtraKey({
   tone,
   disabled,
   onClick,
+  onLongPress,
+  hint,
 }: {
   label: string;
   tone: "wide" | "nb" | "bye" | "lb" | "out";
   disabled?: boolean;
   onClick: () => void;
+  /** Hold for half a second to open the "extra runs" popup instead of a plain tap. */
+  onLongPress?: () => void;
+  hint?: string;
 }) {
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fired = useRef(false);
+  const clear = () => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+  };
   return (
     <button
       type="button"
       disabled={disabled}
-      onClick={onClick}
+      onPointerDown={() => {
+        fired.current = false;
+        if (!onLongPress) return;
+        clear();
+        timer.current = setTimeout(() => {
+          fired.current = true;
+          onLongPress();
+        }, 450);
+      }}
+      onPointerUp={clear}
+      onPointerLeave={clear}
+      onPointerCancel={clear}
+      onContextMenu={(e) => e.preventDefault()}
+      onClick={() => {
+        if (fired.current) {
+          fired.current = false;
+          return;
+        }
+        onClick();
+      }}
       className={cn(
         "grid h-11 w-full place-items-center rounded-xl border px-0.5 text-[12.5px] font-black leading-none tracking-tight transition duration-100 active:scale-[0.95] disabled:opacity-40",
         tone === "wide" &&
@@ -1070,7 +1114,10 @@ function ExtraKey({
         tone === "out" && "border-transparent bg-destructive text-destructive-foreground",
       )}
     >
-      {label}
+      <span className="flex flex-col items-center gap-0.5">
+        <span>{label}</span>
+        {hint && <span className="text-[8px] font-semibold opacity-60">{hint}</span>}
+      </span>
     </button>
   );
 }

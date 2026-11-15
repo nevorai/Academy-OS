@@ -1094,71 +1094,101 @@ export function IconCloseButton({ onClick }: { onClick: () => void }) {
 
 
 /**
- * One popup for a no-ball: choose where the extra runs came from (off the bat,
- * byes, leg byes), then tap how many (0-6). One tap submits. The 1-run penalty
- * is added by the rules engine, so the scorer never counts it.
+ * One popup for a no-ball or a wide. The 1 penalty run is counted by the app
+ * (the rules engine adds it), so the scorer only taps what happened ON TOP:
+ * nothing, +1, +2, +3, a four, a six, or a wicket. One tap submits.
+ * No-ball only: a small switch says if the extra runs were off the bat, byes
+ * or leg byes. On a wide every extra run is a wide, so there is no switch.
  */
-export function NoBallSheet({
+export function ExtraDeliverySheet({
   open,
   onOpenChange,
+  kind,
   onSubmit,
+  onWicket,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  kind: "No Ball" | "Wide";
   onSubmit: (mode: "bat" | "bye" | "leg_bye", runs: number) => void;
+  onWicket: () => void;
 }) {
   const [mode, setMode] = useState<"bat" | "bye" | "leg_bye">("bat");
+  const isNb = kind === "No Ball";
+  const short = isNb ? "NB" : "WD";
   const modes: { key: "bat" | "bye" | "leg_bye"; label: string }[] = [
     { key: "bat", label: "Off bat" },
     { key: "bye", label: "Byes" },
     { key: "leg_bye", label: "Leg byes" },
   ];
+  const buttons: { runs: number; big: string; small: string; cls: string }[] = [
+    { runs: 0, big: short, small: "No extra run", cls: "bg-sky-500 text-white" },
+    { runs: 1, big: "+1", small: "1 run", cls: "bg-emerald-600 text-white" },
+    { runs: 2, big: "+2", small: "2 runs", cls: "bg-emerald-600 text-white" },
+    { runs: 3, big: "+3", small: "3 runs", cls: "bg-emerald-600 text-white" },
+    { runs: 4, big: "4", small: "Four", cls: "bg-blue-600 text-white" },
+    ...(isNb ? [{ runs: 6, big: "6", small: "Six", cls: "bg-violet-600 text-white" }] : []),
+  ];
+  const submit = (runs: number) => {
+    onSubmit(isNb ? mode : "bat", runs);
+    setMode("bat");
+  };
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="rounded-t-[28px] border-t-0 p-6 pb-10 shadow-2xl">
-        <SheetHeader className="mb-4 text-center">
-          <SheetTitle className="text-xl font-black">No Ball (+1)</SheetTitle>
-          <SheetDescription className="text-sm">
-            Runs scored on this ball, apart from the 1 penalty run
+      <SheetContent side="bottom" className="rounded-t-[28px] border-t-0 p-5 pb-8 shadow-2xl">
+        <SheetHeader className="mb-3 text-center">
+          <SheetTitle className="text-xl font-black">{kind}</SheetTitle>
+          <SheetDescription className="text-sm font-semibold text-emerald-700">
+            The {isNb ? "no-ball" : "wide"} run is already counted. Tap only what came on top.
           </SheetDescription>
         </SheetHeader>
-        <div className="mb-4 grid grid-cols-3 gap-2">
-          {modes.map((m) => (
-            <Button
-              key={m.key}
-              variant={mode === m.key ? "default" : "outline"}
-              className="h-12 rounded-2xl text-base font-bold"
-              onClick={() => setMode(m.key)}
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+          {buttons.map((b) => (
+            <button
+              key={b.runs}
+              type="button"
+              onClick={() => submit(b.runs)}
+              className={cn(
+                "flex h-20 flex-col items-center justify-center rounded-2xl active:scale-95",
+                b.cls,
+              )}
             >
-              {m.label}
-            </Button>
+              <span className="text-2xl font-black leading-none">{b.big}</span>
+              <span className="mt-1 text-[11px] font-semibold opacity-90">{b.small}</span>
+            </button>
           ))}
-        </div>
-        <div className="grid grid-cols-4 gap-3">
-          {[0, 1, 2, 3, 4, 5, 6].map((r) => (
-            <Button
-              key={r}
-              variant="outline"
-              className="h-16 rounded-2xl text-2xl font-black"
-              onClick={() => {
-                onSubmit(mode, r);
-                setMode("bat");
-              }}
-            >
-              {r}
-              <span className="ml-1 text-[10px] font-semibold opacity-60">
-                = {r + 1}
-              </span>
-            </Button>
-          ))}
-          <Button
-            variant="ghost"
-            className="h-16 rounded-2xl text-sm font-semibold"
-            onClick={() => onOpenChange(false)}
+          <button
+            type="button"
+            onClick={onWicket}
+            className="flex h-20 flex-col items-center justify-center rounded-2xl bg-red-600 text-white active:scale-95"
           >
-            Cancel
-          </Button>
+            <span className="text-2xl font-black leading-none">W</span>
+            <span className="mt-1 text-[11px] font-semibold opacity-90">Wicket</span>
+          </button>
         </div>
+        {isNb && (
+          <div className="mt-4 flex items-center gap-2">
+            <span className="text-xs font-semibold text-muted-foreground">Extra runs were:</span>
+            {modes.map((m) => (
+              <Button
+                key={m.key}
+                size="sm"
+                variant={mode === m.key ? "default" : "outline"}
+                className="h-9 rounded-full px-3 text-xs font-bold"
+                onClick={() => setMode(m.key)}
+              >
+                {m.label}
+              </Button>
+            ))}
+          </div>
+        )}
+        <Button
+          variant="ghost"
+          className="mt-3 h-10 w-full rounded-full text-sm font-semibold"
+          onClick={() => onOpenChange(false)}
+        >
+          Cancel
+        </Button>
       </SheetContent>
     </Sheet>
   );

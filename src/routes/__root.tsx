@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
@@ -19,7 +20,7 @@ import { ImpersonationBanner } from "../components/platform/ImpersonationBanner"
 import { PLATFORM_OG_IMAGE, requestHostname } from "../lib/seo";
 import { SplashScreen } from "../components/ds/SplashScreen";
 import { getPublicSite } from "../lib/public-site.functions";
-import type { PublicSiteBundle } from "../lib/public-site";
+import { isPublicSitePath, type PublicSiteBundle } from "../lib/public-site";
 
 function NotFoundComponent() {
   return (
@@ -197,22 +198,52 @@ function AppSplash() {
 }
 
 /**
- * Logo + spinner that paints with the very first HTML, so the app never opens as a blank page
- * while its code downloads. It fades away as soon as the app has taken over.
+ * The app's own frame in soft grey blocks (top bar, tiles, cards, bottom tabs / sidebar), painted with
+ * the very first HTML so the app never opens blank and never shows a logo screen. It fades away as soon
+ * as the real screen has painted. Pure CSS: it must draw before any JS runs.
  */
-const SPLASH_CSS = `.boot-splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#f4f3ec;transition:opacity .25s ease}
+const SPLASH_CSS = `.boot-splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;background:var(--background,#f6f6f3);transition:opacity .18s ease;overflow:hidden}
 .boot-splash.hide{opacity:0;pointer-events:none}
-.boot-splash .mark{width:68px;height:68px;border-radius:20px;background:#2a7a4b;display:grid;place-items:center;box-shadow:0 10px 28px -8px rgba(42,122,75,.55)}
-.boot-splash .name{font:600 15px/1.2 system-ui,-apple-system,sans-serif;color:#1c2a22;letter-spacing:.01em}
-.boot-splash .spin{width:26px;height:26px;border-radius:50%;border:3px solid rgba(42,122,75,.18);border-top-color:#2a7a4b;animation:bs 0.8s linear infinite}
-@keyframes bs{to{transform:rotate(360deg)}}
-html.dark .boot-splash{background:#101512}html.dark .boot-splash .name{color:#e8efe9}`;
+.boot-splash.bs-standalone{display:none}
+@media (display-mode: standalone){.boot-splash.bs-standalone{display:flex}}
+.boot-splash .bs-b{display:block;border-radius:10px;background:color-mix(in oklab,var(--foreground,#1c2a22) 7%,transparent);animation:bsp 1.1s ease-in-out infinite alternate}
+@keyframes bsp{from{opacity:.55}to{opacity:1}}
+.boot-splash .bs-top{flex:none;background:var(--card,#fff);border-bottom:1px solid var(--border,#e5e5e0);padding-top:var(--app-safe-top,12px)}
+.boot-splash .bs-bar{height:56px;display:flex;align-items:center;gap:10px;padding:0 12px}
+.boot-splash .bs-logo{width:32px;height:32px;border-radius:8px}
+.boot-splash .bs-title{width:130px;height:14px;border-radius:7px}
+.boot-splash .bs-grow{flex:1}
+.boot-splash .bs-dot{width:28px;height:28px;border-radius:999px}
+.boot-splash .bs-body{flex:1;display:flex;min-height:0}
+.boot-splash .bs-side{display:none}
+.boot-splash .bs-main{flex:1;width:100%;min-width:0;max-width:1320px;margin:0 auto;padding:12px 16px;display:flex;flex-direction:column;gap:12px}
+.boot-splash .bs-h1{width:45%;max-width:260px;height:20px;border-radius:8px}
+.boot-splash .bs-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.boot-splash .bs-kpi{height:74px;border-radius:14px}
+.boot-splash .bs-card{height:180px;border-radius:16px}
+.boot-splash .bs-card2{height:140px}
+.boot-splash .bs-tabs{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-around;align-items:center;height:calc(60px + var(--app-safe-bottom,0px));padding-bottom:var(--app-safe-bottom,0px);background:var(--card,#fff);border-top:1px solid var(--border,#e5e5e0)}
+.boot-splash .bs-tab{width:26px;height:26px;border-radius:8px}
+@media (min-width:768px){
+.boot-splash .bs-bar{padding:0 20px}
+.boot-splash .bs-side{display:flex;flex-direction:column;gap:10px;width:232px;flex:none;padding:16px 14px;border-right:1px solid var(--border,#e5e5e0)}
+.boot-splash .bs-nav{height:30px;border-radius:8px}
+.boot-splash .bs-main{padding:32px 3%;gap:16px}
+.boot-splash .bs-kpis{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+.boot-splash .bs-kpi{height:92px}
+.boot-splash .bs-card{height:260px}
+.boot-splash .bs-tabs{display:none}}`;
 
 function BootSplash() {
+  // Website pages arrive finished from the server: a browser visitor must see them at once. Only an
+  // installed app opened on one (old installs still start at "/") gets the frame while it redirects.
+  // Decided once, so the element React rendered never changes after SplashHider removes it.
+  const path = useRouterState({ select: (st) => st.location.pathname });
+  const [publicPage] = useState(() => isPublicSitePath(path));
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: SPLASH_CSS }} />
-      <SplashScreen id="boot-splash" />
+      <SplashScreen id="boot-splash" standaloneOnly={publicPage} />
       <SplashHider />
     </>
   );
@@ -347,6 +378,9 @@ function RootComponent() {
           position="top-center"
           theme={toastTheme}
           offset="calc(var(--app-safe-top) + 3.25rem)"
+          // Sonner ignores `offset` on phones (under 600px) and uses this instead; without it the
+          // toast sat 16px from the top, under the notch / Dynamic Island.
+          mobileOffset={{ top: "calc(var(--app-safe-top) + 3.25rem)", left: 12, right: 12 }}
           toastOptions={{ className: "scorer-safe-toast" }}
         />
       </TenantProvider>

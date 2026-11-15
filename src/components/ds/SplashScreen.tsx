@@ -1,25 +1,53 @@
-/** The one loading screen for the whole app (styles live in the root page, so it paints with the first HTML). */
-export function SplashScreen({ id }: { id?: string }) {
+/**
+ * The one loading screen for the whole app. It is NOT a logo: it is the app's own frame (top bar,
+ * number tiles, cards, bottom tabs on phones, sidebar on desktop) with soft grey blocks, so opening
+ * the app looks like the dashboard appearing at once and filling in (like Metrol CRM), never a
+ * splash. Styles live in the root page (SPLASH_CSS), so it paints with the first HTML, before any JS.
+ *
+ * `standaloneOnly`: drawn only inside the installed app (display-mode: standalone). Used on public
+ * website pages, which arrive finished from the server, so a browser visitor never sees it.
+ */
+export function SplashScreen({ id, standaloneOnly }: { id?: string; standaloneOnly?: boolean }) {
   return (
-    <div id={id} className="boot-splash" suppressHydrationWarning>
-      <div className="mark">
-        <svg
-          width="38"
-          height="38"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#fff"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 3c2.5 3 2.5 15 0 18M3 12c3-2.5 15-2.5 18 0" />
-        </svg>
+    <div
+      id={id}
+      className={standaloneOnly ? "boot-splash bs-standalone" : "boot-splash"}
+      role="status"
+      aria-label="Loading"
+      suppressHydrationWarning
+    >
+      <div className="bs-top">
+        <div className="bs-bar">
+          <span className="bs-b bs-logo" />
+          <span className="bs-b bs-title" />
+          <span className="bs-grow" />
+          <span className="bs-b bs-dot" />
+          <span className="bs-b bs-dot" />
+          <span className="bs-b bs-dot" />
+        </div>
       </div>
-      <div className="name">Nevorai Academy</div>
-      <div className="spin" />
+      <div className="bs-body">
+        <aside className="bs-side">
+          {Array.from({ length: 8 }, (_, i) => (
+            <span key={i} className="bs-b bs-nav" />
+          ))}
+        </aside>
+        <main className="bs-main">
+          <span className="bs-b bs-h1" />
+          <div className="bs-kpis">
+            {Array.from({ length: 4 }, (_, i) => (
+              <span key={i} className="bs-b bs-kpi" />
+            ))}
+          </div>
+          <span className="bs-b bs-card" />
+          <span className="bs-b bs-card bs-card2" />
+        </main>
+      </div>
+      <nav className="bs-tabs">
+        {Array.from({ length: 5 }, (_, i) => (
+          <span key={i} className="bs-b bs-tab" />
+        ))}
+      </nav>
     </div>
   );
 }

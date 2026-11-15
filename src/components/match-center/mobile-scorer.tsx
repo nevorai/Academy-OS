@@ -527,7 +527,7 @@ export function MobileScorer(props: MobileScorerProps) {
           {props.onFixBall && (
             <FooterAction
               icon={<History className="size-[18px]" />}
-              label="Fix ball"
+              label="Wrong ball?"
               onClick={props.onFixBall}
               disabled={props.disabled}
             />
@@ -1093,7 +1093,14 @@ function ExtraKey({
       onPointerUp={clear}
       onPointerLeave={clear}
       onPointerCancel={clear}
-      onContextMenu={(e) => e.preventDefault()}
+      onContextMenu={(e) => {
+        // Desktop: right-click does the same as a long press.
+        e.preventDefault();
+        if (onLongPress && !disabled) {
+          fired.current = true;
+          onLongPress();
+        }
+      }}
       onClick={() => {
         if (fired.current) {
           fired.current = false;

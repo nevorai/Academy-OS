@@ -480,7 +480,11 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   /* ---------- ball submission ---------- */
   const [redoStack, setRedoStack] = useState<Awaited<ReturnType<typeof session.undo>>[]>([]);
+  // One ball at a time: a fast double tap must never save two balls.
+  const savingBallRef = useRef(false);
   const submit = async (partial: Parameters<typeof session.submitBall>[0]): Promise<boolean> => {
+    if (savingBallRef.current) return false;
+    savingBallRef.current = true;
     try {
       await session.submitBall(partial);
       setRedoStack([]);
@@ -488,6 +492,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to record ball");
       return false;
+    } finally {
+      savingBallRef.current = false;
     }
   };
   const requestSubmit = (partial: Parameters<typeof session.submitBall>[0]) => {
@@ -883,9 +889,12 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
             }}
             onRun={onRun}
             onExtra={(kind) => setExtraKind(kind)}
-            onQuickExtra={(kind) =>
-              requestSubmit(kind === "Wide" ? ballHelpers.wide(1) : ballHelpers.noBall(0, 0))
-            }
+            onQuickExtra={(kind) => {
+              requestSubmit(kind === "Wide" ? ballHelpers.wide(1) : ballHelpers.noBall(0, 0));
+              toast.success(kind === "Wide" ? "Wide added (+1)" : "No ball added (+1)", {
+                duration: 1500,
+              });
+            }}
             onOut={() => {
               setWicketKind(null);
               setDismissOpen(true);
@@ -1610,7 +1619,11 @@ function DemoScorerBody({
 
   /* ---------- ball submission ---------- */
   const [redoStack, setRedoStack] = useState<Awaited<ReturnType<typeof session.undo>>[]>([]);
+  // One ball at a time: a fast double tap must never save two balls.
+  const savingBallRef = useRef(false);
   const submit = async (partial: Parameters<typeof session.submitBall>[0]): Promise<boolean> => {
+    if (savingBallRef.current) return false;
+    savingBallRef.current = true;
     try {
       await session.submitBall(partial);
       setRedoStack([]);
@@ -1618,6 +1631,8 @@ function DemoScorerBody({
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to record ball");
       return false;
+    } finally {
+      savingBallRef.current = false;
     }
   };
   const requestSubmit = (partial: Parameters<typeof session.submitBall>[0]) => {
@@ -1895,9 +1910,12 @@ function DemoScorerBody({
             onOpenBowlerPicker={() => setPickBowlerOpen(true)}
             onRun={onRun}
             onExtra={(kind) => setExtraKind(kind)}
-            onQuickExtra={(kind) =>
-              requestSubmit(kind === "Wide" ? ballHelpers.wide(1) : ballHelpers.noBall(0, 0))
-            }
+            onQuickExtra={(kind) => {
+              requestSubmit(kind === "Wide" ? ballHelpers.wide(1) : ballHelpers.noBall(0, 0));
+              toast.success(kind === "Wide" ? "Wide added (+1)" : "No ball added (+1)", {
+                duration: 1500,
+              });
+            }}
             onOut={() => {
               setWicketKind(null);
               setDismissOpen(true);

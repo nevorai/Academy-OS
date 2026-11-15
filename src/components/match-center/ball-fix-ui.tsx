@@ -42,10 +42,10 @@ export function BallFixSheet({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[85dvh] gap-3 overflow-hidden p-0 sm:max-w-md">
         <DialogHeader className="px-4 pt-4 text-left">
-          <DialogTitle>Fix an earlier ball</DialogTitle>
+          <DialogTitle>Which ball was wrong?</DialogTitle>
           <DialogDescription>
-            Pick the ball that was scored wrong. You score it again with the normal buttons, then
-            the balls after it are put back.
+            Tap the ball. Then score it again with the normal buttons. The balls after it come back
+            by themselves.
           </DialogDescription>
         </DialogHeader>
 
@@ -59,15 +59,15 @@ export function BallFixSheet({
             </div>
             <p className="text-sm text-muted-foreground">
               {laterCount === 0
-                ? "This is the last ball. It will be taken off so you can score it again."
+                ? "This is the last ball. It is taken off so you can score it again."
                 : `This ball and the ${laterCount} ball${laterCount === 1 ? "" : "s"} after it are taken off the scorecard and held. The public score shows fewer balls until you tap Re-apply.`}
             </p>
             <div className="grid grid-cols-2 gap-2">
               <Button variant="outline" className="h-12" onClick={() => setPicked(null)}>
-                Pick another
+                Choose another
               </Button>
               <Button className="h-12" onClick={() => void goBack()}>
-                Go back to it
+                Score it again
               </Button>
             </div>
           </div>
@@ -145,16 +145,16 @@ export function BallFixBar({ fix }: { fix: BallFix }) {
           {fix.entered ? (
             <>
               <div className="font-semibold">
-                {held === 0 ? "Fixed. Ready to finish." : `Fixed. ${heldText} on hold.`}
+                {held === 0 ? "Done. Tap Finish." : `Done. ${heldText} waiting.`}
               </div>
               <div className="text-muted-foreground">
-                Score any missed ball first if needed, then re-apply.
+                Missed a ball? Score it now. Then tap the button below.
               </div>
             </>
           ) : (
             <>
               <div className="font-semibold">
-                Score {fix.originalLabel} again
+                Now score ball {fix.originalLabel} again
                 {fix.originalChip ? ` (it was ${fix.originalChip})` : ""}
               </div>
               <div className="text-muted-foreground">
@@ -170,7 +170,7 @@ export function BallFixBar({ fix }: { fix: BallFix }) {
         {fix.entered ? (
           <>
             <Button className="h-11" disabled={fix.busy} onClick={() => void fix.reapply()}>
-              {held === 0 ? "Finish" : `Re-apply ${heldText}`}
+              {held === 0 ? "Finish" : `Bring back ${heldText}`}
             </Button>
             {held > 0 ? (
               <Button
@@ -185,7 +185,7 @@ export function BallFixBar({ fix }: { fix: BallFix }) {
                   }
                 }}
               >
-                {sure ? "Tap again to discard" : "Discard them"}
+                {sure ? "Tap again to delete" : "Delete them"}
               </Button>
             ) : (
               <Button
@@ -194,7 +194,7 @@ export function BallFixBar({ fix }: { fix: BallFix }) {
                 disabled={fix.busy}
                 onClick={() => void fix.putBack()}
               >
-                <RotateCcw className="mr-1.5 size-4" /> Put it back
+                <RotateCcw className="mr-1.5 size-4" /> Cancel
               </Button>
             )}
           </>
@@ -205,7 +205,7 @@ export function BallFixBar({ fix }: { fix: BallFix }) {
             disabled={fix.busy}
             onClick={() => void fix.putBack()}
           >
-            <RotateCcw className="mr-1.5 size-4" /> Put it back as it was
+            <RotateCcw className="mr-1.5 size-4" /> Cancel, keep the old ball
           </Button>
         )}
       </div>
@@ -217,7 +217,7 @@ export function BallFixBar({ fix }: { fix: BallFix }) {
           disabled={fix.busy}
           onClick={() => void fix.putBack()}
         >
-          Cancel the fix and put everything back as it was
+          Cancel and keep everything as it was
         </Button>
       ) : null}
     </div>
